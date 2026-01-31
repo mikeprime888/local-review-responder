@@ -1,0 +1,190 @@
+// ===========================================
+// LOCAL REVIEW RESPONDER - Database Schema
+// ===========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// NextAuth.js Required Models
+// ===========================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ===========================================
+// Application Models
+// ===========================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+
+  // Stripe fields (for future use)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  subscriptionStatus   String?   // trial, active, past_due, canceled
+  trialEndsAt          DateTime?
+  currentPeriodEnd     DateTime?
+
+  // Notification preferences
+  notifyNewReviews   Boolean @default(true)
+  notifyLowRated     Boolean @default(true)
+  notifyWeeklyDigest Boolean @default(true)
+  notifyBilling      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  locations Location[]
+  responses ReviewResponse[]
+}
+
+model Location {
+  id               String    @id @default(cuid())
+  googleLocationId String    @unique
+  googleAccountId  String?
+  name             String
+  address          String?
+  phone            String?
+  website          String?
+  placeId          String?
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  reviews      Review[]
+  active       Boolean   @default(true)
+  lastSyncedAt DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([googleLocationId])
+}
+
+model Review {
+  id             String   @id @default(cuid())
+  googleReviewId String   @unique
+  
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  reviewer      String
+  reviewerPhoto String?
+  rating        Int
+  comment       String?  @db.Text
+  createTime    DateTime
+  updateTime    DateTime
+  
+  sentiment        String?  // positive, neutral, negative
+  notificationSent Boolean  @default(false)
+
+  response ReviewResponse?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([locationId])
+  @@index([rating])
+  @@index([createTime])
+  @@index([googleReviewId])
+}
+
+model ReviewResponse {
+  id       String @id @default(cuid())
+  
+  reviewId String @unique
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  comment       String   @db.Text
+  publishedTime DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ===========================================
+// Logging Models
+// ===========================================
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String   // welcome, new_review, low_rated_review, etc.
+  recipient String
+  subject   String
+  status    String   // sent, failed, bounced
+  sendgridId String?
+  error     String?
+  sentAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([sentAt])
+}
+
+model SyncLog {
+  id         String   @id @default(cuid())
+  locationId String?
+  status     String   // success, failed
+  reviewsFound Int     @default(0)
+  newReviews   Int     @default(0)
+  error      String?
+  syncedAt   DateTime @default(now())
+
+  @@index([locationId])
+  @@index([syncedAt])
+}
