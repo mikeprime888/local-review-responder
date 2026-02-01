@@ -9,13 +9,6 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope: 'openid email profile https://www.googleapis.com/auth/business.manage',
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
     }),
   ],
   callbacks: {
@@ -24,30 +17,6 @@ export const authOptions: NextAuthOptions = {
         session.user.id = user.id;
       }
       return session;
-    },
-    async signIn({ user, account }) {
-      // Store the access token and refresh token
-      if (account && user) {
-        try {
-          await prisma.account.update({
-            where: {
-              provider_providerAccountId: {
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-              },
-            },
-            data: {
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              expires_at: account.expires_at,
-            },
-          });
-        } catch (error) {
-          // Account might not exist yet on first sign in
-          console.log('Account update skipped (first sign in)');
-        }
-      }
-      return true;
     },
   },
   pages: {
