@@ -1,19 +1,14 @@
 'use client';
 
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 
-function LoginForm() {
+export default function LoginPage() {
   const { status } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-  const errorParam = searchParams.get('error');
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -21,21 +16,9 @@ function LoginForm() {
     }
   }, [status, router]);
 
-  useEffect(() => {
-    if (errorParam) {
-      setError('There was a problem signing in. Please try again.');
-    }
-  }, [errorParam]);
-
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    setError(null);
-    try {
-      await signIn('google', { callbackUrl });
-    } catch (err) {
-      setError('Failed to initiate sign in. Please try again.');
-      setIsLoading(false);
-    }
+    await signIn('google', { callbackUrl: '/dashboard' });
   };
 
   if (status === 'loading') {
@@ -57,11 +40,6 @@ function LoginForm() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Sign in to manage your Google reviews</p>
         </div>
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {error}
-          </div>
-        )}
         <button
           onClick={handleGoogleSignIn}
           disabled={isLoading}
@@ -84,13 +62,5 @@ function LoginForm() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
-      <LoginForm />
-    </Suspense>
   );
 }
