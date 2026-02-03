@@ -4,14 +4,6 @@ import { authOptions, getValidAccessToken } from '@/lib/auth';
 import { listAllLocations } from '@/lib/google-business';
 import { prisma } from '@/lib/prisma';
 
-/**
- * GET /api/subscriptions
- * 
- * Returns user's locations with subscription status
- * Query params:
- *   - available=true: Only show locations without active subscriptions (for adding new)
- *   - active=true: Only show active subscribed locations
- */
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -38,33 +30,33 @@ export async function GET(request: NextRequest) {
             where: {
               userId_googleAccountId_locationId: {
                 userId: session.user.id,
-                googleAccountId: loc.accountId,
-                locationId: loc.locationId,
+                googleAccountId: (loc as any).accountId || '',
+                locationId: (loc as any).locationId || '',
               },
             },
             create: {
               userId: session.user.id,
-              googleAccountId: loc.accountId,
-              googleAccountName: loc.accountName,
-              locationId: loc.locationId,
-              title: loc.title,
-              address: loc.address,
-              phone: loc.phone,
-              website: loc.website,
-              mapsUri: loc.mapsUri,
-              averageRating: loc.averageRating,
-              totalReviews: loc.totalReviews,
-              isActive: false, // Not active until subscribed
+              googleAccountId: (loc as any).accountId || '',
+              googleAccountName: (loc as any).accountName || null,
+              locationId: (loc as any).locationId || '',
+              title: (loc as any).title || 'Unknown',
+              address: (loc as any).address || null,
+              phone: (loc as any).phone || null,
+              website: (loc as any).website || null,
+              mapsUri: (loc as any).mapsUri || null,
+              averageRating: (loc as any).averageRating || null,
+              totalReviews: (loc as any).totalReviews || 0,
+              isActive: false,
             },
             update: {
-              googleAccountName: loc.accountName,
-              title: loc.title,
-              address: loc.address,
-              phone: loc.phone,
-              website: loc.website,
-              mapsUri: loc.mapsUri,
-              averageRating: loc.averageRating,
-              totalReviews: loc.totalReviews,
+              googleAccountName: (loc as any).accountName || null,
+              title: (loc as any).title || 'Unknown',
+              address: (loc as any).address || null,
+              phone: (loc as any).phone || null,
+              website: (loc as any).website || null,
+              mapsUri: (loc as any).mapsUri || null,
+              averageRating: (loc as any).averageRating || null,
+              totalReviews: (loc as any).totalReviews || 0,
             },
           });
         }
@@ -75,13 +67,11 @@ export async function GET(request: NextRequest) {
     let whereClause: any = { userId: session.user.id };
 
     if (showAvailable) {
-      // Locations without active subscriptions
       whereClause.OR = [
         { subscription: null },
         { subscription: { status: { notIn: ['active', 'trialing'] } } },
       ];
     } else if (showActive) {
-      // Only active subscribed locations
       whereClause.isActive = true;
     }
 
