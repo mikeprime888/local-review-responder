@@ -1,30 +1,28 @@
 'use client';
 
+import { useEffect, useState, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { LocationList } from '@/components/dashboard/LocationList';
-import { ReviewList } from '@/components/dashboard/ReviewList';
-import { StatsBar } from '@/components/dashboard/StatsBar';
-import { SyncButton } from '@/components/dashboard/SyncButton';
+import { useRouter, useSearchParams } from 'next/navigation';
+import LocationSwitcher from '@/components/dashboard/LocationSwitcher';
+import StatsBar from '@/components/dashboard/StatsBar';
+import ReviewList from '@/components/dashboard/ReviewList';
+import SyncButton from '@/components/dashboard/SyncButton';
 
 interface Location {
   id: string;
   title: string;
   address: string | null;
-  phone: string | null;
-  googleAccountId: string;
-  googleAccountName: string | null;
-  locationId: string;
   averageRating: number | null;
   totalReviews: number;
-  lastSyncedAt: string | null;
-  _count?: { reviews: number };
+  isActive: boolean;
+  subscription: {
+    status: string;
+    trialEnd: string | null;
+  } | null;
 }
 
 interface Review {
   id: string;
-  googleReviewId: string;
   reviewerName: string | null;
   reviewerPhoto: string | null;
   starRating: number;
@@ -32,32 +30,37 @@ interface Review {
   reviewReply: string | null;
   replyTime: string | null;
   googleCreatedAt: string;
-  location: {
-    title: string;
-    googleAccountId: string;
-    locationId: string;
-  };
 }
 
 interface Stats {
   totalReviews: number;
-  averageRating: number;
+  averageRating: number | null;
+  unrepliedCount: number;
   ratingBreakdown: Record<number, number>;
-  unreplied: number;
 }
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  
   const [locations, setLocations] = useState<Location[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Check for success message from Stripe
+  useEffect(() => {
+    if (searchParams.get('subscription') === 'success') {
+      setSuccessMessage('🎉 Location added successfully! Your 14-day free trial has started.');
+      // Clear the URL params
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, [searchParams]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -66,192 +69,180 @@ export default function DashboardPage() {
     }
   }, [status, router]);
 
-  // Load data on mount
-  useEffect(() => {
-    if (session?.user) {
-      loadLocations();
-      loadReviews();
-    }
-  }, [session]);
-
-  // Reload reviews when location filter changes
-  useEffect(() => {
-    if (session?.user) {
-      loadReviews();
-    }
-  }, [selectedLocation]);
-
-  async function loadLocations() {
+  // Fetch active (subscribed) locations
+  const fetchLocations = useCallback(async () => {
     try {
-      const res = await fetch('/api/google/locations');
-      const data = await res.json();
-      if (res.ok) {
-        setLocations(data.locations || []);
-      }
-    } catch (err) {
-      console.error('Failed to load locations:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
+      const response = await fetch('/api/subscriptions?active=true');
+      const data = await response.json();
 
-  async function loadReviews() {
-    try {
-      const params = new URLSearchParams();
-      if (selectedLocation) params.set('locationId', selectedLocation);
-
-      const res = await fetch(`/api/google/reviews?${params}`);
-      const data = await res.json();
-      if (res.ok) {
-        setReviews(data.reviews || []);
-        setStats(data.stats || null);
-      }
-    } catch (err) {
-      console.error('Failed to load reviews:', err);
-    }
-  }
-
-  async function handleSyncLocations() {
-    setSyncing(true);
-    setSyncMessage('');
-    setError('');
-
-    try {
-      // Step 1: Sync locations from Google
-      setSyncMessage('Fetching locations from Google...');
-      
-      // First get accounts
-      const accountsRes = await fetch('/api/google/accounts');
-      const accountsData = await accountsRes.json();
-      
-      if (!accountsRes.ok) {
-        throw new Error(accountsData.error || 'Failed to fetch accounts');
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch locations');
       }
 
-      const accounts = accountsData.accounts || [];
-      if (accounts.length === 0) {
-        throw new Error('No Google Business Profile accounts found for this Google account.');
-      }
+      setLocations(data.locations || []);
 
-      // Sync locations for each account
-      let totalLocations = 0;
-      for (const account of accounts) {
-        const accountId = account.name.replace('accounts/', '');
-        const locRes = await fetch(`/api/google/locations?sync=true&accountId=${accountId}`);
-        const locData = await locRes.json();
-        
-        if (locRes.ok) {
-          totalLocations += locData.synced || 0;
-        }
-      }
-
-      setSyncMessage(`Found ${totalLocations} locations. Now syncing reviews...`);
-
-      // Step 2: Sync reviews
-      const reviewRes = await fetch('/api/google/reviews?sync=true');
-      const reviewData = await reviewRes.json();
-
-      if (reviewRes.ok) {
-        setSyncMessage(
-          `✅ Synced ${totalLocations} locations and ${reviewData.synced} reviews!`
-        );
-      } else {
-        throw new Error(reviewData.error || 'Failed to sync reviews');
-      }
-
-      // Reload data
-      await loadLocations();
-      await loadReviews();
-    } catch (err: any) {
-      console.error('Sync error:', err);
-      setError(err.message || 'Sync failed');
-      setSyncMessage('');
-    } finally {
-      setSyncing(false);
-    }
-  }
-
-  async function handleSyncReviews() {
-    setSyncing(true);
-    setSyncMessage('Syncing reviews from Google...');
-    setError('');
-
-    try {
-      const params = new URLSearchParams({ sync: 'true' });
-      if (selectedLocation) params.set('locationId', selectedLocation);
-
-      const res = await fetch(`/api/google/reviews?${params}`);
-      const data = await res.json();
-
-      if (res.ok) {
-        setSyncMessage(`✅ ${data.message}`);
-        await loadReviews();
-        await loadLocations();
-      } else {
-        throw new Error(data.error || 'Failed to sync reviews');
+      // Auto-select first location if none selected
+      if (data.locations?.length > 0 && !selectedLocationId) {
+        setSelectedLocationId(data.locations[0].id);
       }
     } catch (err: any) {
       setError(err.message);
-      setSyncMessage('');
+    }
+  }, [selectedLocationId]);
+
+  // Fetch reviews for selected location
+  const fetchReviews = useCallback(async (locationId: string) => {
+    try {
+      const response = await fetch(`/api/google/reviews?locationId=${locationId}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch reviews');
+      }
+
+      setReviews(data.reviews || []);
+      setStats(data.stats || null);
+    } catch (err: any) {
+      console.error('Error fetching reviews:', err);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchLocations().finally(() => setLoading(false));
+    }
+  }, [status, fetchLocations]);
+
+  // Fetch reviews when location changes
+  useEffect(() => {
+    if (selectedLocationId) {
+      fetchReviews(selectedLocationId);
+    }
+  }, [selectedLocationId, fetchReviews]);
+
+  // Sync handler
+  const handleSync = async (type: 'all' | 'reviews') => {
+    if (!selectedLocationId) return;
+    
+    setSyncing(true);
+    setError(null);
+
+    try {
+      if (type === 'all') {
+        // Sync locations first
+        await fetch('/api/google/locations?sync=true');
+        await fetchLocations();
+      }
+
+      // Sync reviews
+      await fetch(`/api/google/reviews?sync=true&locationId=${selectedLocationId}`);
+      await fetchReviews(selectedLocationId);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setSyncing(false);
     }
-  }
+  };
 
-  async function handleReply(reviewId: string, comment: string) {
+  // Reply handler
+  const handleReply = async (reviewId: string, replyText: string) => {
     try {
-      const res = await fetch('/api/google/reviews/reply', {
+      const response = await fetch('/api/google/reviews/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewDbId: reviewId, comment }),
+        body: JSON.stringify({ reviewId, replyText }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || 'Failed to post reply');
       }
 
       // Refresh reviews
-      await loadReviews();
-      return true;
+      if (selectedLocationId) {
+        await fetchReviews(selectedLocationId);
+      }
     } catch (err: any) {
-      alert(err.message);
-      return false;
+      setError(err.message);
     }
-  }
+  };
 
-  async function handleDeleteReply(reviewId: string) {
-    if (!confirm('Are you sure you want to delete this reply?')) return false;
-
+  // Delete reply handler
+  const handleDeleteReply = async (reviewId: string) => {
     try {
-      const res = await fetch('/api/google/reviews/reply', {
+      const response = await fetch('/api/google/reviews/reply', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewDbId: reviewId }),
+        body: JSON.stringify({ reviewId }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || 'Failed to delete reply');
       }
 
-      await loadReviews();
-      return true;
+      // Refresh reviews
+      if (selectedLocationId) {
+        await fetchReviews(selectedLocationId);
+      }
     } catch (err: any) {
-      alert(err.message);
-      return false;
+      setError(err.message);
     }
-  }
+  };
+
+  const selectedLocation = locations.find((l) => l.id === selectedLocationId);
 
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // No subscribed locations - show onboarding
+  if (locations.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 className="text-xl font-bold text-gray-900">Local Review Responder</h1>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">{session?.user?.email}</span>
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-2xl mx-auto px-4 py-16 text-center">
+          <div className="bg-white rounded-lg border border-gray-200 p-8">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Local Review Responder!</h2>
+            <p className="text-gray-600 mb-8">
+              Get started by adding your first business location. You&apos;ll get a 14-day free trial.
+            </p>
+            <a
+              href="/dashboard/add-location"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Your First Location
+            </a>
+          </div>
+        </main>
       </div>
     );
   }
@@ -259,93 +250,86 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Local Review Responder
-            </h1>
-            <p className="text-sm text-gray-500">
-              Welcome, {session?.user?.name || session?.user?.email}
-            </p>
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <h1 className="text-xl font-bold text-gray-900">Local Review Responder</h1>
+            <LocationSwitcher
+              locations={locations}
+              selectedLocationId={selectedLocationId}
+              onLocationChange={setSelectedLocationId}
+            />
           </div>
           <div className="flex items-center gap-4">
-            <SyncButton
-              onSyncAll={handleSyncLocations}
-              onSyncReviews={handleSyncReviews}
-              syncing={syncing}
-            />
+            <SyncButton onSync={handleSync} syncing={syncing} />
+            <span className="text-sm text-gray-600">{session?.user?.email}</span>
             <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-4 py-2"
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="text-sm text-gray-500 hover:text-gray-700"
             >
-              Sign Out
+              Sign out
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Sync Status Messages */}
-        {syncMessage && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
-            {syncMessage}
-          </div>
-        )}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-            <strong>Error:</strong> {error}
-          </div>
-        )}
-
-        {/* Empty State - No locations yet */}
-        {locations.length === 0 && !syncing && (
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border">
-            <div className="text-6xl mb-4">🏪</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              No Locations Connected Yet
-            </h2>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Click &quot;Sync All&quot; to fetch your Google Business Profile locations
-              and reviews.
-            </p>
-            <button
-              onClick={handleSyncLocations}
-              disabled={syncing}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 flex items-center justify-between">
+            <span>{successMessage}</span>
+            <button 
+              onClick={() => setSuccessMessage(null)}
+              className="text-green-600 hover:text-green-800"
             >
-              {syncing ? 'Syncing...' : 'Connect Google Business Profile'}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         )}
 
-        {/* Dashboard with data */}
-        {locations.length > 0 && (
-          <>
-            {/* Stats Bar */}
-            {stats && <StatsBar stats={stats} />}
-
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Locations Sidebar */}
-              <div className="lg:col-span-1">
-                <LocationList
-                  locations={locations}
-                  selectedLocation={selectedLocation}
-                  onSelectLocation={setSelectedLocation}
-                />
-              </div>
-
-              {/* Reviews List */}
-              <div className="lg:col-span-3">
-                <ReviewList
-                  reviews={reviews}
-                  onReply={handleReply}
-                  onDeleteReply={handleDeleteReply}
-                />
-              </div>
+        {/* Trial Banner */}
+        {selectedLocation?.subscription?.status === 'trialing' && selectedLocation.subscription.trialEnd && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>
+                Free trial ends {new Date(selectedLocation.subscription.trialEnd).toLocaleDateString()}
+              </span>
             </div>
-          </>
+          </div>
         )}
+
+        {/* Error */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+            {error}
+            <button 
+              onClick={() => setError(null)}
+              className="ml-4 text-red-600 hover:text-red-800"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {/* Stats */}
+        {stats && <StatsBar stats={stats} />}
+
+        {/* Reviews */}
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Reviews for {selectedLocation?.title}
+          </h2>
+          <ReviewList
+            reviews={reviews}
+            onReply={handleReply}
+            onDeleteReply={handleDeleteReply}
+          />
+        </div>
       </main>
     </div>
   );

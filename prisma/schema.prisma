@@ -42,14 +42,16 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  locations     Location[]
+  id               String    @id @default(cuid())
+  name             String?
+  email            String?   @unique
+  emailVerified    DateTime?
+  image            String?
+  stripeCustomerId String?   @unique  // Stripe customer ID
+  accounts         Account[]
+  sessions         Session[]
+  locations        Location[]
+  subscriptions    Subscription[]
 }
 
 model VerificationToken {
@@ -58,6 +60,31 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ============================================
+// Subscription Model (Stripe)
+// ============================================
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String
+  locationId           String   @unique  // One subscription per location
+  stripeSubscriptionId String   @unique
+  stripePriceId        String
+  status               String   // 'trialing', 'active', 'canceled', 'past_due', etc.
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  trialEnd             DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeSubscriptionId])
 }
 
 // ============================================
@@ -77,15 +104,18 @@ model Location {
   mapsUri         String?   // Google Maps link
   averageRating   Float?    // Average star rating
   totalReviews    Int       @default(0)
+  isActive        Boolean   @default(false)  // Is this location subscribed/active?
   lastSyncedAt    DateTime? // Last time reviews were fetched
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviews Review[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews      Review[]
+  subscription Subscription?
 
   @@unique([userId, googleAccountId, locationId])
   @@index([userId])
+  @@index([isActive])
 }
 
 model Review {
