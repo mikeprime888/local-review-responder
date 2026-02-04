@@ -82,91 +82,6 @@ function AddLocationContent() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          cat > ~/Desktop/local-review-responder/src/app/dashboard/add-location/page.tsx << 'ENDOFFILE'
-'use client';
-
-import { Suspense, useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-
-interface Location {
-  id: string;
-  title: string;
-  address: string | null;
-  averageRating: number | null;
-  totalReviews: number;
-  googleAccountName: string | null;
-}
-
-function AddLocationContent() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
-  const [error, setError] = useState<string | null>(null);
-
-  const wasCanceled = searchParams.get('canceled') === 'true';
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    } else if (status === 'authenticated') {
-      fetchAvailableLocations();
-    }
-  }, [status, router]);
-
-  const fetchAvailableLocations = async (sync = false) => {
-    try {
-      if (sync) setSyncing(true);
-      setError(null);
-      const url = sync ? '/api/subscriptions?available=true&sync=true' : '/api/subscriptions?available=true';
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to fetch locations');
-      setLocations(data.locations || []);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setSyncing(false);
-    }
-  };
-
-  const handleAddLocation = async (locationId: string) => {
-    try {
-      setCheckoutLoading(locationId);
-      setError(null);
-      const response = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locationId, plan: selectedPlan }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to create checkout session');
-      if (data.url) window.location.href = data.url;
-    } catch (err: any) {
-      setError(err.message);
-      setCheckoutLoading(null);
-    }
-  };
-
-  if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-500 hover:text-gray-700">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,7 +152,7 @@ function AddLocationContent() {
                     <div className="font-medium text-gray-900">{location.title}</div>
                     {location.address && <div className="text-sm text-gray-500">{location.address}</div>}
                     <div className="text-sm text-gray-400 mt-1">
-                      {location.averageRating && `${location.averageRating} stars • `}{location.totalReviews} reviews
+                      {location.averageRating && `${location.averageRating} stars - `}{location.totalReviews} reviews
                     </div>
                   </div>
                   <button
