@@ -12,7 +12,7 @@ interface Location {
   id: string;
   title: string;
   address: string | null;
-  averageRating: number | null;
+  averageRating: number;
   totalReviews: number;
   isActive: boolean;
   subscription: {
@@ -34,7 +34,7 @@ interface Review {
 
 interface Stats {
   totalReviews: number;
-  averageRating: number | null;
+  averageRating: number;
   unreplied: number;
   ratingBreakdown: Record<number, number>;
 }
