@@ -158,16 +158,54 @@ export async function listAccounts(accessToken: string): Promise<GBPAccount[]> {
  * IMPORTANT: This API requires a readMask parameter!
  * The old API (v4) did not require this.
  */
+/**
+ * List all locations for a specific account
+ * Endpoint: GET mybusinessbusinessinformation.googleapis.com/v1/accounts/{accountId}/locations
+ * 
+ * IMPORTANT: This API requires a readMask parameter!
+ * The old API (v4) did not require this.
+ */
 export async function listLocations(
   accountId: string,
   accessToken: string
 ): Promise<GBPLocation[]> {
-  // readMask is REQUIRED - specifies which fields to return
   const readMask = 'name,title,storefrontAddress,websiteUri,phoneNumbers,metadata';
-  const url = `${API_URLS.businessInformation}/accounts/${accountId}/locations?readMask=${readMask}`;
+  let allLocations: GBPLocation[] = [];
+  let nextPageToken: string | undefined;
   
-  const data = await gbpFetch<{ locations?: GBPLocation[] }>(url, accessToken);
-  return data.locations || [];
+  do {
+    const url = `${API_URLS.businessInformation}/accounts/${accountId}/locations?readMask=${readMask}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
+    const data = await gbpFetch<{ locations?: GBPLocation[], nextPageToken?: string }>(url, accessToken);
+    
+    if (data.locations) {
+      allLocations = allLocations.concat(data.locations);
+    }
+    nextPageToken = data.nextPageToken;
+  } while (nextPageToken);
+  
+  return allLocations;
+}
+
+/**
+ * List ALL locations across all accounts (uses wildcard)
+ * Endpoint: GET mybusinessbusinessinformation.googleapis.com/v1/accounts/-/locations
+ */
+export async function listAllLocations(accessToken: string): Promise<GBPLocation[]> {
+  const readMask = 'name,title,storefrontAddress,websiteUri,phoneNumbers,metadata';
+  let allLocations: GBPLocation[] = [];
+  let nextPageToken: string | undefined;
+  
+  do {
+    const url = `${API_URLS.businessInformation}/accounts/-/locations?readMask=${readMask}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
+    const data = await gbpFetch<{ locations?: GBPLocation[], nextPageToken?: string }>(url, accessToken);
+    
+    if (data.locations) {
+      allLocations = allLocations.concat(data.locations);
+    }
+    nextPageToken = data.nextPageToken;
+  } while (nextPageToken);
+  
+  return allLocations;
 }
 
 /**
