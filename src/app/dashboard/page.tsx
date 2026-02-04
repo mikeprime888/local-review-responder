@@ -30,6 +30,7 @@ interface Review {
   reviewReply: string | null;
   replyTime: string | null;
   googleCreatedAt: string;
+  location: { title: string };
 }
 
 interface Stats {
@@ -52,6 +53,8 @@ export default function DashboardPage() {
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const selectedLocation = locations.find((l) => l.id === selectedLocationId);
 
   useEffect(() => {
     if (searchParams.get('subscription') === 'success') {
@@ -85,12 +88,17 @@ export default function DashboardPage() {
       const response = await fetch('/api/google/reviews?locationId=' + locationId);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to fetch reviews');
-      setReviews(data.reviews || []);
+      const loc = locations.find(l => l.id === locationId);
+      const reviewsWithLocation = (data.reviews || []).map((r: any) => ({
+        ...r,
+        location: { title: loc?.title || '' }
+      }));
+      setReviews(reviewsWithLocation);
       setStats(data.stats || null);
     } catch (err: any) {
       console.error('Error fetching reviews:', err);
     }
-  }, []);
+  }, [locations]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -132,7 +140,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleReply = async (reviewId: string, replyText: string) => {
+  const handleReply = async (reviewId: string, replyText: string): Promise<boolean> => {
     try {
       const response = await fetch('/api/google/reviews/reply', {
         method: 'POST',
@@ -144,12 +152,14 @@ export default function DashboardPage() {
         throw new Error(data.error || 'Failed to post reply');
       }
       if (selectedLocationId) await fetchReviews(selectedLocationId);
+      return true;
     } catch (err: any) {
       setError(err.message);
+      return false;
     }
   };
 
-  const handleDeleteReply = async (reviewId: string) => {
+  const handleDeleteReply = async (reviewId: string): Promise<boolean> => {
     try {
       const response = await fetch('/api/google/reviews/reply', {
         method: 'DELETE',
@@ -161,12 +171,12 @@ export default function DashboardPage() {
         throw new Error(data.error || 'Failed to delete reply');
       }
       if (selectedLocationId) await fetchReviews(selectedLocationId);
+      return true;
     } catch (err: any) {
       setError(err.message);
+      return false;
     }
   };
-
-  const selectedLocation = locations.find((l) => l.id === selectedLocationId);
 
   if (status === 'loading' || loading) {
     return (
