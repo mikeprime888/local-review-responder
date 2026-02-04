@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
         // Fetch ALL locations across all accounts
         googleLocations = await listAllLocations(accessToken);
       }
+            console.log('Google returned locations:', googleLocations.length, googleLocations.map(l => l.title));
 
       // We also need to know which account each location belongs to
       // If using wildcard, we need to fetch accounts first to map them
