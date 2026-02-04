@@ -55,7 +55,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (searchParams.get('subscription') === 'success') {
-      setSuccessMessage('🎉 Location added successfully! Your 14-day free trial has started.');
+      setSuccessMessage('Location added successfully! Your 14-day free trial has started.');
       window.history.replaceState({}, '', '/dashboard');
     }
   }, [searchParams]);
@@ -70,13 +70,8 @@ export default function DashboardPage() {
     try {
       const response = await fetch('/api/subscriptions?active=true');
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch locations');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch locations');
       setLocations(data.locations || []);
-
       if (data.locations?.length > 0 && !selectedLocationId) {
         setSelectedLocationId(data.locations[0].id);
       }
@@ -87,13 +82,9 @@ export default function DashboardPage() {
 
   const fetchReviews = useCallback(async (locationId: string) => {
     try {
-      const response = await fetch(`/api/google/reviews?locationId=${locationId}`);
+      const response = await fetch('/api/google/reviews?locationId=' + locationId);
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch reviews');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch reviews');
       setReviews(data.reviews || []);
       setStats(data.stats || null);
     } catch (err: any) {
@@ -108,24 +99,31 @@ export default function DashboardPage() {
   }, [status, fetchLocations]);
 
   useEffect(() => {
-    if (selectedLocationId) {
-      fetchReviews(selectedLocationId);
-    }
+    if (selectedLocationId) fetchReviews(selectedLocationId);
   }, [selectedLocationId, fetchReviews]);
 
-  const handleSync = async (type: 'all' | 'reviews') => {
+  const handleSyncAll = async () => {
     if (!selectedLocationId) return;
-    
     setSyncing(true);
     setError(null);
-
     try {
-      if (type === 'all') {
-        await fetch('/api/google/locations?sync=true');
-        await fetchLocations();
-      }
+      await fetch('/api/google/locations?sync=true');
+      await fetchLocations();
+      await fetch('/api/google/reviews?sync=true&locationId=' + selectedLocationId);
+      await fetchReviews(selectedLocationId);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
-      await fetch(`/api/google/reviews?sync=true&locationId=${selectedLocationId}`);
+  const handleSyncReviews = async () => {
+    if (!selectedLocationId) return;
+    setSyncing(true);
+    setError(null);
+    try {
+      await fetch('/api/google/reviews?sync=true&locationId=' + selectedLocationId);
       await fetchReviews(selectedLocationId);
     } catch (err: any) {
       setError(err.message);
@@ -141,15 +139,11 @@ export default function DashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reviewId, replyText }),
       });
-
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to post reply');
       }
-
-      if (selectedLocationId) {
-        await fetchReviews(selectedLocationId);
-      }
+      if (selectedLocationId) await fetchReviews(selectedLocationId);
     } catch (err: any) {
       setError(err.message);
     }
@@ -162,15 +156,11 @@ export default function DashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reviewId }),
       });
-
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to delete reply');
       }
-
-      if (selectedLocationId) {
-        await fetchReviews(selectedLocationId);
-      }
+      if (selectedLocationId) await fetchReviews(selectedLocationId);
     } catch (err: any) {
       setError(err.message);
     }
@@ -194,16 +184,10 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold text-gray-900">Local Review Responder</h1>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">{session?.user?.email}</span>
-              <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Sign out
-              </button>
+              <button onClick={() => signOut({ callbackUrl: '/login' })} className="text-sm text-gray-500 hover:text-gray-700">Sign out</button>
             </div>
           </div>
         </header>
-
         <main className="max-w-2xl mx-auto px-4 py-16 text-center">
           <div className="bg-white rounded-lg border border-gray-200 p-8">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -213,13 +197,8 @@ export default function DashboardPage() {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Local Review Responder!</h2>
-            <p className="text-gray-600 mb-8">
-              Get started by adding your first business location. You will get a 14-day free trial.
-            </p>
-            <a
-              href="/dashboard/add-location"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-            >
+            <p className="text-gray-600 mb-8">Get started by adding your first business location. You will get a 14-day free trial.</p>
+            <a href="/dashboard/add-location" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
@@ -237,76 +216,46 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <h1 className="text-xl font-bold text-gray-900">Local Review Responder</h1>
-            <LocationSwitcher
-              locations={locations}
-              selectedLocationId={selectedLocationId}
-              onLocationChange={setSelectedLocationId}
-            />
+            <LocationSwitcher locations={locations} selectedLocationId={selectedLocationId} onLocationChange={setSelectedLocationId} />
           </div>
           <div className="flex items-center gap-4">
-            <SyncButton onSync={handleSync} syncing={syncing} />
+            <SyncButton onSyncAll={handleSyncAll} onSyncReviews={handleSyncReviews} syncing={syncing} />
             <span className="text-sm text-gray-600">{session?.user?.email}</span>
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Sign out
-            </button>
+            <button onClick={() => signOut({ callbackUrl: '/login' })} className="text-sm text-gray-500 hover:text-gray-700">Sign out</button>
           </div>
         </div>
       </header>
-
       <main className="max-w-7xl mx-auto px-4 py-6">
         {successMessage && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 flex items-center justify-between">
             <span>{successMessage}</span>
-            <button 
-              onClick={() => setSuccessMessage(null)}
-              className="text-green-600 hover:text-green-800"
-            >
+            <button onClick={() => setSuccessMessage(null)} className="text-green-600 hover:text-green-800">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         )}
-
         {selectedLocation?.subscription?.status === 'trialing' && selectedLocation.subscription.trialEnd && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>
-                Free trial ends {new Date(selectedLocation.subscription.trialEnd).toLocaleDateString()}
-              </span>
+              <span>Free trial ends {new Date(selectedLocation.subscription.trialEnd).toLocaleDateString()}</span>
             </div>
           </div>
         )}
-
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
             {error}
-            <button 
-              onClick={() => setError(null)}
-              className="ml-4 text-red-600 hover:text-red-800"
-            >
-              Dismiss
-            </button>
+            <button onClick={() => setError(null)} className="ml-4 text-red-600 hover:text-red-800">Dismiss</button>
           </div>
         )}
-
         {stats && <StatsBar stats={stats} />}
-
         <div className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Reviews for {selectedLocation?.title}
-          </h2>
-          <ReviewList
-            reviews={reviews}
-            onReply={handleReply}
-            onDeleteReply={handleDeleteReply}
-          />
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Reviews for {selectedLocation?.title}</h2>
+          <ReviewList reviews={reviews} onReply={handleReply} onDeleteReply={handleDeleteReply} />
         </div>
       </main>
     </div>
