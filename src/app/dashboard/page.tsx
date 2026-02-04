@@ -4,9 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LocationSwitcher from '@/components/dashboard/LocationSwitcher';
-import StatsBar from '@/components/dashboard/StatsBar';
-import ReviewList from '@/components/dashboard/ReviewList';
-import SyncButton from '@/components/dashboard/SyncButton';
+import { StatsBar } from '@/components/dashboard/StatsBar';
+import { ReviewList } from '@/components/dashboard/ReviewList';
+import { SyncButton } from '@/components/dashboard/SyncButton';
 
 interface Location {
   id: string;
@@ -53,23 +53,19 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Check for success message from Stripe
   useEffect(() => {
     if (searchParams.get('subscription') === 'success') {
       setSuccessMessage('🎉 Location added successfully! Your 14-day free trial has started.');
-      // Clear the URL params
       window.history.replaceState({}, '', '/dashboard');
     }
   }, [searchParams]);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
     }
   }, [status, router]);
 
-  // Fetch active (subscribed) locations
   const fetchLocations = useCallback(async () => {
     try {
       const response = await fetch('/api/subscriptions?active=true');
@@ -81,7 +77,6 @@ export default function DashboardPage() {
 
       setLocations(data.locations || []);
 
-      // Auto-select first location if none selected
       if (data.locations?.length > 0 && !selectedLocationId) {
         setSelectedLocationId(data.locations[0].id);
       }
@@ -90,7 +85,6 @@ export default function DashboardPage() {
     }
   }, [selectedLocationId]);
 
-  // Fetch reviews for selected location
   const fetchReviews = useCallback(async (locationId: string) => {
     try {
       const response = await fetch(`/api/google/reviews?locationId=${locationId}`);
@@ -107,21 +101,18 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Initial load
   useEffect(() => {
     if (status === 'authenticated') {
       fetchLocations().finally(() => setLoading(false));
     }
   }, [status, fetchLocations]);
 
-  // Fetch reviews when location changes
   useEffect(() => {
     if (selectedLocationId) {
       fetchReviews(selectedLocationId);
     }
   }, [selectedLocationId, fetchReviews]);
 
-  // Sync handler
   const handleSync = async (type: 'all' | 'reviews') => {
     if (!selectedLocationId) return;
     
@@ -130,12 +121,10 @@ export default function DashboardPage() {
 
     try {
       if (type === 'all') {
-        // Sync locations first
         await fetch('/api/google/locations?sync=true');
         await fetchLocations();
       }
 
-      // Sync reviews
       await fetch(`/api/google/reviews?sync=true&locationId=${selectedLocationId}`);
       await fetchReviews(selectedLocationId);
     } catch (err: any) {
@@ -145,7 +134,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Reply handler
   const handleReply = async (reviewId: string, replyText: string) => {
     try {
       const response = await fetch('/api/google/reviews/reply', {
@@ -159,7 +147,6 @@ export default function DashboardPage() {
         throw new Error(data.error || 'Failed to post reply');
       }
 
-      // Refresh reviews
       if (selectedLocationId) {
         await fetchReviews(selectedLocationId);
       }
@@ -168,7 +155,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Delete reply handler
   const handleDeleteReply = async (reviewId: string) => {
     try {
       const response = await fetch('/api/google/reviews/reply', {
@@ -182,7 +168,6 @@ export default function DashboardPage() {
         throw new Error(data.error || 'Failed to delete reply');
       }
 
-      // Refresh reviews
       if (selectedLocationId) {
         await fetchReviews(selectedLocationId);
       }
@@ -201,7 +186,6 @@ export default function DashboardPage() {
     );
   }
 
-  // No subscribed locations - show onboarding
   if (locations.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -230,7 +214,7 @@ export default function DashboardPage() {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Local Review Responder!</h2>
             <p className="text-gray-600 mb-8">
-              Get started by adding your first business location. You&apos;ll get a 14-day free trial.
+              Get started by adding your first business location. You will get a 14-day free trial.
             </p>
             <a
               href="/dashboard/add-location"
@@ -249,7 +233,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
@@ -274,7 +257,6 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* Success Message */}
         {successMessage && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 flex items-center justify-between">
             <span>{successMessage}</span>
@@ -289,7 +271,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Trial Banner */}
         {selectedLocation?.subscription?.status === 'trialing' && selectedLocation.subscription.trialEnd && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
             <div className="flex items-center gap-2">
@@ -303,7 +284,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Error */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
             {error}
@@ -316,10 +296,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Stats */}
         {stats && <StatsBar stats={stats} />}
 
-        {/* Reviews */}
         <div className="mt-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Reviews for {selectedLocation?.title}
