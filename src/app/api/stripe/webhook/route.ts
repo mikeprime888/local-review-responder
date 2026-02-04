@@ -59,19 +59,20 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (!subscriptionId) return;
 
   const sub = await stripe.subscriptions.retrieve(subscriptionId);
+  const subData = sub as any;
   
   // Debug logging
   console.log('Subscription retrieved:', JSON.stringify(sub, null, 2));
   
   // Get timestamps with fallbacks
-  const currentPeriodStart = sub.current_period_start 
-    ? new Date(sub.current_period_start * 1000) 
+  const currentPeriodStart = subData.current_period_start 
+    ? new Date(subData.current_period_start * 1000) 
     : new Date();
-  const currentPeriodEnd = sub.current_period_end 
-    ? new Date(sub.current_period_end * 1000) 
+  const currentPeriodEnd = subData.current_period_end 
+    ? new Date(subData.current_period_end * 1000) 
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const trialEnd = sub.trial_end 
-    ? new Date(sub.trial_end * 1000) 
+  const trialEnd = subData.trial_end 
+    ? new Date(subData.trial_end * 1000) 
     : null;
 
   await prisma.subscription.upsert({
@@ -79,17 +80,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     create: {
       userId,
       locationId,
-      stripeSubscriptionId: sub.id,
-      stripePriceId: sub.items.data[0].price.id,
-      status: sub.status,
+      stripeSubscriptionId: subData.id,
+      stripePriceId: subData.items.data[0].price.id,
+      status: subData.status,
       currentPeriodStart,
       currentPeriodEnd,
       trialEnd,
     },
     update: {
-      stripeSubscriptionId: sub.id,
-      stripePriceId: sub.items.data[0].price.id,
-      status: sub.status,
+      stripeSubscriptionId: subData.id,
+      stripePriceId: subData.items.data[0].price.id,
+      status: subData.status,
       currentPeriodStart,
       currentPeriodEnd,
       trialEnd,
@@ -103,34 +104,36 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  const subData = subscription as any;
+  
   const existingSub = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscription.id },
   });
 
   if (!existingSub) return;
 
-  const currentPeriodStart = subscription.current_period_start 
-    ? new Date(subscription.current_period_start * 1000) 
+  const currentPeriodStart = subData.current_period_start 
+    ? new Date(subData.current_period_start * 1000) 
     : new Date();
-  const currentPeriodEnd = subscription.current_period_end 
-    ? new Date(subscription.current_period_end * 1000) 
+  const currentPeriodEnd = subData.current_period_end 
+    ? new Date(subData.current_period_end * 1000) 
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const trialEnd = subscription.trial_end 
-    ? new Date(subscription.trial_end * 1000) 
+  const trialEnd = subData.trial_end 
+    ? new Date(subData.trial_end * 1000) 
     : null;
 
   await prisma.subscription.update({
     where: { stripeSubscriptionId: subscription.id },
     data: {
-      status: subscription.status,
+      status: subData.status,
       currentPeriodStart,
       currentPeriodEnd,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      cancelAtPeriodEnd: subData.cancel_at_period_end,
       trialEnd,
     },
   });
 
-  const isActive = ['active', 'trialing'].includes(subscription.status);
+  const isActive = ['active', 'trialing'].includes(subData.status);
   await prisma.location.update({
     where: { id: existingSub.locationId },
     data: { isActive },
