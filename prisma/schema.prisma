@@ -42,12 +42,12 @@ model Session {
 }
 
 model User {
-  id               String    @id @default(cuid())
+  id               String         @id @default(cuid())
   name             String?
-  email            String?   @unique
+  email            String?        @unique
   emailVerified    DateTime?
   image            String?
-  stripeCustomerId String?   @unique  // Stripe customer ID
+  stripeCustomerId String?        @unique // Stripe customer ID
   accounts         Account[]
   sessions         Session[]
   locations        Location[]
@@ -69,7 +69,7 @@ model VerificationToken {
 model Subscription {
   id                   String   @id @default(cuid())
   userId               String
-  locationId           String   @unique  // One subscription per location
+  locationId           String   @unique // One subscription per location
   stripeSubscriptionId String   @unique
   stripePriceId        String
   status               String   // 'trialing', 'active', 'canceled', 'past_due', etc.
@@ -92,26 +92,27 @@ model Subscription {
 // ============================================
 
 model Location {
-  id              String    @id @default(cuid())
-  userId          String
-  googleAccountId String    // GBP account ID (e.g., "123456789")
-  googleAccountName String? // GBP account display name
-  locationId      String    // GBP location ID (e.g., "987654321")
-  title           String    // Business name
-  address         String?   // Formatted address
-  phone           String?   // Primary phone
-  website         String?   // Website URL
-  mapsUri         String?   // Google Maps link
-  averageRating   Float?    // Average star rating
-  totalReviews    Int       @default(0)
-  isActive        Boolean   @default(false)  // Is this location subscribed/active?
-  lastSyncedAt    DateTime? // Last time reviews were fetched
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String   @id @default(cuid())
+  userId            String
+  googleAccountId   String   // GBP account ID (e.g., "123456789")
+  googleAccountName String?  // GBP account display name
+  locationId        String   // GBP location ID (e.g., "987654321")
+  title             String   // Business name
+  address           String?  // Formatted address
+  phone             String?  // Primary phone
+  website           String?  // Website URL
+  mapsUri           String?  // Google Maps link
+  averageRating     Float?   // Average star rating
+  totalReviews      Int      @default(0)
+  isActive          Boolean  @default(false) // Is this location subscribed/active?
+  lastSyncedAt      DateTime? // Last time reviews were fetched
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviews      Review[]
-  subscription Subscription?
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews        Review[]
+  subscription   Subscription?
+  widgetSettings WidgetSettings?
 
   @@unique([userId, googleAccountId, locationId])
   @@index([userId])
@@ -130,6 +131,12 @@ model Review {
   replyTime       DateTime?
   googleCreatedAt DateTime  // When review was posted on Google
   googleUpdatedAt DateTime  // When review was last updated on Google
+  
+  // Widget display fields
+  isPublished     Boolean   @default(false) // Show on customer's website widget
+  publishedAt     DateTime? // When the review was published to widget
+  isFeatured      Boolean   @default(false) // Featured/pinned as testimonial
+  
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -139,4 +146,43 @@ model Review {
   @@index([locationId])
   @@index([starRating])
   @@index([googleCreatedAt])
+  @@index([isPublished])
+}
+
+// ============================================
+// Widget Settings Model
+// ============================================
+
+model WidgetSettings {
+  id              String   @id @default(cuid())
+  locationId      String   @unique // One widget config per location
+  
+  // Layout & Display
+  layout          String   @default("list") // 'list', 'grid', 'carousel'
+  theme           String   @default("light") // 'light', 'dark', 'auto'
+  accentColor     String   @default("#3B82F6") // Hex color
+  maxReviews      Int      @default(10) // Max reviews to display
+  
+  // Filtering
+  minStars        Int      @default(1) // Minimum star rating to show (1-5)
+  autoPublish     Boolean  @default(false) // Auto-publish reviews meeting minStars
+  autoPublishStars Int     @default(4) // Auto-publish reviews with X+ stars
+  
+  // Display Options
+  showDate        Boolean  @default(true)
+  showReviewerName Boolean @default(true)
+  showReviewerPhoto Boolean @default(true)
+  showRating      Boolean  @default(true)
+  showReply       Boolean  @default(false) // Show business owner replies
+  showSummary     Boolean  @default(true) // Show overall rating summary bar
+  showBadge       Boolean  @default(true) // "Powered by Local Review Responder"
+  
+  // Review Link
+  showReviewLink  Boolean  @default(false) // "Leave us a review" button
+  googleReviewUrl String?  // Direct link to leave a Google review
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 }

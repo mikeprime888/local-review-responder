@@ -25,7 +25,7 @@ export function NoLocationsFound({ userEmail, onRetry }: NoLocationsFoundProps) 
         </h2>
         
         <p className="text-gray-600 text-center mb-6">
-          We couldn't find any Google Business Profile locations connected to{' '}
+          We couldn&apos;t find any Google Business Profile locations connected to{' '}
           <span className="font-medium text-gray-900">{userEmail || 'your account'}</span>.
         </p>
 
@@ -38,15 +38,15 @@ export function NoLocationsFound({ userEmail, onRetry }: NoLocationsFoundProps) 
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">•</span>
-              You're signed into the wrong Google account
+              You&apos;re signed into the wrong Google account
             </li>
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">•</span>
-              You don't have admin/owner access to your business's Google Business Profile
+              You don&apos;t have admin/owner access to your business&apos;s Google Business Profile
             </li>
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">•</span>
-              Your business hasn't been claimed on Google yet
+              Your business hasn&apos;t been claimed on Google yet
             </li>
           </ul>
         </div>
@@ -80,7 +80,7 @@ export function NoLocationsFound({ userEmail, onRetry }: NoLocationsFoundProps) 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <h4 className="font-medium text-blue-900 mb-2 flex items-center">
             <UserPlus className="h-4 w-4 mr-2" />
-            Don't manage the Google account yourself?
+            Don&apos;t manage the Google account yourself?
           </h4>
           <p className="text-sm text-blue-800">
             Ask the person who manages your Google Business Profile (marketing team, agency, etc.) 
