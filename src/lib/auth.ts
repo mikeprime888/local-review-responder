@@ -1,7 +1,9 @@
 import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from './prisma';
+import bcrypt from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -11,7 +13,6 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          // Request GBP API access + offline access for refresh tokens
           scope: [
             'openid',
             'email',
@@ -19,17 +20,48 @@ export const authOptions: NextAuthOptions = {
             'https://www.googleapis.com/auth/business.manage',
           ].join(' '),
           access_type: 'offline',
-          prompt: 'consent',  // Force consent to always get refresh_token
+          prompt: 'consent',
         },
+      },
+    }),
+    CredentialsProvider({
+      name: 'credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Email and password are required');
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user || !user.password) {
+          throw new Error('Invalid email or password');
+        }
+
+        const isValid = await bcrypt.compare(credentials.password, user.password);
+
+        if (!isValid) {
+          throw new Error('Invalid email or password');
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
       },
     }),
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Store tokens in the database when user signs in
-      if (account && user) {
+      if (account?.provider === 'google' && user) {
         try {
-          // Update the account record with fresh tokens
           await prisma.account.updateMany({
             where: {
               userId: user.id,
@@ -44,16 +76,20 @@ export const authOptions: NextAuthOptions = {
             },
           });
         } catch (error) {
-          // On first sign-in, the adapter creates the account,
-          // so updateMany may not find it yet - that's OK
           console.log('Token update on sign-in (may be first login):', error);
         }
       }
       return true;
     },
-    async session({ session, user }) {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = user.id;
+        session.user.id = token.id as string;
       }
       return session;
     },
@@ -62,14 +98,11 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   session: {
-    strategy: 'database',
+    strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// ============================================
-// Helper: Get Google tokens for a user
-// ============================================
 export async function getGoogleTokens(userId: string) {
   const account = await prisma.account.findFirst({
     where: {
@@ -89,9 +122,6 @@ export async function getGoogleTokens(userId: string) {
   };
 }
 
-/**
- * Get a valid access token for a user, refreshing if needed
- */
 export async function getValidAccessToken(userId: string): Promise<string> {
   const tokens = await getGoogleTokens(userId);
 
@@ -99,7 +129,6 @@ export async function getValidAccessToken(userId: string): Promise<string> {
     throw new Error('No access token available. Please re-authenticate.');
   }
 
-  // Check if token is expired (with 5 min buffer)
   const now = Math.floor(Date.now() / 1000);
   const isExpired = tokens.expiresAt && (tokens.expiresAt - 300) < now;
 
@@ -110,7 +139,6 @@ export async function getValidAccessToken(userId: string): Promise<string> {
       const { refreshAccessToken } = await import('./google-business');
       const newTokens = await refreshAccessToken(tokens.refreshToken);
 
-      // Update tokens in database
       await prisma.account.updateMany({
         where: {
           userId,
