@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { MapPin, ExternalLink, Star, RefreshCw } from 'lucide-react';
 
 interface Location {
@@ -91,9 +92,12 @@ function LocationsContent() {
                         {location.subscription.status === 'trialing' ? 'Trial' : location.subscription.status}
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                        No subscription
-                      </span>
+                      <Link
+                        href="/dashboard/add-location"
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition-colors"
+                      >
+                        Subscribe →
+                      </Link>
                     )}
                   </div>
 
