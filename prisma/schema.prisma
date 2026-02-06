@@ -112,6 +112,7 @@ model Location {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews      Review[]
   subscription Subscription?
+  widgetSettings WidgetSettings?
 
   @@unique([userId, googleAccountId, locationId])
   @@index([userId])
@@ -124,6 +125,8 @@ model Review {
   googleReviewId  String    // Google's review ID
   reviewerName    String?
   reviewerPhoto   String?
+  isPublished     Boolean   @default(false)  // Widget: is this review visible on the embed?
+  publishedAt     DateTime?                  // Widget: when was it published?
   starRating      Int       // 1-5
   comment         String?   @db.Text
   reviewReply     String?   @db.Text
@@ -139,4 +142,26 @@ model Review {
   @@index([locationId])
   @@index([starRating])
   @@index([googleCreatedAt])
+  @@index([isPublished])
+}
+
+// ============================================
+// Widget Settings Model
+// ============================================
+
+model WidgetSettings {
+  id          String   @id @default(cuid())
+  locationId  String   @unique  // One widget config per location
+  layout      String   @default("carousel")  // "carousel", "grid", "list"
+  theme       String   @default("light")     // "light", "dark", "auto"
+  accentColor String   @default("#4F46E5")   // Hex color
+  maxReviews  Int      @default(10)
+  minStars    Int      @default(4)            // Only show reviews with this rating or higher
+  showDate    Boolean  @default(true)
+  showName    Boolean  @default(true)
+  showBadge   Boolean  @default(true)         // "Powered by Local Review Responder"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 }
