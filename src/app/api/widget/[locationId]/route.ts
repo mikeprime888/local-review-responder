@@ -53,6 +53,7 @@ export async function GET(
       select: {
         id: true,
         reviewerName: true,
+        reviewerPhoto: true,
         starRating: true,
         comment: true,
         googleCreatedAt: true,
@@ -67,6 +68,7 @@ export async function GET(
         title: location.title,
         averageRating: location.averageRating,
         totalReviews: location.totalReviews,
+        mapsUri: location.mapsUri,
       },
       settings: {
         layout: settings.layout,
