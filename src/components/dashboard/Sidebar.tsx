@@ -4,6 +4,7 @@ import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  Code,
   LayoutDashboard,
   Star,
   MapPin,
@@ -20,6 +21,7 @@ const navigation = [
   { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
   { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
   { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
+  { name: 'Review Widget', href: '/dashboard/widget', icon: Code },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -101,5 +103,3 @@ export function Sidebar() {
         </div>
       </div>
     </div>
-  );
-}
