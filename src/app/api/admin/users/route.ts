@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16' as any,
+});
 
 async function isAdminUser() {
   const session = await getServerSession(authOptions);
@@ -43,7 +48,7 @@ export async function GET() {
       orderBy: { email: 'asc' },
     });
 
-const formattedUsers = users.map((user) => ({
+    const formattedUsers = users.map((user) => ({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -89,6 +94,24 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Cancel all active Stripe subscriptions for this user
+    const subscriptions = await prisma.subscription.findMany({
+      where: { userId },
+      select: { stripeSubscriptionId: true, status: true },
+    });
+
+    for (const sub of subscriptions) {
+      if (['active', 'trialing', 'past_due'].includes(sub.status)) {
+        try {
+          await stripe.subscriptions.cancel(sub.stripeSubscriptionId);
+          console.log(`Canceled Stripe subscription ${sub.stripeSubscriptionId}`);
+        } catch (stripeError: any) {
+          console.error(`Failed to cancel Stripe subscription ${sub.stripeSubscriptionId}:`, stripeError.message);
+          // Continue with deletion even if Stripe cancel fails
+        }
+      }
+    }
+
     // Delete user (cascades to accounts, sessions, locations, subscriptions, reviews)
     await prisma.user.delete({
       where: { id: userId },
@@ -96,7 +119,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `User ${user.email} deleted successfully`,
+      message: `User ${user.email} deleted successfully (${subscriptions.length} subscription(s) canceled)`,
     });
   } catch (error) {
     console.error('Admin delete user error:', error);
