@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { sendEmail, getWelcomeEmailHtml } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -39,6 +40,16 @@ export async function POST(request: Request) {
         email,
         password: hashedPassword,
       },
+    });
+
+    // Send welcome email (non-blocking — don't let email failure prevent registration)
+    sendEmail({
+      to: email,
+      toName: name || undefined,
+      subject: 'Welcome to Local Review Responder — Here\'s How to Get Started',
+      html: getWelcomeEmailHtml(name),
+    }).catch((err) => {
+      console.error('Failed to send welcome email:', err);
     });
 
     return NextResponse.json(
