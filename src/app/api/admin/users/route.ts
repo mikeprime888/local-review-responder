@@ -28,7 +28,6 @@ export async function GET() {
         name: true,
         email: true,
         isAdmin: true,
-        createdAt: true,
         accounts: {
           select: {
             provider: true,
@@ -41,15 +40,14 @@ export async function GET() {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { email: 'asc' },
     });
 
-    const formattedUsers = users.map((user) => ({
+const formattedUsers = users.map((user) => ({
       id: user.id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-      createdAt: user.createdAt,
       providers: user.accounts.map((a) => a.provider),
       locationCount: user._count.locations,
       subscriptionCount: user._count.subscriptions,
