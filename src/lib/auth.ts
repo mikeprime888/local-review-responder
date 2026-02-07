@@ -11,6 +11,7 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
           scope: [
@@ -44,7 +45,6 @@ export const authOptions: NextAuthOptions = {
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
-
         if (!isValid) {
           throw new Error('Invalid email or password');
         }
@@ -81,15 +81,27 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+      }
+      // After Google OAuth linking, mark that Google is connected
+      if (account?.provider === 'google') {
+        token.hasGoogleAccount = true;
+      }
+      // On initial credentials login, check if Google account exists
+      if (user && !account?.provider?.includes('google')) {
+        const googleAccount = await prisma.account.findFirst({
+          where: { userId: user.id, provider: 'google' },
+        });
+        token.hasGoogleAccount = !!googleAccount;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        (session.user as any).hasGoogleAccount = token.hasGoogleAccount || false;
       }
       return session;
     },
@@ -134,7 +146,6 @@ export async function getValidAccessToken(userId: string): Promise<string> {
 
   if (isExpired && tokens.refreshToken) {
     console.log('Access token expired, refreshing...');
-    
     try {
       const { refreshAccessToken } = await import('./google-business');
       const newTokens = await refreshAccessToken(tokens.refreshToken);

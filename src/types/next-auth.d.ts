@@ -8,9 +8,9 @@ declare module 'next-auth' {
       name?: string | null;
       email?: string | null;
       image?: string | null;
+      hasGoogleAccount?: boolean;
     };
   }
-
   interface User {
     id: string;
   }
@@ -19,5 +19,6 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
+    hasGoogleAccount?: boolean;
   }
 }
