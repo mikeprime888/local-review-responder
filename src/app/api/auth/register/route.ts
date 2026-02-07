@@ -42,15 +42,17 @@ export async function POST(request: Request) {
       },
     });
 
-    // Send welcome email (non-blocking — don't let email failure prevent registration)
-    sendEmail({
-      to: email,
-      toName: name || undefined,
-      subject: 'Welcome to Local Review Responder — Here\'s How to Get Started',
-      html: getWelcomeEmailHtml(name),
-    }).catch((err) => {
+    // Send welcome email
+    try {
+      await sendEmail({
+        to: email,
+        toName: name || undefined,
+        subject: 'Welcome to Local Review Responder — Here\'s How to Get Started',
+        html: getWelcomeEmailHtml(name),
+      });
+    } catch (err) {
       console.error('Failed to send welcome email:', err);
-    });
+    }
 
     return NextResponse.json(
       { message: 'Account created successfully', userId: user.id },
