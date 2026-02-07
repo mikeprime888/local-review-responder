@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { sendEmail, getAccountClosedEmailHtml } from '@/lib/email';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -87,7 +88,7 @@ export async function DELETE(request: Request) {
     // Check user exists
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true },
+      select: { id: true, name: true, email: true },
     });
 
     if (!user) {
@@ -107,8 +108,22 @@ export async function DELETE(request: Request) {
           console.log(`Canceled Stripe subscription ${sub.stripeSubscriptionId}`);
         } catch (stripeError: any) {
           console.error(`Failed to cancel Stripe subscription ${sub.stripeSubscriptionId}:`, stripeError.message);
-          // Continue with deletion even if Stripe cancel fails
         }
+      }
+    }
+
+    // Send account closure notification email before deleting
+    if (user.email) {
+      try {
+        await sendEmail({
+          to: user.email,
+          toName: user.name || undefined,
+          subject: 'Your Local Review Responder Account Has Been Closed',
+          html: getAccountClosedEmailHtml(user.name || undefined),
+        });
+      } catch (emailError) {
+        console.error('Failed to send account closure email:', emailError);
+        // Continue with deletion even if email fails
       }
     }
 
