@@ -84,6 +84,12 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+        // Fetch isAdmin from database
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { isAdmin: true },
+        });
+        token.isAdmin = dbUser?.isAdmin || false;
       }
       // After Google OAuth linking, mark that Google is connected
       if (account?.provider === 'google') {
@@ -102,6 +108,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         (session.user as any).hasGoogleAccount = token.hasGoogleAccount || false;
+        (session.user as any).isAdmin = token.isAdmin || false;
       }
       return session;
     },

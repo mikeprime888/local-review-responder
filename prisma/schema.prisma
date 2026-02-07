@@ -1,8 +1,10 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
@@ -46,12 +48,14 @@ model User {
   email            String?   @unique
   emailVerified    DateTime?
   image            String?
-  password         String?   // Hashed password for email/password auth
-  stripeCustomerId String?   @unique  // Stripe customer ID
-  accounts         Account[]
-  sessions         Session[]
-  locations        Location[]
-  subscriptions    Subscription[]
+  password         String?          // Hashed password for email/password auth
+  isAdmin          Boolean   @default(false) // Admin flag
+  stripeCustomerId String?   @unique // Stripe customer ID
+
+  accounts      Account[]
+  sessions      Session[]
+  locations     Location[]
+  subscriptions Subscription[]
 }
 
 model VerificationToken {
@@ -69,7 +73,7 @@ model VerificationToken {
 model Subscription {
   id                   String   @id @default(cuid())
   userId               String
-  locationId           String   @unique  // One subscription per location
+  locationId           String   @unique // One subscription per location
   stripeSubscriptionId String   @unique
   stripePriceId        String
   status               String   // 'trialing', 'active', 'canceled', 'past_due', etc.
@@ -92,26 +96,26 @@ model Subscription {
 // ============================================
 
 model Location {
-  id              String    @id @default(cuid())
-  userId          String
-  googleAccountId String    // GBP account ID (e.g., "123456789")
-  googleAccountName String? // GBP account display name
-  locationId      String    // GBP location ID (e.g., "987654321")
-  title           String    // Business name
-  address         String?   // Formatted address
-  phone           String?   // Primary phone
-  website         String?   // Website URL
-  mapsUri         String?   // Google Maps link
-  averageRating   Float?    // Average star rating
-  totalReviews    Int       @default(0)
-  isActive        Boolean   @default(false)  // Is this location subscribed/active?
-  lastSyncedAt    DateTime? // Last time reviews were fetched
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String   @id @default(cuid())
+  userId            String
+  googleAccountId   String   // GBP account ID (e.g., "123456789")
+  googleAccountName String?  // GBP account display name
+  locationId        String   // GBP location ID (e.g., "987654321")
+  title             String   // Business name
+  address           String?  // Formatted address
+  phone             String?  // Primary phone
+  website           String?  // Website URL
+  mapsUri           String?  // Google Maps link
+  averageRating     Float?   // Average star rating
+  totalReviews      Int      @default(0)
+  isActive          Boolean  @default(false) // Is this location subscribed/active?
+  lastSyncedAt      DateTime? // Last time reviews were fetched
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviews      Review[]
-  subscription Subscription?
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews        Review[]
+  subscription   Subscription?
   widgetSettings WidgetSettings?
 
   @@unique([userId, googleAccountId, locationId])
@@ -120,21 +124,21 @@ model Location {
 }
 
 model Review {
-  id              String    @id @default(cuid())
-  locationId      String    // References our Location model
-  googleReviewId  String    // Google's review ID
+  id              String   @id @default(cuid())
+  locationId      String   // References our Location model
+  googleReviewId  String   // Google's review ID
   reviewerName    String?
   reviewerPhoto   String?
-  isPublished     Boolean   @default(false)  // Widget: is this review visible on the embed?
-  publishedAt     DateTime?                  // Widget: when was it published?
-  starRating      Int       // 1-5
-  comment         String?   @db.Text
-  reviewReply     String?   @db.Text
+  isPublished     Boolean  @default(false) // Widget: is this review visible on the embed?
+  publishedAt     DateTime? // Widget: when was it published?
+  starRating      Int      // 1-5
+  comment         String?  @db.Text
+  reviewReply     String?  @db.Text
   replyTime       DateTime?
-  googleCreatedAt DateTime  // When review was posted on Google
-  googleUpdatedAt DateTime  // When review was last updated on Google
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  googleCreatedAt DateTime // When review was posted on Google
+  googleUpdatedAt DateTime // When review was last updated on Google
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
@@ -150,16 +154,16 @@ model Review {
 // ============================================
 
 model WidgetSettings {
-  id          String   @id @default(cuid())
-  locationId  String   @unique  // One widget config per location
-  layout      String   @default("carousel")  // "carousel", "grid", "list"
-  theme       String   @default("light")     // "light", "dark", "auto"
-  accentColor String   @default("#4F46E5")   // Hex color
-  maxReviews  Int      @default(10)
-  minStars    Int      @default(4)            // Only show reviews with this rating or higher
-  showDate    Boolean  @default(true)
-  showName    Boolean  @default(true)
-  showBadge   Boolean  @default(true)         // "Powered by Local Review Responder"
+  id          String  @id @default(cuid())
+  locationId  String  @unique // One widget config per location
+  layout      String  @default("carousel") // "carousel", "grid", "list"
+  theme       String  @default("light")    // "light", "dark", "auto"
+  accentColor String  @default("#4F46E5")  // Hex color
+  maxReviews  Int     @default(10)
+  minStars    Int     @default(4)           // Only show reviews with this rating or higher
+  showDate    Boolean @default(true)
+  showName    Boolean @default(true)
+  showBadge   Boolean @default(true)        // "Powered by Local Review Responder"
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
