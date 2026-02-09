@@ -285,3 +285,170 @@ export function getAccountClosedEmailHtml(name?: string): string {
 </html>
   `.trim();
 }
+
+
+export function getNewReviewsEmailHtml(
+  name: string | undefined,
+  reviews: Array<{
+    locationTitle: string;
+    reviewerName: string;
+    starRating: number;
+    comment: string | null;
+  }>
+): string {
+  const greeting = name ? `Hi ${name},` : 'Hi there,';
+  const appUrl = process.env.NEXTAUTH_URL || 'https://local-review-responder.vercel.app';
+
+  // Group reviews by location
+  const byLocation = new Map<string, typeof reviews>();
+  for (const review of reviews) {
+    if (!byLocation.has(review.locationTitle)) {
+      byLocation.set(review.locationTitle, []);
+    }
+    byLocation.get(review.locationTitle)!.push(review);
+  }
+
+  const stars = (rating: number) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+  const reviewCards = Array.from(byLocation.entries())
+    .map(
+      ([location, locReviews]) => `
+      <tr>
+        <td style="padding: 0 0 24px;">
+          <p style="margin: 0 0 12px; font-size: 15px; font-weight: 600; color: #111827;">
+            📍 ${location}
+            <span style="font-weight: 400; color: #6b7280; font-size: 13px;">
+              — ${locReviews.length} new review${locReviews.length > 1 ? 's' : ''}
+            </span>
+          </p>
+          ${locReviews
+            .map(
+              (r) => `
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+            <tr>
+              <td style="background-color: #f9fafb; border-radius: 8px; border-left: 4px solid ${
+                r.starRating >= 4 ? '#22c55e' : r.starRating === 3 ? '#f59e0b' : '#ef4444'
+              }; padding: 14px 16px;">
+                <p style="margin: 0 0 4px; font-size: 14px;">
+                  <span style="color: ${
+                    r.starRating >= 4 ? '#16a34a' : r.starRating === 3 ? '#d97706' : '#dc2626'
+                  }; letter-spacing: 1px;">${stars(r.starRating)}</span>
+                  <span style="color: #374151; font-weight: 600; margin-left: 8px;">${r.reviewerName}</span>
+                </p>
+                ${
+                  r.comment
+                    ? `<p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: #4b5563;">"${
+                        r.comment.length > 200 ? r.comment.substring(0, 200) + '...' : r.comment
+                      }"</p>`
+                    : `<p style="margin: 8px 0 0; font-size: 13px; color: #9ca3af; font-style: italic;">No comment left</p>`
+                }
+              </td>
+            </tr>
+          </table>`
+            )
+            .join('')}
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  const needsReply = reviews.filter((r) => !r.comment || r.starRating <= 3).length;
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Reviews — Local Review Responder</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6;">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 28px 40px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 700;">⭐ Local Review Responder</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 32px 40px 0;">
+              <p style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #111827;">${greeting}</p>
+              <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6; color: #374151;">
+                You have <strong>${reviews.length} new review${reviews.length > 1 ? 's' : ''}</strong> since your last sync. Here's a summary:
+              </p>
+            </td>
+          </tr>
+
+          <!-- Review Cards -->
+          <tr>
+            <td style="padding: 0 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                ${reviewCards}
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding: 8px 40px 0;" align="center">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="border-radius: 8px; background-color: #2563eb;">
+                    <a href="${appUrl}/dashboard" target="_blank" style="display: inline-block; padding: 14px 36px; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 8px;">View & Respond to Reviews →</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Tip -->
+          <tr>
+            <td style="padding: 24px 40px 0;" align="center">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background-color: #fffbeb; border-radius: 8px; padding: 14px 20px; text-align: center;">
+                    <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #92400e;">
+                      💡 <strong>Tip:</strong> Responding to reviews within 24 hours boosts your local search ranking and builds customer trust.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 28px 40px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center;">
+                    <p style="margin: 0 0 8px; font-size: 12px; color: #9ca3af;">
+                      You're receiving this because you have active locations on Local Review Responder.
+                    </p>
+                    <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+                      <a href="#" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from review notifications</a> · <a href="https://localreviewresponder.com" style="color: #9ca3af; text-decoration: underline;">localreviewresponder.com</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+  `.trim();
+}
