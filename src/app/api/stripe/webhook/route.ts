@@ -3,6 +3,8 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
+import { getValidAccessToken } from '@/lib/auth';
+import { listAllReviews, starRatingToNumber, extractReviewId } from '@/lib/google-business';
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -101,6 +103,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     where: { id: locationId },
     data: { isActive: true },
   });
+
+  // Auto-sync reviews from Google after subscription activation
+  await syncReviewsForLocation(userId, locationId);
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -156,4 +161,79 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     where: { id: existingSub.locationId },
     data: { isActive: false },
   });
+}
+
+async function syncReviewsForLocation(userId: string, locationId: string) {
+  try {
+    const location = await prisma.location.findUnique({
+      where: { id: locationId },
+    });
+
+    if (!location) {
+      console.log(`Auto-sync: Location ${locationId} not found`);
+      return;
+    }
+
+    const accessToken = await getValidAccessToken(userId);
+
+    const result = await listAllReviews(
+      location.googleAccountId,
+      location.locationId,
+      accessToken
+    );
+
+    let synced = 0;
+    for (const review of result.reviews) {
+      const reviewId = extractReviewId(review.name);
+
+      await prisma.review.upsert({
+        where: {
+          locationId_googleReviewId: {
+            locationId: location.id,
+            googleReviewId: reviewId,
+          },
+        },
+        update: {
+          reviewerName: review.reviewer.displayName || 'Anonymous',
+          reviewerPhoto: review.reviewer.profilePhotoUrl || null,
+          starRating: starRatingToNumber(review.starRating),
+          comment: review.comment || null,
+          reviewReply: review.reviewReply?.comment || null,
+          replyTime: review.reviewReply?.updateTime
+            ? new Date(review.reviewReply.updateTime)
+            : null,
+          googleUpdatedAt: new Date(review.updateTime),
+        },
+        create: {
+          locationId: location.id,
+          googleReviewId: reviewId,
+          reviewerName: review.reviewer.displayName || 'Anonymous',
+          reviewerPhoto: review.reviewer.profilePhotoUrl || null,
+          starRating: starRatingToNumber(review.starRating),
+          comment: review.comment || null,
+          reviewReply: review.reviewReply?.comment || null,
+          replyTime: review.reviewReply?.updateTime
+            ? new Date(review.reviewReply.updateTime)
+            : null,
+          googleCreatedAt: new Date(review.createTime),
+          googleUpdatedAt: new Date(review.updateTime),
+        },
+      });
+      synced++;
+    }
+
+    await prisma.location.update({
+      where: { id: location.id },
+      data: {
+        averageRating: result.averageRating || null,
+        totalReviews: result.totalReviewCount || result.reviews.length,
+        lastSyncedAt: new Date(),
+      },
+    });
+
+    console.log(`Auto-sync: Synced ${synced} reviews for ${location.title}`);
+  } catch (error: any) {
+    // Don't throw - webhook should still succeed even if review sync fails
+    console.error(`Auto-sync failed for location ${locationId}:`, error.message);
+  }
 }
