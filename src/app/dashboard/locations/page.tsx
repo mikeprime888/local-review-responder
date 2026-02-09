@@ -115,7 +115,9 @@ function LocationsContent() {
                       </div>
                     )}
                     <span className="text-sm text-gray-500">
-                      {location.totalReviews} reviews
+                      {location.subscription
+                        ? `${location.totalReviews} reviews`
+                        : 'Subscribe to sync reviews'}
                     </span>
                     {location.phone && (
                       <span className="text-sm text-gray-500">{location.phone}</span>
