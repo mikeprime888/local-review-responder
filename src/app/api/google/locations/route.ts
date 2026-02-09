@@ -145,11 +145,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Default: return locations from database
-    const locations = await prisma.location.findMany({
+const locations = await prisma.location.findMany({
       where: { userId: session.user.id },
       include: {
         _count: {
           select: { reviews: true },
+        },
+        subscription: {
+          select: {
+            status: true,
+            trialEnd: true,
+          },
         },
       },
       orderBy: { title: 'asc' },
