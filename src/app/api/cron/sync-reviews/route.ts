@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     }> = [];
 
     // Process each user's locations
-    for (const [userId, locations] of locationsByUser) {
+    for (const [userId, locations] of Array.from(locationsByUser.entries())) {
       let accessToken: string;
       try {
         accessToken = await getValidAccessToken(userId);
