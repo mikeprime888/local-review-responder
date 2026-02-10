@@ -6,17 +6,16 @@ import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/google/reviews
- * 
+ *
  * Query params:
- *   ?locationId=xxx        - Filter reviews by our DB location ID
- *   ?sync=true             - Fetch fresh reviews from Google
- *   ?rating=5              - Filter by star rating (1-5)
- *   ?replied=true|false    - Filter by reply status
+ *   ?locationId=xxx   - Filter reviews by our DB location ID
+ *   ?sync=true        - Fetch fresh reviews from Google
+ *   ?rating=5         - Filter by star rating (1-5)
+ *   ?replied=true|false - Filter by reply status
  */
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
@@ -61,7 +60,6 @@ export async function GET(request: NextRequest) {
 
           // Upsert each review into database
           let locationSynced = 0;
-
           for (const review of result.reviews) {
             const reviewId = extractReviewId(review.name);
 
@@ -96,9 +94,10 @@ export async function GET(request: NextRequest) {
                   : null,
                 googleCreatedAt: new Date(review.createTime),
                 googleUpdatedAt: new Date(review.updateTime),
+                isPublished: true,
+                publishedAt: new Date(),
               },
             });
-
             locationSynced++;
           }
 
@@ -185,6 +184,7 @@ export async function GET(request: NextRequest) {
     const totalReviews = stats.reduce((sum, s) => sum + s._count, 0);
     const weightedSum = stats.reduce((sum, s) => sum + s.starRating * s._count, 0);
     const averageRating = totalReviews > 0 ? weightedSum / totalReviews : 0;
+
     const unreplied = await prisma.review.count({
       where: {
         location: { userId: session.user.id },

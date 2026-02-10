@@ -6,10 +6,10 @@ import { sendEmail, getNewReviewsEmailHtml } from '@/lib/email';
 
 /**
  * GET /api/cron/sync-reviews
- * 
+ *
  * Runs on a schedule (Vercel Cron) to sync reviews for all locations
  * with active subscriptions. Sends email notifications for new reviews.
- * 
+ *
  * Protected by CRON_SECRET to prevent unauthorized access.
  */
 export async function GET(request: NextRequest) {
@@ -27,7 +27,9 @@ export async function GET(request: NextRequest) {
       where: {
         isActive: true,
         subscription: {
-          status: { in: ['active', 'trialing'] },
+          status: {
+            in: ['active', 'trialing'],
+          },
         },
       },
       include: {
@@ -151,11 +153,12 @@ export async function GET(request: NextRequest) {
                   : null,
                 googleCreatedAt: new Date(review.createTime),
                 googleUpdatedAt: new Date(review.updateTime),
+                isPublished: true,
+                publishedAt: new Date(),
               },
             });
 
             synced++;
-
             if (isNew) {
               newCount++;
               userNewReviews.push({
