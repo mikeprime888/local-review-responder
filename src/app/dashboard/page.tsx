@@ -32,8 +32,6 @@ interface Review {
   googleCreatedAt: string;
   isPublished: boolean;
   publishedAt: string | null;
-  isPublished: boolean;
-  publishedAt: string | null;
   location: { title: string };
 }
 
