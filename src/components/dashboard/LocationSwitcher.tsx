@@ -90,7 +90,7 @@ export default function LocationSwitcher({
           <div className="md:hidden fixed inset-0 bg-black/30 z-40" onClick={() => setIsOpen(false)} />
           <div className="
             md:absolute md:top-full md:left-0 md:mt-1 md:w-80 md:rounded-lg md:shadow-lg
-            fixed bottom-0 left-0 right-0 z-50 md:z-50
+            fixed bottom-0 inset-x-0 w-full z-50 md:z-50 md:w-80
             bg-white border border-gray-200 
             rounded-t-2xl md:rounded-lg shadow-xl
             max-h-[75vh] md:max-h-none
