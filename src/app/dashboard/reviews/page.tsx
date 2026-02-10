@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import AIResponseGenerator from '@/components/AIResponseGenerator';
 
 interface Review {
   id: string;
@@ -108,6 +109,11 @@ function ReviewsContent() {
     } catch {
       console.error('Failed to delete reply');
     }
+  };
+
+  const handleAISelect = (reviewId: string, response: string) => {
+    setReplyingId(reviewId);
+    setReplyText(response);
   };
 
   const renderStars = (rating: number) => {
@@ -224,6 +230,20 @@ function ReviewsContent() {
                         Reply
                       </button>
                     )
+                  )}
+
+                  {/* AI Response Generator — shows for reviews without a reply */}
+                  {!review.reviewReply && (
+                    <AIResponseGenerator
+                      review={{
+                        id: review.id,
+                        reviewerName: review.reviewerName,
+                        rating: review.starRating,
+                        comment: review.comment,
+                      }}
+                      businessName={review.location?.title || 'Your Business'}
+                      onSelectResponse={(response) => handleAISelect(review.id, response)}
+                    />
                   )}
                 </div>
 
