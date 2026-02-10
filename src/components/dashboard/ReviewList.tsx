@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AIResponseGenerator from '@/components/AIResponseGenerator';
 
 interface Review {
@@ -12,8 +12,6 @@ interface Review {
   reviewReply: string | null;
   replyTime: string | null;
   googleCreatedAt: string;
-  isPublished: boolean;
-  publishedAt: string | null;
   location: {
     title: string;
   };
@@ -25,18 +23,10 @@ interface ReviewListProps {
   onDeleteReply: (reviewId: string) => Promise<boolean>;
 }
 
-export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: ReviewListProps) {
-  const [reviews, setReviews] = useState<Review[]>(propReviews);
+export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [editingReply, setEditingReply] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
-
-  // Keep local state in sync with parent props
-  useEffect(() => {
-    setReviews(propReviews);
-  }, [propReviews]);
 
   async function handleSubmitReply(reviewId: string) {
     if (!replyText.trim()) return;
@@ -44,7 +34,6 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
     const success = await onReply(reviewId, replyText);
     if (success) {
       setReplyingTo(null);
-      setEditingReply(null);
       setReplyText('');
     }
     setSubmitting(false);
@@ -52,43 +41,7 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
 
   function handleAISelect(reviewId: string, response: string) {
     setReplyingTo(reviewId);
-    setEditingReply(null);
     setReplyText(response);
-  }
-
-  function startEditReply(reviewId: string, currentReply: string) {
-    setEditingReply(reviewId);
-    setReplyingTo(null);
-    setReplyText(currentReply);
-  }
-
-  async function handleDeleteReply(reviewId: string) {
-    if (!confirm('Are you sure you want to delete this reply? The reviewer will be notified if you post a new one.')) {
-      return;
-    }
-    await onDeleteReply(reviewId);
-  }
-
-  async function togglePublish(reviewId: string) {
-    setTogglingId(reviewId);
-    try {
-      const response = await fetch(`/api/reviews/${reviewId}/publish`, {
-        method: 'PATCH',
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      setReviews((prev) =>
-        prev.map((r) =>
-          r.id === reviewId
-            ? { ...r, isPublished: data.isPublished, publishedAt: data.publishedAt }
-            : r
-        )
-      );
-    } catch (err) {
-      console.error('Error toggling publish:', err);
-    } finally {
-      setTogglingId(null);
-    }
   }
 
   function renderStars(rating: number) {
@@ -120,8 +73,6 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
     return `${Math.floor(diffDays / 365)} years ago`;
   }
 
-  const publishedCount = reviews.filter((r) => r.isPublished).length;
-
   if (reviews.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
@@ -140,18 +91,12 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
         <h2 className="font-semibold text-gray-900">
           Reviews ({reviews.length})
         </h2>
-        <div className="text-sm text-gray-600">
-          <span className="font-medium text-green-600">{publishedCount}</span> of{' '}
-          <span className="font-medium">{reviews.length}</span> published to widget
-        </div>
       </div>
 
       {reviews.map((review) => (
         <div
           key={review.id}
-          className={`bg-white rounded-xl shadow-sm border p-5 ${
-            review.isPublished ? 'border-green-200' : 'border-gray-200'
-          }`}
+          className="bg-white rounded-xl shadow-sm border p-5"
         >
           {/* Review Header */}
           <div className="flex items-start justify-between">
@@ -181,32 +126,10 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
               </div>
             </div>
 
-            {/* Location badge + Publish toggle */}
-            <div className="flex items-center gap-3">
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                {review.location.title}
-              </span>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-medium ${review.isPublished ? 'text-green-600' : 'text-gray-400'}`}>
-                  {review.isPublished ? 'Published' : 'Unpublished'}
-                </span>
-                <button
-                  onClick={() => togglePublish(review.id)}
-                  disabled={togglingId === review.id}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    togglingId === review.id ? 'opacity-50 cursor-wait' : 'cursor-pointer'
-                  } ${review.isPublished ? 'bg-green-500' : 'bg-gray-300'}`}
-                  role="switch"
-                  aria-checked={review.isPublished}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                      review.isPublished ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
+            {/* Location badge */}
+            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+              {review.location.title}
+            </span>
           </div>
 
           {/* Review Comment */}
@@ -217,7 +140,7 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
           )}
 
           {/* Existing Reply */}
-          {review.reviewReply && editingReply !== review.id && (
+          {review.reviewReply && (
             <div className="mt-4 bg-blue-50 border border-blue-100 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="text-xs font-medium text-blue-700">
@@ -228,59 +151,18 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => startEditReply(review.id, review.reviewReply!)}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteReply(review.id)}
-                    className="text-xs text-red-500 hover:text-red-700"
-                  >
-                    Delete
-                  </button>
-                </div>
+                <button
+                  onClick={() => onDeleteReply(review.id)}
+                  className="text-xs text-red-500 hover:text-red-700"
+                >
+                  Delete
+                </button>
               </div>
               <p className="mt-1 text-sm text-blue-900">{review.reviewReply}</p>
             </div>
           )}
 
-          {/* Edit Reply Form */}
-          {editingReply === review.id && (
-            <div className="mt-4">
-              <div className="text-xs font-medium text-gray-500 mb-1">Edit your reply</div>
-              <textarea
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                rows={3}
-                autoFocus
-              />
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => handleSubmitReply(review.id)}
-                  disabled={submitting || !replyText.trim()}
-                  className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                  {submitting ? 'Updating...' : 'Update Reply'}
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingReply(null);
-                    setReplyText('');
-                  }}
-                  className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2"
-                >
-                  Cancel
-                </button>
-              </div>
-              <p className="text-xs text-gray-400 mt-1">Updating a reply does not re-notify the reviewer.</p>
-            </div>
-          )}
-
-          {/* Reply Button / Form / AI Generator — for reviews without a reply */}
+          {/* Reply Button / Form / AI Generator */}
           {!review.reviewReply && (
             <>
               {replyingTo === review.id ? (
@@ -318,7 +200,7 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
                     onClick={() => setReplyingTo(review.id)}
                     className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    Write Your Own Reply →
+                    Reply →
                   </button>
                 </div>
               )}
