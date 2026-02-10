@@ -11,16 +11,6 @@ interface Location {
   totalReviews: number;
 }
 
-interface Review {
-  id: string;
-  reviewerName: string | null;
-  starRating: number;
-  comment: string | null;
-  googleCreatedAt: string;
-  isPublished: boolean;
-  publishedAt: string | null;
-}
-
 interface WidgetSettings {
   layout: string;
   theme: string;
@@ -48,13 +38,11 @@ function WidgetContent() {
   const router = useRouter();
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [settings, setSettings] = useState<WidgetSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'reviews' | 'design' | 'embed'>('reviews');
+  const [activeTab, setActiveTab] = useState<'design' | 'embed'>('design');
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
 
@@ -76,17 +64,6 @@ function WidgetContent() {
     }
   }, [selectedLocationId]);
 
-  const fetchReviews = useCallback(async (locationId: string) => {
-    try {
-      const response = await fetch('/api/google/reviews?locationId=' + locationId);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      setReviews(data.reviews || []);
-    } catch (err: any) {
-      console.error('Error fetching reviews:', err);
-    }
-  }, []);
-
   const fetchSettings = useCallback(async (locationId: string) => {
     try {
       const response = await fetch('/api/widget/' + locationId);
@@ -105,32 +82,9 @@ function WidgetContent() {
 
   useEffect(() => {
     if (selectedLocationId) {
-      fetchReviews(selectedLocationId);
       fetchSettings(selectedLocationId);
     }
-  }, [selectedLocationId, fetchReviews, fetchSettings]);
-
-  const togglePublish = async (reviewId: string) => {
-    setTogglingId(reviewId);
-    try {
-      const response = await fetch(`/api/reviews/${reviewId}/publish`, {
-        method: 'PATCH',
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      setReviews((prev) =>
-        prev.map((r) =>
-          r.id === reviewId
-            ? { ...r, isPublished: data.isPublished, publishedAt: data.publishedAt }
-            : r
-        )
-      );
-    } catch (err: any) {
-      console.error('Error toggling publish:', err);
-    } finally {
-      setTogglingId(null);
-    }
-  };
+  }, [selectedLocationId, fetchSettings]);
 
   const saveSettings = async () => {
     if (!selectedLocationId) return;
@@ -149,8 +103,6 @@ function WidgetContent() {
     }
   };
 
-  const publishedCount = reviews.filter((r) => r.isPublished).length;
-
   const embedCode = `<div id="lrr-reviews" data-location="${selectedLocationId || ''}"></div>
 <script src="${typeof window !== 'undefined' ? window.location.origin : ''}/widget.js" async></script>`;
 
@@ -158,10 +110,6 @@ function WidgetContent() {
     navigator.clipboard.writeText(embedCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const renderStars = (rating: number) => {
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
   };
 
   if (status === 'loading' || loading) {
@@ -180,7 +128,7 @@ function WidgetContent() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Review Widget</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Manage and embed reviews on your website
+              Customize and embed reviews on your website
             </p>
           </div>
           {locations.length > 1 && (
@@ -198,28 +146,20 @@ function WidgetContent() {
           )}
         </div>
 
-        {/* Stats bar */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">Total Reviews</p>
-            <p className="text-2xl font-bold text-gray-900">{reviews.length}</p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">Published to Widget</p>
-            <p className="text-2xl font-bold text-green-600">{publishedCount}</p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <p className="text-sm text-gray-600">Location</p>
-            <p className="text-lg font-semibold text-gray-900 truncate">
-              {selectedLocation?.title || 'Select a location'}
-            </p>
-          </div>
+        {/* Location info */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+          <p className="text-sm text-gray-600">
+            Location: <span className="font-semibold text-gray-900">{selectedLocation?.title || 'Select a location'}</span>
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Manage which reviews appear in the widget from the <a href="/dashboard/reviews" className="text-blue-600 hover:underline">Reviews</a> page.
+          </p>
         </div>
 
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="flex space-x-8">
-            {(['reviews', 'design', 'embed'] as const).map((tab) => (
+            {(['design', 'embed'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -229,61 +169,11 @@ function WidgetContent() {
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {tab === 'reviews' ? 'Published Reviews' : tab === 'design' ? 'Design' : 'Embed Code'}
+                {tab === 'design' ? 'Design' : 'Embed Code'}
               </button>
             ))}
           </nav>
         </div>
-
-        {/* Reviews Tab */}
-        {activeTab === 'reviews' && (
-          <div className="space-y-3">
-            {reviews.length === 0 ? (
-              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-                No reviews found. Sync your reviews from the dashboard first.
-              </div>
-            ) : (
-              reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className={`bg-white rounded-lg border p-4 flex items-start justify-between ${
-                    review.isPublished ? 'border-green-200 bg-green-50/30' : 'border-gray-200'
-                  }`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-yellow-500 text-sm">{renderStars(review.starRating)}</span>
-                      <span className="text-sm text-gray-600">
-                        {review.reviewerName || 'Anonymous'}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(review.googleCreatedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-800 line-clamp-2">
-                      {review.comment || 'No comment'}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => togglePublish(review.id)}
-                    disabled={togglingId === review.id}
-                    className={`ml-4 flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
-                      review.isPublished
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    } ${togglingId === review.id ? 'opacity-50' : ''}`}
-                  >
-                    {togglingId === review.id
-                      ? '...'
-                      : review.isPublished
-                      ? 'Published'
-                      : 'Publish'}
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        )}
 
         {/* Design Tab */}
         {activeTab === 'design' && (
@@ -301,6 +191,7 @@ function WidgetContent() {
                   <option value="list">List</option>
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Theme</label>
                 <select
@@ -313,6 +204,7 @@ function WidgetContent() {
                   <option value="auto">Auto</option>
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Accent Color</label>
                 <div className="flex items-center gap-2">
@@ -325,13 +217,16 @@ function WidgetContent() {
                   <span className="text-sm text-gray-500">{settings.accentColor}</span>
                 </div>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Minimum Stars
                 </label>
                 <select
                   value={settings.minStars}
-                  onChange={(e) => setSettings({ ...settings, minStars: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setSettings({ ...settings, minStars: parseInt(e.target.value) })
+                  }
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                 >
                   {[1, 2, 3, 4, 5].map((n) => (
@@ -341,6 +236,7 @@ function WidgetContent() {
                   ))}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Max Reviews Shown
@@ -356,6 +252,7 @@ function WidgetContent() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                 />
               </div>
+
               <div className="space-y-3">
                 <label className="flex items-center gap-2">
                   <input
@@ -386,6 +283,7 @@ function WidgetContent() {
                 </label>
               </div>
             </div>
+
             <div className="mt-6 flex justify-end">
               <button
                 onClick={saveSettings}
@@ -418,8 +316,8 @@ function WidgetContent() {
             </div>
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Tip:</strong> The widget will only display reviews you have published.
-                Currently {publishedCount} review{publishedCount !== 1 ? 's' : ''} will appear.
+                <strong>Tip:</strong> The widget displays reviews you&apos;ve published on the{' '}
+                <a href="/dashboard/reviews" className="underline">Reviews</a> page.
               </p>
             </div>
           </div>
