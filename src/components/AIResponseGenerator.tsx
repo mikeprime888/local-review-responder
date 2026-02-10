@@ -65,6 +65,11 @@ export default function AIResponseGenerator({
     }
   };
 
+  const handleEditResponse = (tone: string, newText: string) => {
+    if (!responses) return;
+    setResponses({ ...responses, [tone]: newText });
+  };
+
   const handleCopy = async (tone: string, text: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(tone);
@@ -136,7 +141,7 @@ export default function AIResponseGenerator({
         <div className="mt-2 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              AI-Generated Responses
+              AI-Generated Responses — click to edit
             </span>
             <button
               onClick={generateResponses}
@@ -173,10 +178,13 @@ export default function AIResponseGenerator({
                   )}
                 </div>
 
-                {/* Response Text */}
-                <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                  {text}
-                </p>
+                {/* Editable Response Text */}
+                <textarea
+                  value={text}
+                  onChange={(e) => handleEditResponse(tone, e.target.value)}
+                  className="w-full text-sm text-gray-700 leading-relaxed mb-3 p-2 border border-gray-200 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+                  rows={4}
+                />
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
