@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import AIResponseGenerator from '@/components/AIResponseGenerator';
 
 interface Review {
   id: string;
@@ -36,6 +37,11 @@ export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps)
       setReplyText('');
     }
     setSubmitting(false);
+  }
+
+  function handleAISelect(reviewId: string, response: string) {
+    setReplyingTo(reviewId);
+    setReplyText(response);
   }
 
   function renderStars(rating: number) {
@@ -156,7 +162,7 @@ export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps)
             </div>
           )}
 
-          {/* Reply Button / Form */}
+          {/* Reply Button / Form / AI Generator */}
           {!review.reviewReply && (
             <>
               {replyingTo === review.id ? (
@@ -189,13 +195,27 @@ export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps)
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => setReplyingTo(review.id)}
-                  className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  Reply →
-                </button>
+                <div className="mt-3 flex items-center gap-3">
+                  <button
+                    onClick={() => setReplyingTo(review.id)}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Reply →
+                  </button>
+                </div>
               )}
+
+              {/* AI Response Generator */}
+              <AIResponseGenerator
+                review={{
+                  id: review.id,
+                  reviewerName: review.reviewerName,
+                  rating: review.starRating,
+                  comment: review.comment,
+                }}
+                businessName={review.location?.title || 'Your Business'}
+                onSelectResponse={(response) => handleAISelect(review.id, response)}
+              />
             </>
           )}
         </div>
