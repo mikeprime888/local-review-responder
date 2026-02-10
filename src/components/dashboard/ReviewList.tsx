@@ -261,7 +261,7 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
                     onClick={() => setReplyingTo(review.id)}
                     className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    Reply →
+                    Write Your Own Reply
                   </button>
                 </div>
               )}
