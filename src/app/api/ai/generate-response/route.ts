@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
 
     const { reviewerName, rating, comment, businessName } = await request.json();
 
-    if (!comment || !businessName) {
+    if (!businessName) {
       return NextResponse.json(
-        { error: 'Missing required fields: comment and businessName' },
+        { error: 'Missing required field: businessName' },
         { status: 400 }
       );
     }
@@ -30,12 +30,25 @@ export async function POST(request: NextRequest) {
       ? 'Empathetic & apologetic — acknowledge the issue, offer to make it right'
       : 'Enthusiastic & appreciative — show genuine excitement about their experience';
 
+    // Build review details section based on whether there's a comment
+    const hasComment = comment && comment.trim().length > 0;
+    const reviewDetails = hasComment
+      ? `- Rating: ${rating}/5 stars
+- Reviewer: ${reviewerName || 'A customer'}
+- Comment: "${comment}"`
+      : `- Rating: ${rating}/5 stars
+- Reviewer: ${reviewerName || 'A customer'}
+- No written comment was left (rating only)`;
+
+    const commentGuidance = hasComment
+      ? `- Reference specific points from their comment where appropriate`
+      : `- Since no comment was left, write a brief thank-you for their rating
+- Keep responses shorter (30-60 words) since there is less to respond to`;
+
     const prompt = `You are a professional customer service representative for "${businessName}".
 
 A customer left this review:
-- Reviewer: ${reviewerName || 'A customer'}
-- Rating: ${rating}/5 stars
-- Review: "${comment}"
+${reviewDetails}
 
 Generate exactly 3 response options in different tones:
 
@@ -44,9 +57,10 @@ Generate exactly 3 response options in different tones:
 3. **${thirdToneLabel}** — ${thirdToneDesc}
 
 Requirements for ALL responses:
-- 50-100 words each
+- ${hasComment ? '50-100 words each' : '30-60 words each'}
 - Address the reviewer by first name if available
 - ${isNegative ? 'Acknowledge the issue and offer to resolve it (invite them to contact you directly)' : 'Thank them sincerely for the positive review'}
+${commentGuidance}
 - Sound natural and human (not robotic or generic)
 - Do NOT use placeholder brackets like [Manager Name] or [Phone Number]
 - End with an invitation to return or continue the relationship

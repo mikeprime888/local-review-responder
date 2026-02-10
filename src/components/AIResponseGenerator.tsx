@@ -88,15 +88,6 @@ export default function AIResponseGenerator({
     enthusiastic: { label: 'Enthusiastic', emoji: '🎉', color: 'bg-purple-50 border-purple-200 text-purple-800' },
   };
 
-  // Don't show for reviews with no comment
-  if (!review.comment) {
-    return (
-      <div className="text-sm text-gray-400 italic mt-2">
-        No comment to respond to
-      </div>
-    );
-  }
-
   return (
     <div className="mt-3">
       {/* Generate Button */}
