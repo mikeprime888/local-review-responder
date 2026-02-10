@@ -366,7 +366,7 @@ function DashboardContent() {
         {stats && <StatsBar stats={stats} />}
 
         <div className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Reviews for {selectedLocation?.title}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2"><svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>Reviews for {selectedLocation?.title}</h2>
           <ReviewList reviews={reviews} onReply={handleReply} onDeleteReply={handleDeleteReply} />
         </div>
       </main>
