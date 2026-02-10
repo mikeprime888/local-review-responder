@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AIResponseGenerator from '@/components/AIResponseGenerator';
 
 interface Review {
@@ -12,6 +12,8 @@ interface Review {
   reviewReply: string | null;
   replyTime: string | null;
   googleCreatedAt: string;
+  isPublished: boolean;
+  publishedAt: string | null;
   location: {
     title: string;
   };
@@ -23,10 +25,17 @@ interface ReviewListProps {
   onDeleteReply: (reviewId: string) => Promise<boolean>;
 }
 
-export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps) {
+export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: ReviewListProps) {
+  const [reviews, setReviews] = useState<Review[]>(propReviews);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  // Keep local state in sync with parent props
+  useEffect(() => {
+    setReviews(propReviews);
+  }, [propReviews]);
 
   async function handleSubmitReply(reviewId: string) {
     if (!replyText.trim()) return;
@@ -42,6 +51,28 @@ export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps)
   function handleAISelect(reviewId: string, response: string) {
     setReplyingTo(reviewId);
     setReplyText(response);
+  }
+
+  async function togglePublish(reviewId: string) {
+    setTogglingId(reviewId);
+    try {
+      const response = await fetch(`/api/reviews/${reviewId}/publish`, {
+        method: 'PATCH',
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === reviewId
+            ? { ...r, isPublished: data.isPublished, publishedAt: data.publishedAt }
+            : r
+        )
+      );
+    } catch (err) {
+      console.error('Error toggling publish:', err);
+    } finally {
+      setTogglingId(null);
+    }
   }
 
   function renderStars(rating: number) {
@@ -73,6 +104,8 @@ export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps)
     return `${Math.floor(diffDays / 365)} years ago`;
   }
 
+  const publishedCount = reviews.filter((r) => r.isPublished).length;
+
   if (reviews.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
@@ -91,12 +124,18 @@ export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps)
         <h2 className="font-semibold text-gray-900">
           Reviews ({reviews.length})
         </h2>
+        <div className="text-sm text-gray-600">
+          <span className="font-medium text-green-600">{publishedCount}</span> of{' '}
+          <span className="font-medium">{reviews.length}</span> published to widget
+        </div>
       </div>
 
       {reviews.map((review) => (
         <div
           key={review.id}
-          className="bg-white rounded-xl shadow-sm border p-5"
+          className={`bg-white rounded-xl shadow-sm border p-5 ${
+            review.isPublished ? 'border-green-200' : 'border-gray-200'
+          }`}
         >
           {/* Review Header */}
           <div className="flex items-start justify-between">
@@ -126,10 +165,32 @@ export function ReviewList({ reviews, onReply, onDeleteReply }: ReviewListProps)
               </div>
             </div>
 
-            {/* Location badge */}
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-              {review.location.title}
-            </span>
+            {/* Location badge + Publish toggle */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                {review.location.title}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-medium ${review.isPublished ? 'text-green-600' : 'text-gray-400'}`}>
+                  {review.isPublished ? 'Published' : 'Unpublished'}
+                </span>
+                <button
+                  onClick={() => togglePublish(review.id)}
+                  disabled={togglingId === review.id}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    togglingId === review.id ? 'opacity-50 cursor-wait' : 'cursor-pointer'
+                  } ${review.isPublished ? 'bg-green-500' : 'bg-gray-300'}`}
+                  role="switch"
+                  aria-checked={review.isPublished}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      review.isPublished ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Review Comment */}
