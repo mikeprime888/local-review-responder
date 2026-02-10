@@ -81,11 +81,46 @@ export default function AIResponseGenerator({
     onSelectResponse?.(text);
   };
 
-  const toneLabels: Record<string, { label: string; emoji: string; color: string }> = {
-    professional: { label: 'Professional', emoji: '👔', color: 'bg-blue-50 border-blue-200 text-blue-800' },
-    friendly: { label: 'Friendly', emoji: '😊', color: 'bg-green-50 border-green-200 text-green-800' },
-    apologetic: { label: 'Apologetic', emoji: '🤝', color: 'bg-orange-50 border-orange-200 text-orange-800' },
-    enthusiastic: { label: 'Enthusiastic', emoji: '🎉', color: 'bg-purple-50 border-purple-200 text-purple-800' },
+  const toneLabels: Record<string, {
+    label: string;
+    emoji: string;
+    color: string;
+    cardBg: string;
+    borderAccent: string;
+    textareaBg: string;
+  }> = {
+    professional: {
+      label: 'Professional',
+      emoji: '👔',
+      color: 'bg-blue-50 border-blue-200 text-blue-800',
+      cardBg: 'bg-blue-50/60',
+      borderAccent: 'border-l-blue-400',
+      textareaBg: 'bg-blue-50/80 border-blue-200 focus:ring-blue-300 focus:border-blue-300',
+    },
+    friendly: {
+      label: 'Friendly',
+      emoji: '😊',
+      color: 'bg-green-50 border-green-200 text-green-800',
+      cardBg: 'bg-green-50/60',
+      borderAccent: 'border-l-green-400',
+      textareaBg: 'bg-green-50/80 border-green-200 focus:ring-green-300 focus:border-green-300',
+    },
+    apologetic: {
+      label: 'Apologetic',
+      emoji: '🤝',
+      color: 'bg-orange-50 border-orange-200 text-orange-800',
+      cardBg: 'bg-amber-50/60',
+      borderAccent: 'border-l-amber-400',
+      textareaBg: 'bg-amber-50/80 border-amber-200 focus:ring-amber-300 focus:border-amber-300',
+    },
+    enthusiastic: {
+      label: 'Enthusiastic',
+      emoji: '🎉',
+      color: 'bg-purple-50 border-purple-200 text-purple-800',
+      cardBg: 'bg-purple-50/60',
+      borderAccent: 'border-l-purple-400',
+      textareaBg: 'bg-purple-50/80 border-purple-200 focus:ring-purple-300 focus:border-purple-300',
+    },
   };
 
   return (
@@ -146,17 +181,24 @@ export default function AIResponseGenerator({
           </div>
 
           {tones.map((tone) => {
-            const meta = toneLabels[tone] || { label: tone, emoji: '💬', color: 'bg-gray-50 border-gray-200 text-gray-800' };
+            const meta = toneLabels[tone] || {
+              label: tone,
+              emoji: '💬',
+              color: 'bg-gray-50 border-gray-200 text-gray-800',
+              cardBg: 'bg-gray-50/60',
+              borderAccent: 'border-l-gray-400',
+              textareaBg: 'bg-gray-50/80 border-gray-200 focus:ring-gray-300 focus:border-gray-300',
+            };
             const text = responses[tone];
             if (!text) return null;
 
             return (
               <div
                 key={tone}
-                className={`border rounded-lg p-4 transition-all ${
+                className={`border border-l-4 rounded-lg p-4 transition-all ${meta.borderAccent} ${
                   selectedTone === tone
                     ? 'border-indigo-500 ring-2 ring-indigo-200 bg-indigo-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    : `border-gray-200 hover:border-gray-300 ${meta.cardBg}`
                 }`}
               >
                 {/* Tone Label */}
@@ -173,7 +215,7 @@ export default function AIResponseGenerator({
                 <textarea
                   value={text}
                   onChange={(e) => handleEditResponse(tone, e.target.value)}
-                  className="w-full text-sm text-gray-700 leading-relaxed mb-3 p-2 border border-gray-200 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+                  className={`w-full text-sm text-gray-700 leading-relaxed mb-3 p-2 border rounded-md resize-none focus:outline-none focus:ring-1 ${meta.textareaBg}`}
                   rows={4}
                 />
 
