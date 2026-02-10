@@ -28,6 +28,7 @@ interface ReviewListProps {
 export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: ReviewListProps) {
   const [reviews, setReviews] = useState<Review[]>(propReviews);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [editingReply, setEditingReply] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -43,6 +44,7 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
     const success = await onReply(reviewId, replyText);
     if (success) {
       setReplyingTo(null);
+      setEditingReply(null);
       setReplyText('');
     }
     setSubmitting(false);
@@ -50,7 +52,21 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
 
   function handleAISelect(reviewId: string, response: string) {
     setReplyingTo(reviewId);
+    setEditingReply(null);
     setReplyText(response);
+  }
+
+  function startEditReply(reviewId: string, currentReply: string) {
+    setEditingReply(reviewId);
+    setReplyingTo(null);
+    setReplyText(currentReply);
+  }
+
+  async function handleDeleteReply(reviewId: string) {
+    if (!confirm('Are you sure you want to delete this reply? The reviewer will be notified if you post a new one.')) {
+      return;
+    }
+    await onDeleteReply(reviewId);
   }
 
   async function togglePublish(reviewId: string) {
@@ -201,7 +217,7 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
           )}
 
           {/* Existing Reply */}
-          {review.reviewReply && (
+          {review.reviewReply && editingReply !== review.id && (
             <div className="mt-4 bg-blue-50 border border-blue-100 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="text-xs font-medium text-blue-700">
@@ -212,18 +228,59 @@ export function ReviewList({ reviews: propReviews, onReply, onDeleteReply }: Rev
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={() => onDeleteReply(review.id)}
-                  className="text-xs text-red-500 hover:text-red-700"
-                >
-                  Delete
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => startEditReply(review.id, review.reviewReply!)}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteReply(review.id)}
+                    className="text-xs text-red-500 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
               <p className="mt-1 text-sm text-blue-900">{review.reviewReply}</p>
             </div>
           )}
 
-          {/* Reply Button / Form / AI Generator */}
+          {/* Edit Reply Form */}
+          {editingReply === review.id && (
+            <div className="mt-4">
+              <div className="text-xs font-medium text-gray-500 mb-1">Edit your reply</div>
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                rows={3}
+                autoFocus
+              />
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => handleSubmitReply(review.id)}
+                  disabled={submitting || !replyText.trim()}
+                  className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {submitting ? 'Updating...' : 'Update Reply'}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingReply(null);
+                    setReplyText('');
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2"
+                >
+                  Cancel
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Updating a reply does not re-notify the reviewer.</p>
+            </div>
+          )}
+
+          {/* Reply Button / Form / AI Generator — for reviews without a reply */}
           {!review.reviewReply && (
             <>
               {replyingTo === review.id ? (
