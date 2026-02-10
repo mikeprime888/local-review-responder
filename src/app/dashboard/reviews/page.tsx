@@ -227,22 +227,27 @@ function ReviewsContent() {
                   )}
                 </div>
 
-                {/* Publish toggle */}
-                <button
-                  onClick={() => togglePublish(review.id)}
-                  disabled={togglingId === review.id}
-                  className={`ml-4 flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
-                    review.isPublished
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  } ${togglingId === review.id ? 'opacity-50' : ''}`}
-                >
-                  {togglingId === review.id
-                    ? '...'
-                    : review.isPublished
-                    ? 'Published'
-                    : 'Publish'}
-                </button>
+                {/* Toggle switch */}
+                <div className="ml-4 flex-shrink-0 flex items-center gap-2">
+                  <span className={`text-xs font-medium ${review.isPublished ? 'text-green-600' : 'text-gray-400'}`}>
+                    {review.isPublished ? 'Published' : 'Unpublished'}
+                  </span>
+                  <button
+                    onClick={() => togglePublish(review.id)}
+                    disabled={togglingId === review.id}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      togglingId === review.id ? 'opacity-50 cursor-wait' : 'cursor-pointer'
+                    } ${review.isPublished ? 'bg-green-500' : 'bg-gray-300'}`}
+                    role="switch"
+                    aria-checked={review.isPublished}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                        review.isPublished ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
