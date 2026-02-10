@@ -30,6 +30,10 @@ interface Review {
   reviewReply: string | null;
   replyTime: string | null;
   googleCreatedAt: string;
+  isPublished: boolean;
+  publishedAt: string | null;
+  isPublished: boolean;
+  publishedAt: string | null;
   location: { title: string };
 }
 
