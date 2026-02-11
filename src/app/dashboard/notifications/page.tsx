@@ -4,7 +4,14 @@ import { Bell } from 'lucide-react';
 
 export default function NotificationsPage() {
   return (
-    <div>
+      return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Locations</h1>
+          <p className="text-gray-500 mt-1">Manage your Google Business Profile locations</p>
+        </div>
+      </div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
         <p className="text-gray-500 mt-1">Stay updated on new reviews and activity</p>
