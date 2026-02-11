@@ -37,7 +37,7 @@ interface Review {
 
 interface Stats {
   totalReviews: number;
-  averageRating: number | null;
+  averageRating: number;
   unrepliedCount: number;
   unreplied: number;
   ratingBreakdown: Record<number, number>;
