@@ -221,10 +221,10 @@ function DashboardContent() {
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">Local Review Responder</h1>
+            <h1 className="hidden md:block text-xl font-bold text-gray-900">Local Review Responder</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{session?.user?.email}</span>
-              <button onClick={() => signOut({ callbackUrl: '/login' })} className="text-sm text-gray-500 hover:text-gray-700">Sign out</button>
+              <span className="hidden md:inline text-sm text-gray-600">{session?.user?.email}</span>
+              <button onClick={() => signOut({ callbackUrl: '/login' })} className="hidden md:inline text-sm text-gray-500 hover:text-gray-700">Sign out</button>
             </div>
           </div>
         </header>
@@ -318,8 +318,8 @@ function DashboardContent() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="text-xl font-bold text-gray-900">Local Review Responder</h1>
+          <div className="flex items-center gap-2 md:gap-6">
+            <h1 className="hidden md:block text-xl font-bold text-gray-900">Local Review Responder</h1>
             <LocationSwitcher
               locations={locations}
               selectedLocationId={selectedLocationId}
@@ -328,8 +328,8 @@ function DashboardContent() {
           </div>
           <div className="flex items-center gap-4">
             <SyncButton onSyncAll={handleSyncAll} onSyncReviews={handleSyncReviews} syncing={syncing} />
-            <span className="text-sm text-gray-600">{session?.user?.email}</span>
-            <button onClick={() => signOut({ callbackUrl: '/login' })} className="text-sm text-gray-500 hover:text-gray-700">Sign out</button>
+            <span className="hidden md:inline text-sm text-gray-600">{session?.user?.email}</span>
+            <button onClick={() => signOut({ callbackUrl: '/login' })} className="hidden md:inline text-sm text-gray-500 hover:text-gray-700">Sign out</button>
           </div>
         </div>
       </header>
