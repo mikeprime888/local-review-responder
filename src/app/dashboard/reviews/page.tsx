@@ -222,7 +222,7 @@ function ReviewsContent() {
   }
 
 return (
-    <div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
@@ -435,7 +435,7 @@ return (
             {visibleReviews.map((review) => (
               <div
                 key={review.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-5"
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
               >
                 {/* Review Header */}
                 <div className="flex items-start justify-between gap-3">
