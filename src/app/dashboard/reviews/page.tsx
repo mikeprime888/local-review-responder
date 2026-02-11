@@ -435,7 +435,7 @@ return (
             {visibleReviews.map((review) => (
               <div
                 key={review.id}
-              cclassName="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-5"
+              className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-5"
               >
                 {/* Review Header */}
                 <div className="flex items-start justify-between gap-3">
