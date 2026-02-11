@@ -38,7 +38,7 @@ const REVIEWS_PER_PAGE = 25;
 function ReviewsContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
-  const urlLocationId = searchParams.get('locationId') || '';
+  const urlLocationId = searchParams.get('locationId') || (typeof window !== 'undefined' ? localStorage.getItem('selectedLocationId') || '' : '');
 
   // Data
   const [locations, setLocations] = useState<Location[]>([]);
