@@ -266,23 +266,23 @@ function DashboardContent() {
     setSyncing(true);
     setError(null);
     try {
+      // Get accounts
       const accountsRes = await fetch('/api/google/accounts');
       const accountsData = await accountsRes.json();
       if (!accountsRes.ok) throw new Error(accountsData.error || 'Failed to fetch accounts');
       const accounts = accountsData.accounts || [];
+
+      // Sync locations per account
       for (const account of accounts) {
-        const locRes = await fetch('/api/google/locations/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accountId: account.name }),
-        });
-        if (!locRes.ok) {
-          const locData = await locRes.json();
-          throw new Error(locData.error || 'Failed to sync locations');
-        }
+        const accountId = account.name.replace('accounts/', '');
+        await fetch(`/api/google/locations?sync=true&accountId=${accountId}`);
       }
       await fetchLocations();
+
+      // Sync reviews
+      await fetch('/api/google/reviews?sync=true');
       if (selectedLocationId) await fetchReviews(selectedLocationId);
+      setSuccessMessage('✅ Sync complete! Locations and reviews updated.');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Sync failed';
       setError(message);
@@ -296,14 +296,9 @@ function DashboardContent() {
     setSyncing(true);
     setError(null);
     try {
-      const response = await fetch('/api/google/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locationId: selectedLocationId }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
+      await fetch(`/api/google/reviews?sync=true&locationId=${selectedLocationId}`);
       await fetchReviews(selectedLocationId);
+      setSuccessMessage('✅ Reviews synced successfully!');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Sync failed';
       setError(message);
