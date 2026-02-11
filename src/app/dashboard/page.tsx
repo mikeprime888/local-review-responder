@@ -273,8 +273,39 @@ setReviews(data.reviews || []);
     }
   }, [selectedLocationId, fetchReviews]);
 
-  // Handle sync
-  const handleSync = async () => {
+// Handle sync all (locations + reviews)
+  const handleSyncAll = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    setError(null);
+    try {
+      const accountsRes = await fetch('/api/google/accounts');
+      const accountsData = await accountsRes.json();
+      if (!accountsRes.ok) throw new Error(accountsData.error || 'Failed to fetch accounts');
+      const accounts = accountsData.accounts || [];
+      for (const account of accounts) {
+        const locRes = await fetch('/api/google/locations/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: account.name }),
+        });
+        if (!locRes.ok) {
+          const locData = await locRes.json();
+          throw new Error(locData.error || 'Failed to sync locations');
+        }
+      }
+      await fetchLocations();
+      if (selectedLocationId) await fetchReviews(selectedLocationId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Sync failed';
+      setError(message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // Handle sync reviews only
+  const handleSyncReviews = async () => {
     if (!selectedLocationId || syncing) return;
     setSyncing(true);
     setError(null);
@@ -286,7 +317,6 @@ setReviews(data.reviews || []);
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
-      // Refresh reviews after sync
       await fetchReviews(selectedLocationId);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Sync failed';
@@ -346,6 +376,19 @@ setReviews(data.reviews || []);
             onLocationChange={handleLocationChange}
           />
           <SyncButton onSyncAll={handleSync} onSyncReviews={handleSync} syncing={syncing} />
+        </div>
+      </div>
+
+      {/* Top Nav Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+        <div className="flex items-center gap-3">
+          <LocationSwitcher
+            locations={locations}
+            selectedLocationId={selectedLocationId}
+            onLocationChange={handleLocationChange}
+          />
+          <SyncButton onSyncAll={handleSyncAll} onSyncReviews={handleSyncReviews} syncing={syncing} />
         </div>
       </div>
 
