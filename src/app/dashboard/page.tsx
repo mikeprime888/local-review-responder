@@ -345,7 +345,7 @@ setReviews(data.reviews || []);
             selectedLocationId={selectedLocationId}
             onLocationChange={handleLocationChange}
           />
-          <SyncButton onSync={handleSync} syncing={syncing} />
+          <SyncButton onSyncAll={handleSync} onSyncReviews={handleSync} syncing={syncing} />
         </div>
       </div>
 
