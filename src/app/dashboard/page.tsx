@@ -39,6 +39,7 @@ interface Stats {
   totalReviews: number;
   averageRating: number | null;
   unrepliedCount: number;
+  unreplied: number;
   ratingBreakdown: Record<number, number>;
 }
 
@@ -241,8 +242,16 @@ function DashboardContent() {
       const response = await fetch(`/api/google/reviews?locationId=${locationId}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
-      setReviews(data.reviews || []);
-      setStats(data.stats || null);
+setReviews(data.reviews || []);
+      if (data.stats) {
+        setStats({
+          ...data.stats,
+          unreplied: data.stats.unreplied ?? data.stats.unrepliedCount ?? 0,
+          unrepliedCount: data.stats.unrepliedCount ?? data.stats.unreplied ?? 0,
+        });
+      } else {
+        setStats(null);
+      }
     } catch (err: unknown) {
       console.error('Error fetching reviews:', err);
     }
