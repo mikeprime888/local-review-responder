@@ -352,7 +352,9 @@ function DashboardContent() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Top Nav Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-xl font-bold text-gray-900">
+          Welcome back{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}! 👋
+        </h1>
         <div className="flex items-center gap-3">
           <LocationSwitcher
             locations={locations}
