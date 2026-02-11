@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import AIResponseGenerator from '@/components/AIResponseGenerator';
 
@@ -36,6 +37,8 @@ const REVIEWS_PER_PAGE = 25;
 
 function ReviewsContent() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const urlLocationId = searchParams.get('locationId') || '';
 
   // Data
   const [locations, setLocations] = useState<Location[]>([]);
@@ -44,7 +47,7 @@ function ReviewsContent() {
   const [loading, setLoading] = useState(true);
 
   // Filters
-  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
+  const [selectedLocationId, setSelectedLocationId] = useState<string>(urlLocationId);
   const [ratingFilter, setRatingFilter] = useState<string>('');
   const [replyFilter, setReplyFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
