@@ -336,15 +336,20 @@ setReviews(data.reviews || []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Success Message */}
-      {successMessage && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 flex justify-between items-center">
-          <span>{successMessage}</span>
-          <button onClick={() => setSuccessMessage(null)} className="text-green-600 hover:text-green-800">
-            ✕
-          </button>
+{/* Top Nav Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+        <div className="flex items-center gap-3">
+          <LocationSwitcher
+            locations={locations}
+            selectedLocationId={selectedLocationId}
+            onLocationChange={handleLocationChange}
+          />
+          <SyncButton onSync={handleSync} syncing={syncing} />
         </div>
-      )}
+      </div>
+
+      {/* Success Message */}
 
       {/* Trial Banner */}
       {selectedLocation?.subscription?.status === 'trialing' && selectedLocation.subscription.trialEnd && (
