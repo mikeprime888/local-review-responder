@@ -59,6 +59,13 @@ function DashboardContent() {
 
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
 
+  // Persist selected location for cross-page navigation
+  useEffect(() => {
+    if (selectedLocationId) {
+      localStorage.setItem('selectedLocationId', selectedLocationId);
+    }
+  }, [selectedLocationId]);
+
   useEffect(() => {
     if (searchParams.get('subscription') === 'success') {
       setSuccessMessage('Location added successfully! Your 14-day free trial has started.');
