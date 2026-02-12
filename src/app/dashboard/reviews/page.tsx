@@ -151,10 +151,10 @@ function ReviewsContent() {
     if (!replyText.trim()) return;
     setSubmittingReply(true);
     try {
-      const res = await fetch(`/api/reviews/${reviewId}/reply`, {
+      const res = await fetch('/api/google/reviews/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comment: replyText }),
+        body: JSON.stringify({ reviewDbId: reviewId, comment: replyText }),
       });
       if (res.ok) {
         setReplyingId(null);
@@ -170,8 +170,10 @@ function ReviewsContent() {
 
   const handleDeleteReply = async (reviewId: string) => {
     try {
-      const res = await fetch(`/api/reviews/${reviewId}/reply`, {
+      const res = await fetch('/api/google/reviews/reply', {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewDbId: reviewId }),
       });
       if (res.ok) {
         await fetchReviews();
