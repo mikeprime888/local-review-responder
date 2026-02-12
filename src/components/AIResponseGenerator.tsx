@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Review {
   id: string;
@@ -18,12 +18,14 @@ interface AIResponseGeneratorProps {
   review: Review;
   businessName: string;
   onSelectResponse?: (response: string) => void;
+  autoGenerate?: boolean;
 }
 
 export default function AIResponseGenerator({
   review,
   businessName,
   onSelectResponse,
+  autoGenerate = false,
 }: AIResponseGeneratorProps) {
   const [responses, setResponses] = useState<AIResponses | null>(null);
   const [tones, setTones] = useState<string[]>([]);
@@ -64,6 +66,14 @@ export default function AIResponseGenerator({
       setLoading(false);
     }
   };
+
+  // Auto-generate on mount if prop is set
+  useEffect(() => {
+    if (autoGenerate) {
+      generateResponses();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleEditResponse = (tone: string, newText: string) => {
     if (!responses) return;
@@ -125,8 +135,8 @@ export default function AIResponseGenerator({
 
   return (
     <div className="mt-3">
-      {/* Generate Button */}
-      {!responses && !loading && (
+      {/* Generate Button — only show if not auto-generating and no responses yet */}
+      {!responses && !loading && !autoGenerate && (
         <button
           onClick={generateResponses}
           className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"

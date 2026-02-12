@@ -59,6 +59,7 @@ function ReviewsContent() {
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [submittingReply, setSubmittingReply] = useState(false);
+  const [autoGenerateAI, setAutoGenerateAI] = useState(false);
 
   // Publish toggle state
   const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -159,6 +160,7 @@ function ReviewsContent() {
       if (res.ok) {
         setReplyingId(null);
         setReplyText('');
+        setAutoGenerateAI(false);
         await fetchReviews();
       }
     } catch {
@@ -186,6 +188,24 @@ function ReviewsContent() {
   const handleAISelect = (reviewId: string, response: string) => {
     setReplyingId(reviewId);
     setReplyText(response);
+  };
+
+  const handleWriteReply = (reviewId: string) => {
+    setReplyingId(reviewId);
+    setReplyText('');
+    setAutoGenerateAI(false);
+  };
+
+  const handleGenerateAI = (reviewId: string) => {
+    setReplyingId(reviewId);
+    setReplyText('');
+    setAutoGenerateAI(true);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingId(null);
+    setReplyText('');
+    setAutoGenerateAI(false);
   };
 
   function timeAgo(dateStr: string): string {
@@ -533,7 +553,7 @@ return (
                   </div>
                 )}
 
-                {/* Reply Form & AI Generator */}
+                {/* Reply Actions */}
                 {!review.reviewReply && (
                   <>
                     {replyingId === review.id ? (
@@ -555,38 +575,49 @@ return (
                             {submittingReply ? 'Posting...' : 'Post Reply'}
                           </button>
                           <button
-                            onClick={() => {
-                              setReplyingId(null);
-                              setReplyText('');
-                            }}
+                            onClick={handleCancelReply}
                             className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2"
                           >
                             Cancel
                           </button>
                         </div>
+
+                        {/* AI Generator below textarea */}
+                        <AIResponseGenerator
+                          review={{
+                            id: review.id,
+                            reviewerName: review.reviewerName,
+                            rating: review.starRating,
+                            comment: review.comment,
+                          }}
+                          businessName={review.location?.title || 'Your Business'}
+                          onSelectResponse={(response) => handleAISelect(review.id, response)}
+                          autoGenerate={autoGenerateAI && replyingId === review.id}
+                        />
                       </div>
                     ) : (
-                      <div className="mt-3">
+                      /* Two action buttons side by side */
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
                         <button
-                          onClick={() => setReplyingId(review.id)}
-                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          onClick={() => handleWriteReply(review.id)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
                         >
-                          Reply →
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          Write Reply
+                        </button>
+                        <button
+                          onClick={() => handleGenerateAI(review.id)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          Generate AI Response
                         </button>
                       </div>
                     )}
-
-                    {/* AI Response Generator */}
-                    <AIResponseGenerator
-                      review={{
-                        id: review.id,
-                        reviewerName: review.reviewerName,
-                        rating: review.starRating,
-                        comment: review.comment,
-                      }}
-                      businessName={review.location?.title || 'Your Business'}
-                      onSelectResponse={(response) => handleAISelect(review.id, response)}
-                    />
                   </>
                 )}
               </div>
