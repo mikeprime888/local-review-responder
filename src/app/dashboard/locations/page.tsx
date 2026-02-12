@@ -75,14 +75,14 @@ function LocationsContent() {
           {locations.map((location) => (
             <div
               key={location.id}
-              className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-sm transition-shadow"
+              className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 hover:shadow-sm transition-shadow"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-semibold text-gray-900">{location.title}</h3>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <h3 className="text-lg font-semibold text-gray-900 break-words">{location.title}</h3>
                     {location.subscription ? (
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                         location.subscription.status === 'active'
                           ? 'bg-green-100 text-green-800'
                           : location.subscription.status === 'trialing'
@@ -94,7 +94,7 @@ function LocationsContent() {
                     ) : (
                       <Link
                         href="/dashboard/add-location"
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition-colors"
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition-colors whitespace-nowrap"
                       >
                         Subscribe →
                       </Link>
@@ -102,13 +102,13 @@ function LocationsContent() {
                   </div>
 
                   {location.address && (
-                    <p className="text-sm text-gray-500 mt-1">{location.address}</p>
+                    <p className="text-sm text-gray-500 mt-1 break-words">{location.address}</p>
                   )}
 
-                  <div className="flex items-center gap-6 mt-3">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
                     {location.averageRating != null && (
                       <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
                         <span className="text-sm font-medium text-gray-700">
                           {location.averageRating.toFixed(1)}
                         </span>
@@ -124,22 +124,22 @@ function LocationsContent() {
                     )}
                     {location.lastSyncedAt && (
                       <div className="flex items-center gap-1 text-sm text-gray-400">
-                        <RefreshCw className="h-3 w-3" />
-                        Last synced {new Date(location.lastSyncedAt).toLocaleDateString()}
+                        <RefreshCw className="h-3 w-3 flex-shrink-0" />
+                        <span>Last synced {new Date(location.lastSyncedAt).toLocaleDateString()}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:flex-shrink-0">
                   {location.mapsUri && (
                     <a
                       href={location.mapsUri}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors whitespace-nowrap"
                     >
-                      <ExternalLink className="h-3.5 w-3.5" />
+                      <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
                       View on Google
                     </a>
                   )}
@@ -148,9 +148,9 @@ function LocationsContent() {
                       href={location.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors whitespace-nowrap"
                     >
-                      <ExternalLink className="h-3.5 w-3.5" />
+                      <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
                       Website
                     </a>
                   )}
