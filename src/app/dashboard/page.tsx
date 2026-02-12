@@ -382,6 +382,34 @@ function DashboardContent() {
         </div>
       )}
 
+      {/* Unreplied Reviews Banner — prominent full-width CTA */}
+      {stats && stats.unrepliedCount > 0 && (
+        <Link
+          href="/dashboard/reviews?replyStatus=unreplied"
+          className="mb-6 flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <div>
+              <span className="font-semibold text-amber-900">
+                {stats.unrepliedCount} review{stats.unrepliedCount !== 1 ? 's' : ''} need{stats.unrepliedCount === 1 ? 's' : ''} a reply
+              </span>
+              <p className="text-sm text-amber-700">Responding to reviews improves your local search ranking</p>
+            </div>
+          </div>
+          <span className="text-amber-700 font-medium text-sm group-hover:text-amber-900 flex items-center gap-1 flex-shrink-0">
+            Reply now
+            <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </Link>
+      )}
+
       {/* Error */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 flex justify-between items-center">
@@ -495,29 +523,6 @@ function DashboardContent() {
               </Link>
             </div>
           </div>
-
-          {stats && stats.unrepliedCount > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="font-semibold text-amber-900">
-                    {stats.unrepliedCount} review{stats.unrepliedCount !== 1 ? 's' : ''} need{stats.unrepliedCount === 1 ? 's' : ''} a reply
-                  </div>
-                  <Link
-                    href="/dashboard/reviews?replyStatus=unreplied"
-                    className="text-sm text-amber-700 hover:text-amber-900 font-medium"
-                  >
-                    Reply now →
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
