@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, User, Shield, Palette } from 'lucide-react';
+import { User, Shield, Palette } from 'lucide-react';
 
 export default function SettingsPage() {
   return (

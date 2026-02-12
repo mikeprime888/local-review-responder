@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
 import { CreditCard, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 interface Subscription {
@@ -16,7 +15,6 @@ interface Subscription {
 
 function BillingContent() {
   const { data: session } = useSession();
-  const searchParams = useSearchParams();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,13 +70,6 @@ function BillingContent() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Locations</h1>
-          <p className="text-gray-500 mt-1">Manage your Google Business Profile locations</p>
-        </div>
-      </div>
-      
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Billing</h1>
         <p className="text-gray-500 mt-1">Manage your subscriptions and billing</p>
@@ -107,7 +98,7 @@ function BillingContent() {
               key={sub.id}
               className="bg-white rounded-lg border border-gray-200 p-6"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(sub.status)}
                   <div>
@@ -117,7 +108,7 @@ function BillingContent() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 ml-8 sm:ml-0">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(sub.status)}`}>
                     {sub.status === 'trialing' ? 'Free Trial' : sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
                   </span>
