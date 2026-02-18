@@ -3,7 +3,6 @@
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Star } from 'lucide-react';
 import Link from 'next/link';
 
 // Prevent static prerendering
@@ -64,7 +63,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
       <div className="flex items-center space-x-2 mb-8">
-        <Star className="h-10 w-10 text-yellow-500 fill-yellow-500" />
+        <img src="/logo.svg" alt="Local Review Responder" className="h-10 w-10" />
         <span className="text-2xl font-bold text-gray-900">Local Review Responder</span>
       </div>
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">

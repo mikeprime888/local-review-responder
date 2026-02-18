@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { Sidebar } from '@/components/dashboard/Sidebar';
-import { Star, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Mobile Top Bar - visible on small screens only */}
         <div className="sticky top-0 z-20 flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3 md:hidden">
           <div className="flex items-center space-x-2">
-            <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+            <img src="/logo.svg" alt="Local Review Responder" className="h-6 w-6" />
             <span className="text-base font-bold text-gray-900">Local Review</span>
           </div>
           <button

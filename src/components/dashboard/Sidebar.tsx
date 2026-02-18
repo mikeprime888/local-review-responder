@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
   Code,
   LayoutDashboard,
-  Star,
   MapPin,
   Bell,
   Settings,
@@ -41,7 +40,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Logo */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
-          <Star className="h-8 w-8 text-yellow-500 fill-yellow-500" />
+          <img src="/logo.svg" alt="Local Review Responder" className="h-8 w-8" />
           <span className="text-lg font-bold text-gray-900">Local Review</span>
         </div>
         {/* Close button - mobile only */}
