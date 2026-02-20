@@ -72,7 +72,7 @@ export function getWelcomeEmailHtml(name?: string): string {
           <!-- Header Banner -->
           <tr>
             <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 36px 40px; text-align: center;">
-              <img src="https://app.localreviewresponder.com/logo.png" alt="Local Review Responder" width="48" height="48" style="display: inline-block; vertical-align: middle; margin-bottom: 12px;" />
+              <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="48" height="48" style="display: block; margin: 0 auto 12px;" />
               <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">Local Review Responder</h1>
               <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 400;">Manage your Google reviews with ease</p>
             </td>
@@ -244,7 +244,7 @@ export function getAccountClosedEmailHtml(name?: string): string {
           <!-- Header -->
           <tr>
             <td style="background-color: #2563eb; padding: 32px 40px; text-align: center;">
-              <img src="https://app.localreviewresponder.com/logo.png" alt="Local Review Responder" width="48" height="48" style="display: inline-block; vertical-align: middle; margin-bottom: 12px;" />
+              <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="48" height="48" style="display: block; margin: 0 auto 12px;" />
               <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">
                 Local Review Responder
               </h1>
@@ -375,7 +375,7 @@ export function getNewReviewsEmailHtml(
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 28px 40px; text-align: center;">
-              <img src="https://app.localreviewresponder.com/logo.png" alt="Local Review Responder" width="48" height="48" style="display: inline-block; vertical-align: middle; margin-bottom: 12px;" />
+              <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="48" height="48" style="display: block; margin: 0 auto 12px;" />
               <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 700;">Local Review Responder</h1>
             </td>
           </tr>
