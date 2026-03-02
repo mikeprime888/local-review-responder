@@ -15,14 +15,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
         id: true,
         name: true,
         email: true,
         image: true,
-        createdAt: true,
         accounts: {
           select: {
             provider: true,
@@ -47,7 +46,6 @@ export async function GET() {
       name: user.name,
       email: user.email,
       image: user.image,
-      createdAt: user.createdAt,
       providers: user.accounts.map((a) => a.provider),
       locationCount: user._count.locations,
       subscriptionCount: user._count.subscriptions,
