@@ -50,7 +50,12 @@ model User {
   image            String?
   password         String?          // Hashed password for email/password auth
   isAdmin          Boolean   @default(false) // Admin flag
-  stripeCustomerId String?   @unique // Stripe customer ID
+ stripeCustomerId String?   @unique // Stripe customer ID
+
+  // Notification preferences
+  notifyNewReviews   Boolean @default(true)
+  notifyLowRated     Boolean @default(true)
+  notifyWeeklyDigest Boolean @default(false)
 
   accounts      Account[]
   sessions      Session[]
