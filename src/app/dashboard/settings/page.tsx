@@ -60,7 +60,6 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/settings/account', { method: 'DELETE' });
       if (res.ok) {
-        // Sign out and redirect to home
         await signOut({ callbackUrl: '/' });
       } else {
         const data = await res.json();
@@ -96,7 +95,6 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex items-start gap-4">
-          {/* Avatar */}
           {account?.image ? (
             <img
               src={account.image}
@@ -184,7 +182,6 @@ export default function SettingsPage() {
             <p className="text-sm text-gray-500">No connected accounts found.</p>
           )}
 
-          {/* Show if user has password (email/password auth) */}
           {session?.user?.email && !account?.providers?.includes('google') && (
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <User className="h-5 w-5 text-gray-400" />
