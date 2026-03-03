@@ -193,20 +193,14 @@ function BillingContent() {
           <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No active subscriptions</h3>
           <p className="text-gray-500 mb-4">Subscribe to a location to start managing reviews.</p>
-          <a
-            href="/dashboard/add-location"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
-          >
+          <a href="/dashboard/add-location" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
             Add Location
           </a>
         </div>
       ) : (
         <div className="grid gap-4 mb-8">
           {subscriptions.map((sub) => (
-            <div
-              key={sub.id}
-              className="bg-white rounded-lg border border-gray-200 p-6"
-            >
+            <div key={sub.id} className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(sub.status)}
@@ -254,7 +248,6 @@ function BillingContent() {
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            {/* Table header - hidden on mobile */}
             <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">
               <div className="col-span-2">Date</div>
               <div className="col-span-3">Invoice</div>
@@ -264,60 +257,39 @@ function BillingContent() {
               <div className="col-span-2 text-right">Actions</div>
             </div>
 
-            {/* Invoice rows */}
             {invoices.map((invoice) => (
-              <div
-                key={invoice.id}
-                className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 px-6 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 items-center"
-              >
+              <div key={invoice.id} className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 px-6 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 items-center">
                 <div className="sm:col-span-2 text-sm text-gray-900">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Date:</span>
                   {formatDate(invoice.date)}
                 </div>
-
                 <div className="sm:col-span-3 text-sm text-gray-600 font-mono">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Invoice:</span>
                   {invoice.number || '\u2014'}
                 </div>
-
                 <div className="sm:col-span-3 text-sm text-gray-600 truncate">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Description:</span>
                   {invoice.description}
                 </div>
-
                 <div className="sm:col-span-1 text-sm font-medium text-gray-900 sm:text-right">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Amount:</span>
                   {formatCurrency(invoice.amount, invoice.currency)}
                 </div>
-
                 <div className="sm:col-span-1 sm:text-center">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Status:</span>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getInvoiceStatusBadge(invoice.status)}`}>
                     {invoice.status ? invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1) : 'Unknown'}
                   </span>
                 </div>
-
                 <div className="sm:col-span-2 flex items-center gap-2 sm:justify-end mt-2 sm:mt-0">
                   {invoice.pdfUrl && (
-                    <a
-                      href={invoice.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
-                      title="Download PDF"
-                    >
+                    <a href={invoice.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors" title="Download PDF">
                       <Download className="h-3.5 w-3.5" />
                       PDF
                     </a>
                   )}
                   {invoice.hostedUrl && (
-                    <a
-                      href={invoice.hostedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
-                      title="View on Stripe"
-                    >
+                    <a href={invoice.hostedUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors" title="View on Stripe">
                       <ExternalLink className="h-3.5 w-3.5" />
                       View
                     </a>
