@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useMemo } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -26,7 +26,7 @@ const SAMPLE_REVIEWS = [
     id: '1',
     authorName: 'Sarah M.',
     rating: 5,
-    text: 'Absolutely wonderful experience! The team was professional, friendly, and went above and beyond to help us. Highly recommend to anyone looking for top-notch service.',
+    text: 'Absolutely wonderful experience! The team was professional, friendly, and went above and beyond to help us. We had a complex situation that required a lot of attention to detail, and they handled everything with grace. From start to finish, the communication was excellent and we always felt like we were in good hands. Highly recommend to anyone looking for top-notch service.',
     createTime: '2026-02-15T10:30:00Z',
   },
   {
@@ -40,10 +40,12 @@ const SAMPLE_REVIEWS = [
     id: '3',
     authorName: 'Emily R.',
     rating: 5,
-    text: 'Best in the business! They really care about their customers and it shows. Five stars all the way.',
+    text: 'Best in the business! They really care about their customers and it shows in every interaction. I have been using their services for over a year now and the quality has been consistently outstanding. The staff is knowledgeable, patient, and always willing to go the extra mile. Five stars all the way — would not hesitate to recommend them to friends and family.',
     createTime: '2026-01-28T09:15:00Z',
   },
 ];
+
+const TRUNCATE_LENGTH = 120;
 
 function getInitial(name: string): string {
   if (!name) return '?';
@@ -56,9 +58,157 @@ function formatDate(dateStr: string): string {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
+// ─── Review Modal ─────────────────────────────────────────────────
+function ReviewModal({
+  review,
+  settings,
+  onClose,
+}: {
+  review: typeof SAMPLE_REVIEWS[0];
+  settings: WidgetSettings;
+  onClose: () => void;
+}) {
+  const isDark = settings.theme === 'dark';
+  const accent = settings.accentColor || '#4285F4';
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.5)',
+        backdropFilter: 'blur(4px)',
+        padding: '16px',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: isDark ? '#1f2937' : '#ffffff',
+          borderRadius: '16px',
+          padding: '28px',
+          maxWidth: '500px',
+          width: '100%',
+          maxHeight: '80vh',
+          overflowY: 'auto',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          position: 'relative',
+        }}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '14px',
+            right: '14px',
+            background: isDark ? '#374151' : '#f3f4f6',
+            border: 'none',
+            borderRadius: '50%',
+            width: '32px',
+            height: '32px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '16px',
+            color: isDark ? '#9ca3af' : '#6b7280',
+          }}
+        >
+          ✕
+        </button>
+
+        {/* Author */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: accent,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 600,
+              fontSize: '20px',
+              flexShrink: 0,
+            }}
+          >
+            {getInitial(review.authorName)}
+          </div>
+          <div>
+            {settings.showName && (
+              <div style={{ fontWeight: 600, color: isDark ? '#f3f4f6' : '#1f2937', fontSize: '16px' }}>
+                {review.authorName}
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', gap: '1px' }}>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <span
+                    key={i}
+                    style={{
+                      color: i <= review.rating ? '#F4B400' : (isDark ? '#4b5563' : '#dadce0'),
+                      fontSize: '18px',
+                      lineHeight: 1,
+                    }}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              {settings.showBadge && (
+                <svg viewBox="0 0 48 48" style={{ width: 18, height: 18, flexShrink: 0 }}>
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Full review text */}
+        <p
+          style={{
+            color: isDark ? '#d1d5db' : '#374151',
+            fontSize: '14px',
+            lineHeight: '1.7',
+            margin: '0 0 14px 0',
+          }}
+        >
+          {review.text}
+        </p>
+
+        {settings.showDate && (
+          <div style={{ color: isDark ? '#6b7280' : '#9ca3af', fontSize: '12px' }}>
+            {formatDate(review.createTime)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Live Preview Component ───────────────────────────────────────
 function WidgetPreview({ settings }: { settings: WidgetSettings }) {
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [modalReview, setModalReview] = useState<typeof SAMPLE_REVIEWS[0] | null>(null);
 
   const isDark = settings.theme === 'dark';
   const accent = settings.accentColor || '#4285F4';
@@ -106,63 +256,84 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
     </svg>
   );
 
-  const ReviewCard = ({ review, style }: { review: typeof SAMPLE_REVIEWS[0]; style?: React.CSSProperties }) => (
-    <div
-      style={{
-        background: cardBg,
-        borderRadius: '12px',
-        padding: '20px',
-        border: `1px solid ${borderColor}`,
-        boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.06)',
-        ...style,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-        {/* Avatar */}
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: accent,
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 600,
-            fontSize: '16px',
-            flexShrink: 0,
-          }}
-        >
-          {getInitial(review.authorName)}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {settings.showName && (
-            <div style={{ fontWeight: 600, color: textColor, fontSize: '14px' }}>
-              {review.authorName}
-            </div>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-            <StarRating rating={review.rating} />
-            {settings.showBadge && <GoogleBadge />}
-          </div>
-        </div>
-      </div>
-      <p
+  const ReviewCard = ({ review, style }: { review: typeof SAMPLE_REVIEWS[0]; style?: React.CSSProperties }) => {
+    const isLong = review.text.length > TRUNCATE_LENGTH;
+    const displayText = isLong ? review.text.substring(0, TRUNCATE_LENGTH) + '...' : review.text;
+
+    return (
+      <div
         style={{
-          color: isDark ? '#d1d5db' : '#374151',
-          fontSize: '13px',
-          lineHeight: '1.5',
-          margin: '0 0 8px 0',
+          background: cardBg,
+          borderRadius: '12px',
+          padding: '20px',
+          border: `1px solid ${borderColor}`,
+          boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.06)',
+          ...style,
         }}
       >
-        {review.text}
-      </p>
-      {settings.showDate && (
-        <div style={{ color: subText, fontSize: '12px' }}>{formatDate(review.createTime)}</div>
-      )}
-    </div>
-  );
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+          {/* Avatar */}
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: accent,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 600,
+              fontSize: '16px',
+              flexShrink: 0,
+            }}
+          >
+            {getInitial(review.authorName)}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {settings.showName && (
+              <div style={{ fontWeight: 600, color: textColor, fontSize: '14px' }}>
+                {review.authorName}
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+              <StarRating rating={review.rating} />
+              {settings.showBadge && <GoogleBadge />}
+            </div>
+          </div>
+        </div>
+        <p
+          style={{
+            color: isDark ? '#d1d5db' : '#374151',
+            fontSize: '13px',
+            lineHeight: '1.5',
+            margin: '0 0 8px 0',
+          }}
+        >
+          {displayText}
+          {isLong && (
+            <button
+              onClick={() => setModalReview(review)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: accent,
+                fontSize: '13px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                padding: '0 0 0 4px',
+              }}
+            >
+              Read more
+            </button>
+          )}
+        </p>
+        {settings.showDate && (
+          <div style={{ color: subText, fontSize: '12px' }}>{formatDate(review.createTime)}</div>
+        )}
+      </div>
+    );
+  };
 
   const PoweredByFooter = () => (
     <div
@@ -190,86 +361,97 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
   );
 
   return (
-    <div
-      style={{
-        background: containerBg,
-        borderRadius: '12px',
-        padding: '20px',
-        minHeight: '200px',
-        transition: 'all 0.3s ease',
-      }}
-    >
-      {/* Carousel Layout */}
-      {layout === 'carousel' && (
-        <div>
-          <div style={{ position: 'relative', overflow: 'hidden' }}>
+    <>
+      <div
+        style={{
+          background: containerBg,
+          borderRadius: '12px',
+          padding: '20px',
+          minHeight: '200px',
+          transition: 'all 0.3s ease',
+        }}
+      >
+        {/* Carousel Layout */}
+        {layout === 'carousel' && (
+          <div>
+            <div style={{ position: 'relative', overflow: 'hidden' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  transition: 'transform 0.5s ease',
+                  transform: `translateX(-${carouselIndex * 100}%)`,
+                }}
+              >
+                {SAMPLE_REVIEWS.map((review) => (
+                  <div key={review.id} style={{ minWidth: '100%', padding: '0 4px', boxSizing: 'border-box' }}>
+                    <ReviewCard review={review} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Dots */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '14px' }}>
+              {SAMPLE_REVIEWS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCarouselIndex(i)}
+                  style={{
+                    width: i === carouselIndex ? '24px' : '8px',
+                    height: '8px',
+                    borderRadius: '4px',
+                    background: i === carouselIndex ? accent : (isDark ? '#4b5563' : '#d1d5db'),
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    padding: 0,
+                  }}
+                />
+              ))}
+            </div>
+            <PoweredByFooter />
+          </div>
+        )}
+
+        {/* Grid Layout */}
+        {layout === 'grid' && (
+          <div>
             <div
               style={{
-                display: 'flex',
-                transition: 'transform 0.5s ease',
-                transform: `translateX(-${carouselIndex * 100}%)`,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '16px',
               }}
             >
               {SAMPLE_REVIEWS.map((review) => (
-                <div key={review.id} style={{ minWidth: '100%', padding: '0 4px', boxSizing: 'border-box' }}>
-                  <ReviewCard review={review} />
-                </div>
+                <ReviewCard key={review.id} review={review} />
               ))}
             </div>
+            <PoweredByFooter />
           </div>
-          {/* Dots */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '14px' }}>
-            {SAMPLE_REVIEWS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCarouselIndex(i)}
-                style={{
-                  width: i === carouselIndex ? '24px' : '8px',
-                  height: '8px',
-                  borderRadius: '4px',
-                  background: i === carouselIndex ? accent : (isDark ? '#4b5563' : '#d1d5db'),
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  padding: 0,
-                }}
-              />
-            ))}
-          </div>
-          <PoweredByFooter />
-        </div>
-      )}
+        )}
 
-      {/* Grid Layout */}
-      {layout === 'grid' && (
-        <div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: '16px',
-            }}
-          >
-            {SAMPLE_REVIEWS.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
+        {/* List Layout */}
+        {layout === 'list' && (
+          <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {SAMPLE_REVIEWS.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </div>
+            <PoweredByFooter />
           </div>
-          <PoweredByFooter />
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* List Layout */}
-      {layout === 'list' && (
-        <div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {SAMPLE_REVIEWS.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
-          </div>
-          <PoweredByFooter />
-        </div>
+      {/* Modal */}
+      {modalReview && (
+        <ReviewModal
+          review={modalReview}
+          settings={settings}
+          onClose={() => setModalReview(null)}
+        />
       )}
-    </div>
+    </>
   );
 }
 
@@ -372,7 +554,7 @@ function WidgetContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -429,32 +611,32 @@ function WidgetContent() {
         {/* Design Tab */}
         {activeTab === 'design' && (
           <div className="space-y-6">
-            {/* Settings + Preview side by side on large screens */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Settings Panel */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-base font-semibold text-gray-900 mb-4">Widget Settings</h3>
-                <div className="space-y-5">
-                  {/* Layout */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Layout</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['carousel', 'grid', 'list'].map((l) => (
-                        <button
-                          key={l}
-                          onClick={() => setSettings({ ...settings, layout: l })}
-                          className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
-                            settings.layout === l
-                              ? 'bg-blue-50 border-blue-300 text-blue-700 font-medium'
-                              : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                          }`}
-                        >
-                          {l === 'carousel' ? '◀ Carousel' : l === 'grid' ? '▦ Grid' : '☰ List'}
-                        </button>
-                      ))}
-                    </div>
+            {/* Settings Panel */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-base font-semibold text-gray-900 mb-4">Widget Settings</h3>
+              <div className="space-y-5">
+                {/* Layout */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Layout</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['carousel', 'grid', 'list'].map((l) => (
+                      <button
+                        key={l}
+                        onClick={() => setSettings({ ...settings, layout: l })}
+                        className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+                          settings.layout === l
+                            ? 'bg-blue-50 border-blue-300 text-blue-700 font-medium'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        {l === 'carousel' ? '◀ Carousel' : l === 'grid' ? '▦ Grid' : '☰ List'}
+                      </button>
+                    ))}
                   </div>
+                </div>
 
+                {/* Theme + Accent inline */}
+                <div className="grid grid-cols-2 gap-4">
                   {/* Theme */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
@@ -488,62 +670,60 @@ function WidgetContent() {
                       <span className="text-sm text-gray-500 font-mono">{settings.accentColor}</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Toggle Options */}
-                  <div className="space-y-3 pt-1">
-                    {[
-                      { key: 'showName' as const, label: 'Show reviewer name' },
-                      { key: 'showDate' as const, label: 'Show review date' },
-                      { key: 'showBadge' as const, label: 'Show Google badge' },
-                    ].map(({ key, label }) => (
-                      <label key={key} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-700">{label}</span>
-                        <button
-                          onClick={() => setSettings({ ...settings, [key]: !settings[key] })}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settings[key] ? 'bg-blue-600' : 'bg-gray-300'
+                {/* Toggle Options */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  {[
+                    { key: 'showName' as const, label: 'Show reviewer name' },
+                    { key: 'showDate' as const, label: 'Show review date' },
+                    { key: 'showBadge' as const, label: 'Show Google badge' },
+                  ].map(({ key, label }) => (
+                    <label key={key} className="flex items-center justify-between sm:flex-col sm:items-start sm:gap-2 bg-gray-50 rounded-lg p-3">
+                      <span className="text-sm text-gray-700">{label}</span>
+                      <button
+                        onClick={() => setSettings({ ...settings, [key]: !settings[key] })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          settings[key] ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings[key] ? 'translate-x-6' : 'translate-x-1'
                           }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings[key] ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* Save Button */}
-                  <button
-                    onClick={saveSettings}
-                    disabled={saving}
-                    className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-                  >
-                    {saving ? 'Saving...' : 'Save Settings'}
-                  </button>
+                        />
+                      </button>
+                    </label>
+                  ))}
                 </div>
-              </div>
 
-              {/* Live Preview Panel */}
-              <div>
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-base font-semibold text-gray-900">Live Preview</h3>
-                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
-                      Sample data
-                    </span>
-                  </div>
-                  <WidgetPreview settings={settings} />
-                </div>
+                {/* Save Button */}
+                <button
+                  onClick={saveSettings}
+                  disabled={saving}
+                  className="w-full sm:w-auto bg-blue-600 text-white px-8 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Settings'}
+                </button>
               </div>
+            </div>
+
+            {/* Live Preview — Full Width Below */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold text-gray-900">Live Preview</h3>
+                <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
+                  Sample data
+                </span>
+              </div>
+              <WidgetPreview settings={settings} />
             </div>
           </div>
         )}
 
         {/* Embed Code Tab */}
         {activeTab === 'embed' && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 max-w-2xl">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h3 className="text-base font-semibold text-gray-900 mb-2">Embed Code</h3>
             <p className="text-sm text-gray-600 mb-4">
               Copy and paste this code into your website to display the review widget.
