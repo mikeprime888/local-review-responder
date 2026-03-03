@@ -193,7 +193,7 @@ function BillingContent() {
           <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No active subscriptions</h3>
           <p className="text-gray-500 mb-4">Subscribe to a location to start managing reviews.</p>
-          
+          <a
             href="/dashboard/add-location"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
           >
@@ -299,7 +299,7 @@ function BillingContent() {
 
                 <div className="sm:col-span-2 flex items-center gap-2 sm:justify-end mt-2 sm:mt-0">
                   {invoice.pdfUrl && (
-                    
+                    <a
                       href={invoice.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -311,7 +311,7 @@ function BillingContent() {
                     </a>
                   )}
                   {invoice.hostedUrl && (
-                    
+                    <a
                       href={invoice.hostedUrl}
                       target="_blank"
                       rel="noopener noreferrer"
