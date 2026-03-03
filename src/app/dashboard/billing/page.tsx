@@ -270,31 +270,26 @@ function BillingContent() {
                 key={invoice.id}
                 className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 px-6 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 items-center"
               >
-                {/* Date */}
                 <div className="sm:col-span-2 text-sm text-gray-900">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Date:</span>
                   {formatDate(invoice.date)}
                 </div>
 
-                {/* Invoice number */}
                 <div className="sm:col-span-3 text-sm text-gray-600 font-mono">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Invoice:</span>
-                  {invoice.number || '—'}
+                  {invoice.number || '\u2014'}
                 </div>
 
-                {/* Description */}
                 <div className="sm:col-span-3 text-sm text-gray-600 truncate">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Description:</span>
                   {invoice.description}
                 </div>
 
-                {/* Amount */}
                 <div className="sm:col-span-1 text-sm font-medium text-gray-900 sm:text-right">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Amount:</span>
                   {formatCurrency(invoice.amount, invoice.currency)}
                 </div>
 
-                {/* Status */}
                 <div className="sm:col-span-1 sm:text-center">
                   <span className="sm:hidden text-xs text-gray-500 mr-2">Status:</span>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getInvoiceStatusBadge(invoice.status)}`}>
@@ -302,7 +297,6 @@ function BillingContent() {
                   </span>
                 </div>
 
-                {/* Actions */}
                 <div className="sm:col-span-2 flex items-center gap-2 sm:justify-end mt-2 sm:mt-0">
                   {invoice.pdfUrl && (
                     
