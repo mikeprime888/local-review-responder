@@ -3,9 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +13,7 @@ export async function POST(request: NextRequest) {
 
     const { reviewerName, rating, comment, businessName } = await request.json();
 
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     if (!businessName) {
       return NextResponse.json(
         { error: 'Missing required field: businessName' },

@@ -165,6 +165,7 @@ model WidgetSettings {
   theme       String  @default("light")    // "light", "dark", "auto"
   accentColor String  @default("#4F46E5")  // Hex color
   maxReviews  Int     @default(10)
+  limitReviews  Boolean  @default(true)
   minStars    Int     @default(4)           // Only show reviews with this rating or higher
   showDate    Boolean @default(true)
   showName    Boolean @default(true)
