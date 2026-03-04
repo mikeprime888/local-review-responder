@@ -95,7 +95,7 @@
         var short   = hasLong ? truncate(comment, maxChars) : comment;
 
         var h = '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;padding:20px;'
-              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;">';
+              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;height:230px;">';
 
         // Avatar + name + stars row
         h += '<div style="display:flex;align-items:center;gap:10px;">';
@@ -122,7 +122,7 @@
 
         // Comment + Read more → modal
         if (comment) {
-          h += '<div style="font-size:13px;line-height:1.6;color:' + colText + ';">' + short;
+          h += '<div style="font-size:13px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;">' + short;
           if (hasLong) {
             // Pass data via data attributes to avoid inline quote nightmares
             var safeId = 'lrr-rm-' + review.id;
