@@ -295,6 +295,7 @@ function WidgetPreview({
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
+          minHeight: '200px',
           ...style,
         }}
       >
@@ -428,7 +429,7 @@ function WidgetPreview({
           background: containerBg,
           borderRadius: '12px',
           padding: '20px',
-          minHeight: '200px',
+          minHeight: '320px',
           transition: 'all 0.3s ease',
           opacity: reviewsLoading ? 0.5 : 1,
         }}
