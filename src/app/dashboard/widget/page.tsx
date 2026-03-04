@@ -23,7 +23,7 @@ interface WidgetSettings {
   minRating: number;
 }
 
-// Sample reviews for the preview
+// Fallback sample reviews (used only if no published reviews exist)
 const SAMPLE_REVIEWS = [
   {
     id: '1',
@@ -47,6 +47,15 @@ const SAMPLE_REVIEWS = [
     createTime: '2026-01-28T09:15:00Z',
   },
 ];
+
+interface LiveReview {
+  id: string;
+  authorName: string;
+  rating: number;
+  text: string;
+  createTime: string;
+  reviewerPhoto?: string | null;
+}
 
 const TRUNCATE_LENGTH = 120;
 
@@ -200,14 +209,26 @@ function ReviewModal({
 }
 
 // ─── Live Preview Component ─────────────────────────────────────────────────
-function WidgetPreview({ settings }: { settings: WidgetSettings }) {
+function WidgetPreview({
+  settings,
+  liveReviews,
+  reviewsLoading,
+}: {
+  settings: WidgetSettings;
+  liveReviews: LiveReview[];
+  reviewsLoading: boolean;
+}) {
   const [carouselPage, setCarouselPage] = useState(0);
-  const [modalReview, setModalReview] = useState<typeof SAMPLE_REVIEWS[0] | null>(null);
+  const [modalReview, setModalReview] = useState<LiveReview | null>(null);
 
   const isDark = settings.theme === 'dark';
   const accent = settings.accentColor || '#4285F4';
   const layout = settings.layout || 'carousel';
   const CARDS_PER_PAGE = 3;
+
+  // Use live reviews if available, otherwise fall back to sample data
+  const previewReviews: LiveReview[] = liveReviews.length > 0 ? liveReviews : SAMPLE_REVIEWS;
+  const isUsingSampleData = liveReviews.length === 0;
 
   // Colors
   const containerBg = isDark ? '#1a1a2e' : '#EBF2FA';
@@ -217,8 +238,6 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
   const borderColor = isDark ? '#374151' : '#e8eaed';
   const arrowBg = isDark ? '#374151' : '#ffffff';
   const arrowColor = isDark ? '#d1d5db' : '#5f6368';
-
-  const totalPages = Math.ceil(SAMPLE_REVIEWS.length / CARDS_PER_PAGE);
 
   // Reset page when layout changes
   useEffect(() => {
@@ -234,9 +253,10 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
     return () => clearInterval(interval);
   }, [layout, totalPages]);
 
+  const totalPages = Math.ceil(previewReviews.length / CARDS_PER_PAGE);
   const visibleReviews = layout === 'carousel'
-    ? SAMPLE_REVIEWS.slice(carouselPage * CARDS_PER_PAGE, carouselPage * CARDS_PER_PAGE + CARDS_PER_PAGE)
-    : SAMPLE_REVIEWS;
+    ? previewReviews.slice(carouselPage * CARDS_PER_PAGE, carouselPage * CARDS_PER_PAGE + CARDS_PER_PAGE)
+    : previewReviews;
 
   const GoogleBadge = () => (
     <svg viewBox="0 0 48 48" style={{ width: 16, height: 16, flexShrink: 0 }}>
@@ -260,7 +280,7 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
     </div>
   );
 
-  const ReviewCard = ({ review, style }: { review: typeof SAMPLE_REVIEWS[0]; style?: React.CSSProperties }) => {
+  const ReviewCard = ({ review, style }: { review: LiveReview; style?: React.CSSProperties }) => {
     const isLong = review.text.length > TRUNCATE_LENGTH;
     const displayText = isLong ? review.text.substring(0, TRUNCATE_LENGTH) + '...' : review.text;
 
@@ -280,6 +300,14 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {review.reviewerPhoto ? (
+            <img
+              src={review.reviewerPhoto}
+              alt={review.authorName}
+              style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          ) : (
           <div
             style={{
               width: 40,
@@ -297,6 +325,7 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
           >
             {getInitial(review.authorName)}
           </div>
+          )}
           <div style={{ flex: 1, minWidth: 0 }}>
             {settings.showName && (
               <div style={{ fontWeight: 600, color: textColor, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -383,6 +412,17 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
 
   return (
     <>
+      {reviewsLoading && (
+        <div style={{ textAlign: 'center', padding: '12px 0', color: isDark ? '#9ca3af' : '#6b7280', fontSize: '13px' }}>
+          Loading live reviews...
+        </div>
+      )}
+      {!reviewsLoading && isUsingSampleData && (
+        <div style={{ marginBottom: '8px', fontSize: '12px', color: isDark ? '#6b7280' : '#9ca3af', textAlign: 'center' }}>
+          No published reviews yet — showing sample data. Publish reviews from the{' '}
+          <a href="/dashboard/reviews" style={{ color: '#4285F4' }}>Reviews</a> page.
+        </div>
+      )}
       <div
         style={{
           background: containerBg,
@@ -390,6 +430,7 @@ function WidgetPreview({ settings }: { settings: WidgetSettings }) {
           padding: '20px',
           minHeight: '200px',
           transition: 'all 0.3s ease',
+          opacity: reviewsLoading ? 0.5 : 1,
         }}
       >
         {/* Carousel Layout — multi-card, 3 per page */}
@@ -489,6 +530,9 @@ function WidgetContent() {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [liveReviews, setLiveReviews] = useState<LiveReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
   const [settings, setSettings] = useState<WidgetSettings>({
     layout: 'carousel',
     theme: 'light',
@@ -506,7 +550,7 @@ function WidgetContent() {
   // Fetch locations
   useEffect(() => {
     if (status !== 'authenticated') return;
-    fetch('/api/locations')
+    fetch('/api/google/locations')
       .then((res) => res.json())
       .then((data) => {
         const locs = data.locations || [];
@@ -544,6 +588,34 @@ function WidgetContent() {
         }
       })
       .catch(() => {});
+  }, [selectedLocationId]);
+
+  // Fetch live published reviews for preview
+  useEffect(() => {
+    if (!selectedLocationId) return;
+    setReviewsLoading(true);
+    fetch(`/api/widget/${selectedLocationId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.reviews && data.reviews.length > 0) {
+          const mapped: LiveReview[] = data.reviews.map((r: any) => ({
+            id: r.id,
+            authorName: r.reviewerName || 'Anonymous',
+            rating: r.starRating,
+            text: r.comment || '',
+            createTime: r.googleCreatedAt,
+            reviewerPhoto: r.reviewerPhoto || null,
+          }));
+          setLiveReviews(mapped);
+        } else {
+          setLiveReviews([]);
+        }
+        setReviewsLoading(false);
+      })
+      .catch(() => {
+        setLiveReviews([]);
+        setReviewsLoading(false);
+      });
   }, [selectedLocationId]);
 
   // Save settings
@@ -806,7 +878,7 @@ function WidgetContent() {
                 <h3 className="text-base font-semibold text-gray-900">Live Preview</h3>
                 <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Sample data</span>
               </div>
-              <WidgetPreview settings={settings} />
+              <WidgetPreview settings={settings} liveReviews={liveReviews} reviewsLoading={reviewsLoading} />
             </div>
           </div>
         )}
