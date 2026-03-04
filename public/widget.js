@@ -95,7 +95,7 @@
         var short   = hasLong ? truncate(comment, maxChars) : comment;
 
         var h = '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;padding:20px;'
-              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;">';
+              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;height:100%;">';
 
         // Avatar + name + stars row
         h += '<div style="display:flex;align-items:center;gap:10px;">';
@@ -125,7 +125,7 @@
 
         // Comment + Read more → modal
         if (comment) {
-          h += '<div style="font-size:13px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;">' + short;
+          h += '<div style="font-size:13px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">' + short;
           if (hasLong) {
             // Pass data via data attributes to avoid inline quote nightmares
             var safeId = 'lrr-rm-' + review.id;
@@ -174,7 +174,7 @@
         html += '<button id="' + widgetId + '-prev" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid '
               + colBorder + ';background:' + colArrowBg + ';color:' + colArrow + ';font-size:20px;cursor:pointer;'
               + 'display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.1);">&#8249;</button>';
-        html += '<div id="' + widgetId + '-track" style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">';
+        html += '<div id="' + widgetId + '-track" style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch;">';
         var first = reviews.slice(0, PER_PAGE);
         for (var i = 0; i < first.length; i++) { html += buildCard(first[i]); }
         html += '</div>';
@@ -279,6 +279,9 @@
           for (var ri = 0; ri < pageReviews.length; ri++) { h += buildCard(pageReviews[ri]); }
           track.innerHTML = h;
           track.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+          // Lock track height so widget doesn't jump between pages
+          var cardH = cols === 1 ? 280 : 260;
+          track.style.height = cardH + 'px';
         }
 
         function getTotalPages() {
@@ -355,6 +358,9 @@
         renderPage(0);
         updateDots();
         startAuto();
+        // Lock initial height
+        var initCols = getColsForWidth();
+        track.style.height = (initCols === 1 ? 280 : 260) + 'px';
       }
     })
     .catch(function (err) { console.error('LRR Widget Error:', err); });
