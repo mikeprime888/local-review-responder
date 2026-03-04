@@ -165,20 +165,14 @@
       if (data.location) {
         var avg = (data.location.averageRating || 0).toFixed(1);
         var total = data.location.totalReviews || 0;
-        var reviewUrl = data.location.mapsUri || '#';
 
-        wrapper += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">';
-        wrapper += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
-        wrapper += '<span style="font-size:20px;font-weight:700;color:' + textColor + ';">Overall rating</span>';
-        wrapper += '<span style="font-size:20px;font-weight:700;color:' + textColor + ';">' + avg + '</span>';
-        wrapper += '<span style="color:#F4B400;font-size:20px;">&#9733;</span>';
-        wrapper += '<span style="font-size:14px;color:' + subText + ';margin-left:4px;">| ' + total + ' reviews</span>';
+        wrapper += '<div style="text-align:center;margin-bottom:20px;">';
+        wrapper += '<div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;">';
+        wrapper += '<span style="font-size:32px;font-weight:700;color:' + textColor + ';">Overall Rating</span>';
+        wrapper += '<span style="font-size:32px;font-weight:700;color:' + textColor + ';">' + avg + '</span>';
+        wrapper += '<span style="color:#F4B400;font-size:32px;line-height:1;">&#9733;</span>';
+        wrapper += '<span style="font-size:16px;color:' + subText + ';margin-left:4px;">| ' + total + ' reviews</span>';
         wrapper += '</div>';
-        if (reviewUrl !== '#') {
-          wrapper += '<a href="' + reviewUrl + '" target="_blank" rel="noopener noreferrer" ' +
-            'style="display:inline-flex;align-items:center;padding:10px 20px;background:' + accent + ';' +
-            'color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;">Write a review</a>';
-        }
         wrapper += '</div>';
       }
 
@@ -253,6 +247,43 @@
 
       wrapper += '</div>'; // end widget shell
       container.innerHTML = wrapper;
+
+      // ── Modal for "Read more" ─────────────────────────────────────────────
+      var modalId = widgetId + '-modal';
+      var modalHtml =
+        '<div id="' + modalId + '" onclick="(function(e){if(e.target.id==='' + modalId + ''){document.getElementById('' + modalId + '').style.display='none';}})(event)" ' +
+        'style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);' +
+        'align-items:center;justify-content:center;padding:16px;">' +
+        '<div id="' + modalId + '-inner" style="background:' + cardBg + ';border-radius:16px;padding:28px;max-width:500px;width:100%;' +
+        'max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;">' +
+        '<button onclick="document.getElementById('' + modalId + '').style.display='none';" ' +
+        'style="position:absolute;top:12px;right:12px;background:' + (isDark?'#374151':'#f3f4f6') + ';border:none;border-radius:50%;' +
+        'width:30px;height:30px;cursor:pointer;font-size:15px;color:' + subText + ';display:flex;align-items:center;justify-content:center;">&#10005;</button>' +
+        '<div id="' + modalId + '-avatar" style="display:flex;align-items:center;gap:14px;margin-bottom:16px;"></div>' +
+        '<p id="' + modalId + '-text" style="color:' + textColor + ';font-size:14px;line-height:1.7;margin:0;"></p>' +
+        '<div id="' + modalId + '-date" style="color:' + subText + ';font-size:12px;margin-top:12px;"></div>' +
+        '</div></div>';
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+      window._lrrOpenModal = function(name, initial, color, photo, rating, comment, date) {
+        var modal = document.getElementById(modalId);
+        var avatarEl = document.getElementById(modalId + '-avatar');
+        var textEl = document.getElementById(modalId + '-text');
+        var dateEl = document.getElementById(modalId + '-date');
+
+        var avatarHtml = photo
+          ? '<img src="' + photo + '" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';this.nextSibling.style.display='flex';" />' +
+            '<div style="display:none;width:48px;height:48px;border-radius:50%;background:' + color + ';align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:20px;font-weight:600;">' + initial + '</div>'
+          : '<div style="display:flex;width:48px;height:48px;border-radius:50%;background:' + color + ';align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:20px;font-weight:600;">' + initial + '</div>';
+
+        avatarHtml += '<div><div style="font-weight:600;font-size:16px;color:' + textColor + ';">' + name + '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">' + stars(rating, 18) + googleGIcon + '</div></div>';
+
+        avatarEl.innerHTML = avatarHtml;
+        textEl.textContent = comment;
+        dateEl.textContent = date;
+        modal.style.display = 'flex';
+      };
 
       // ── Carousel controller ───────────────────────────────────────────────
       if (layout === 'carousel') {
