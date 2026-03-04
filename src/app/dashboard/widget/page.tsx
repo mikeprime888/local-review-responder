@@ -573,8 +573,15 @@ function WidgetContent() {
     setSaving(false);
   };
 
-  const embedCode = selectedLocationId
-    ? `<div id="lrr-widget" data-location-id="${selectedLocationId}"></div>\n<script src="${typeof window !== 'undefined' ? window.location.origin : ''}/widget.js" async></script>`
+  const [origin, setOrigin] = useState('');
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const embedCode = selectedLocationId && origin
+    ? `<div id="lrr-widget" data-location-id="${selectedLocationId}"></div>\n<script src="${origin}/widget.js" async><\/script>`
+    : selectedLocationId
+    ? `<div id="lrr-widget" data-location-id="${selectedLocationId}"></div>\n<script src="https://app.localreviewresponder.com/widget.js" async><\/script>`
     : '';
 
   const copyEmbed = () => {
