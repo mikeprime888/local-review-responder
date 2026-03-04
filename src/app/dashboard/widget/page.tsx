@@ -573,15 +573,10 @@ function WidgetContent() {
     setSaving(false);
   };
 
-  const [origin, setOrigin] = useState('');
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const appOrigin = 'https://app.localreviewresponder.com';
 
-  const embedCode = selectedLocationId && origin
-    ? `<div id="lrr-widget" data-location-id="${selectedLocationId}"></div>\n<script src="${origin}/widget.js" async><\/script>`
-    : selectedLocationId
-    ? `<div id="lrr-widget" data-location-id="${selectedLocationId}"></div>\n<script src="https://app.localreviewresponder.com/widget.js" async><\/script>`
+  const embedCode = selectedLocationId
+    ? `<div id="lrr-widget" data-location-id="${selectedLocationId}"></div>\n<script src="${appOrigin}/widget.js" async><\/script>`
     : '';
 
   const copyEmbed = () => {
@@ -823,17 +818,23 @@ function WidgetContent() {
             <p className="text-sm text-gray-600 mb-4">
               Copy and paste this code into your website to display the review widget.
             </p>
-            <div className="relative">
-              <pre className="bg-gray-900 text-green-400 rounded-lg p-4 text-sm overflow-x-auto">
-                <code>{embedCode}</code>
-              </pre>
-              <button
-                onClick={copyEmbed}
-                className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-1.5 rounded-md transition-colors"
-              >
-                {copied ? '✓ Copied!' : 'Copy'}
-              </button>
-            </div>
+            {!selectedLocationId ? (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                No location selected. Please make sure you have an active location set up.
+              </div>
+            ) : (
+              <div className="relative">
+                <pre className="bg-gray-900 text-green-400 rounded-lg p-4 text-sm overflow-x-auto">
+                  <code>{embedCode}</code>
+                </pre>
+                <button
+                  onClick={copyEmbed}
+                  className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-1.5 rounded-md transition-colors"
+                >
+                  {copied ? '✓ Copied!' : 'Copy'}
+                </button>
+              </div>
+            )}
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
                 <strong>Tip:</strong> The widget displays reviews you&apos;ve published on the{' '}
