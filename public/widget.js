@@ -154,10 +154,12 @@
         var avg   = (data.location.averageRating || 0).toFixed(1);
         var total = data.location.totalReviews || 0;
         html += '<div style="text-align:center;margin-bottom:20px;">';
-        html += '<span style="font-size:32px;font-weight:700;color:' + colText + ';">Overall Rating&nbsp;</span>';
-        html += '<span style="font-size:32px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
-        html += '<span style="color:#F4B400;font-size:32px;line-height:1;">&nbsp;&#9733;&nbsp;</span>';
-        html += '<span style="font-size:16px;color:' + colSub + ';">| ' + total + ' reviews</span>';
+        html += '<div style="display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;">';
+        html += '<span style="font-size:clamp(20px,4vw,32px);font-weight:700;color:' + colText + ';">Overall Rating</span>';
+        html += '<span style="font-size:clamp(20px,4vw,32px);font-weight:700;color:' + colText + ';">' + avg + '</span>';
+        html += '<span style="color:#F4B400;font-size:clamp(20px,4vw,32px);line-height:1;">&#9733;</span>';
+        html += '<span style="font-size:clamp(13px,2vw,16px);color:' + colSub + ';">| ' + total + ' reviews</span>';
+        html += '</div>';
         html += '</div>';
       }
 
@@ -173,6 +175,7 @@
         var first = reviews.slice(0, PER_PAGE);
         for (var i = 0; i < first.length; i++) { html += buildCard(first[i]); }
         html += '</div>';
+        // Will be corrected after mount by getColsForWidth()
         html += '<button id="' + widgetId + '-next" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid '
               + colBorder + ';background:' + colArrowBg + ';color:' + colArrow + ';font-size:20px;cursor:pointer;'
               + 'display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.1);">&#8250;</button>';
@@ -259,24 +262,63 @@
         var track    = document.getElementById(widgetId + '-track');
         var dotsEl   = document.getElementById(widgetId + '-dots');
 
+        function getColsForWidth() {
+          var w = widgetEl.offsetWidth;
+          if (w >= 700) return 3;
+          if (w >= 440) return 2;
+          return 1;
+        }
+
         function renderPage(page) {
-          var pageReviews = reviews.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
+          var cols = getColsForWidth();
+          var pageReviews = reviews.slice(page * cols, page * cols + cols);
           var h = '';
           for (var ri = 0; ri < pageReviews.length; ri++) { h += buildCard(pageReviews[ri]); }
           track.innerHTML = h;
-          track.style.gridTemplateColumns = 'repeat(' + Math.min(pageReviews.length, PER_PAGE) + ',1fr)';
-          if (dotsEl) {
-            var dots = dotsEl.children;
-            for (var d = 0; d < dots.length; d++) {
-              dots[d].style.background = d === page ? dotOn : dotOff;
-              dots[d].style.width      = d === page ? '24px' : '8px';
+          track.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+        }
+
+        function getTotalPages() {
+          return Math.max(1, Math.ceil(reviews.length / getColsForWidth()));
+        }
+
+        function updateDots() {
+          if (!dotsEl) return;
+          var tp = getTotalPages();
+          // Rebuild dots if count changed
+          if (dotsEl.children.length !== tp) {
+            dotsEl.innerHTML = '';
+            for (var di2 = 0; di2 < tp; di2++) {
+              var db = document.createElement('button');
+              db.style.cssText = 'height:8px;border-radius:4px;border:none;cursor:pointer;padding:0;transition:all 0.3s;';
+              dotsEl.appendChild(db);
             }
+          }
+          var dots = dotsEl.children;
+          for (var d = 0; d < dots.length; d++) {
+            dots[d].style.background = d === currentPage ? dotOn : dotOff;
+            dots[d].style.width      = d === currentPage ? '24px' : '8px';
           }
         }
 
-        function goTo(page) { currentPage = Math.max(0, Math.min(page, totalPages - 1)); renderPage(currentPage); }
-        function next()     { currentPage = currentPage >= totalPages - 1 ? 0 : currentPage + 1; renderPage(currentPage); }
-        function prev()     { currentPage = currentPage <= 0 ? totalPages - 1 : currentPage - 1; renderPage(currentPage); }
+        function goTo(page) {
+          var tp = getTotalPages();
+          currentPage = Math.max(0, Math.min(page, tp - 1));
+          renderPage(currentPage);
+          updateDots();
+        }
+        function next() {
+          var tp = getTotalPages();
+          currentPage = currentPage >= tp - 1 ? 0 : currentPage + 1;
+          renderPage(currentPage);
+          updateDots();
+        }
+        function prev() {
+          var tp = getTotalPages();
+          currentPage = currentPage <= 0 ? tp - 1 : currentPage - 1;
+          renderPage(currentPage);
+          updateDots();
+        }
 
         document.getElementById(widgetId + '-next').addEventListener('click', next);
         document.getElementById(widgetId + '-prev').addEventListener('click', prev);
@@ -295,6 +337,20 @@
 
         widgetEl.addEventListener('mouseenter', stopAuto);
         widgetEl.addEventListener('mouseleave', startAuto);
+
+        // Resize handler — recalculate cols and re-render
+        var resizeTimer;
+        window.addEventListener('resize', function() {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(function() {
+            renderPage(currentPage);
+            updateDots();
+          }, 150);
+        });
+
+        // Initial responsive render after DOM is ready
+        renderPage(0);
+        updateDots();
         startAuto();
       }
     })
