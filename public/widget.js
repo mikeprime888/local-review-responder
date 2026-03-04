@@ -95,7 +95,7 @@
         var short   = hasLong ? truncate(comment, maxChars) : comment;
 
         var h = '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;padding:20px;'
-              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;height:230px;">';
+              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;">';
 
         // Avatar + name + stars row
         h += '<div style="display:flex;align-items:center;gap:10px;">';
@@ -110,9 +110,12 @@
         }
         h += '<div style="flex:1;min-width:0;">';
         if (showName) {
-          h += '<div style="font-size:14px;font-weight:600;color:' + colText + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>';
+          h += '<div style="display:flex;align-items:center;gap:6px;">';
+          h += '<div style="font-size:14px;font-weight:600;color:' + colText + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">' + name + '</div>';
+          h += googleGIcon;
+          h += '</div>';
         }
-        h += '<div style="display:flex;align-items:center;gap:5px;margin-top:2px;">' + renderStars(review.starRating) + googleGIcon + '</div>';
+        h += '<div style="display:flex;align-items:center;gap:2px;margin-top:3px;">' + renderStars(review.starRating) + '</div>';
         h += '</div></div>';
 
         // Date
