@@ -229,6 +229,7 @@ function WidgetPreview({
   // Use live reviews if available, otherwise fall back to sample data
   const previewReviews: LiveReview[] = liveReviews.length > 0 ? liveReviews : SAMPLE_REVIEWS;
   const isUsingSampleData = liveReviews.length === 0;
+  const totalPages = Math.ceil(previewReviews.length / CARDS_PER_PAGE);
 
   // Colors
   const containerBg = isDark ? '#1a1a2e' : '#EBF2FA';
@@ -253,7 +254,6 @@ function WidgetPreview({
     return () => clearInterval(interval);
   }, [layout, totalPages]);
 
-  const totalPages = Math.ceil(previewReviews.length / CARDS_PER_PAGE);
   const visibleReviews = layout === 'carousel'
     ? previewReviews.slice(carouselPage * CARDS_PER_PAGE, carouselPage * CARDS_PER_PAGE + CARDS_PER_PAGE)
     : previewReviews;
