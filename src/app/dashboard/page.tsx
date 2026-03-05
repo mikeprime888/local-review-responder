@@ -321,7 +321,8 @@ function DashboardContent() {
   }
 
  if (locations.length === 0) {
-    return <NoLocationsFound userEmail={session?.user?.email || ''} onRetry={fetchLocations} />;
+  const hasGoogleToken = !!(session?.user as { googleAccessToken?: string })?.googleAccessToken;
+return <BusinessSearch hasGoogleToken={hasGoogleToken} userEmail={session?.user?.email || ''} />;
   }
 
   const recentReviews = reviews.slice(0, 5);
