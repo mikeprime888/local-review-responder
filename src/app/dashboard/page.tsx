@@ -7,6 +7,7 @@ import LocationSwitcher from '@/components/dashboard/LocationSwitcher';
 import { StatsBar } from '@/components/dashboard/StatsBar';
 import { SyncButton } from '@/components/dashboard/SyncButton';
 import Link from 'next/link';
+import { NoLocationsFound } from '@/components/dashboard/NoLocationsFound';
 
 interface Location {
   id: string;
@@ -319,22 +320,8 @@ function DashboardContent() {
     );
   }
 
-  if (locations.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="text-center py-16">
-          <div className="text-6xl mb-4">📍</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Locations Found</h2>
-          <p className="text-gray-600 mb-6">Connect your Google Business Profile to get started.</p>
-          <Link
-            href="/dashboard/locations"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium"
-          >
-            Go to Locations
-          </Link>
-        </div>
-      </div>
-    );
+ if (locations.length === 0) {
+    return <NoLocationsFound userEmail={session?.user?.email || ''} onRetry={fetchLocations} />;
   }
 
   const recentReviews = reviews.slice(0, 5);
