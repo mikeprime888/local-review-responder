@@ -7,7 +7,7 @@ import LocationSwitcher from '@/components/dashboard/LocationSwitcher';
 import { StatsBar } from '@/components/dashboard/StatsBar';
 import { SyncButton } from '@/components/dashboard/SyncButton';
 import Link from 'next/link';
-import { NoLocationsFound } from '@/components/dashboard/NoLocationsFound';
+import { BusinessSearch } from '@/components/dashboard/BusinessSearch';
 
 interface Location {
   id: string;
