@@ -1,457 +1,258 @@
+// SendGrid HTTP API (no npm package needed — SENDGRID_API_KEY set in Vercel env)
 const SENDGRID_API_URL = 'https://api.sendgrid.com/v3/mail/send';
+const FROM_EMAIL = 'support@localreviewresponder.com';
+const FROM_NAME = 'Local Review Responder';
 
 interface SendEmailOptions {
   to: string;
+  toName?: string;
   subject: string;
   html: string;
-  toName?: string;
 }
 
-export async function sendEmail({ to, subject, html, toName }: SendEmailOptions): Promise<boolean> {
-  try {
-    const response = await fetch(SENDGRID_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        personalizations: [
-          {
-            to: [{ email: to, name: toName || undefined }],
-          },
-        ],
-        from: {
-          email: process.env.SENDGRID_FROM_EMAIL,
-          name: 'Local Review Responder',
+export async function sendEmail({ to, toName, subject, html }: SendEmailOptions) {
+  const response = await fetch(SENDGRID_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+    },
+    body: JSON.stringify({
+      personalizations: [
+        {
+          to: [toName ? { email: to, name: toName } : { email: to }],
         },
-        subject,
-        content: [
-          {
-            type: 'text/html',
-            value: html,
-          },
-        ],
-      }),
-    });
+      ],
+      from: { email: FROM_EMAIL, name: FROM_NAME },
+      subject,
+      content: [{ type: 'text/html', value: html }],
+    }),
+  });
 
-    if (response.status === 202) {
-      console.log(`Email sent successfully to ${to}`);
-      return true;
-    }
-
-    const error = await response.text();
-    console.error(`Failed to send email to ${to}:`, response.status, error);
-    return false;
-  } catch (error) {
-    console.error('SendGrid error:', error);
-    return false;
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`SendGrid error ${response.status}: ${body}`);
   }
 }
 
-export function getWelcomeEmailHtml(name?: string): string {
-  const greeting = name ? `Welcome aboard, ${name}!` : 'Welcome aboard!';
-  const appUrl = process.env.NEXTAUTH_URL || 'https://local-review-responder.vercel.app';
+// ─── Welcome Email ────────────────────────────────────────────────────────────
+export function getWelcomeEmailHtml(name?: string | null): string {
+  const firstName = name ? name.split(' ')[0] : 'there';
+  const dashboardUrl = 'https://app.localreviewresponder.com/dashboard';
+  const gbpUrl = 'https://business.google.com';
 
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to Local Review Responder</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6;">
-    <tr>
-      <td align="center" style="padding: 40px 16px;">
-
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-
-          <!-- Header Banner -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 36px 40px; text-align: center;">
-              <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="48" height="48" style="display: block; margin: 0 auto 12px;" />
-              <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">Local Review Responder</h1>
-              <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 400;">Manage your Google reviews with ease</p>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding: 36px 40px 0;">
-
-              <p style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #111827;">${greeting}</p>
-
-              <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.65; color: #374151;">
-                You're almost ready to start managing your Google Business reviews from one simple dashboard. We just need to connect your Google Business Profile. Here's how.
-              </p>
-
-              <!-- Step 1 -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
-                <tr>
-                  <td width="40" valign="top" style="padding-top: 2px;">
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #3b82f6; color: #ffffff; font-size: 14px; font-weight: 700; text-align: center; line-height: 32px;">1</div>
-                  </td>
-                  <td style="padding-left: 12px;">
-                    <p style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #111827;">Check if you have Google Business Profile access</p>
-                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4b5563;">
-                      Go to <a href="https://business.google.com" style="color: #2563eb; text-decoration: underline;">business.google.com</a> and sign in with your Google account. If you can see your business listed, you're all set! Skip to Step 3.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Step 2 -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
-                <tr>
-                  <td width="40" valign="top" style="padding-top: 2px;">
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #3b82f6; color: #ffffff; font-size: 14px; font-weight: 700; text-align: center; line-height: 32px;">2</div>
-                  </td>
-                  <td style="padding-left: 12px;">
-                    <p style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #111827;">Don't see your business? Get access.</p>
-                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4b5563;">
-                      Somebody at your company may be managing the listing. It's usually <strong>whoever set it up originally</strong>, your <strong>marketing agency</strong>, or your <strong>IT team</strong>.
-                    </p>
-
-                    <!-- How-to box -->
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top: 12px;">
-                      <tr>
-                        <td style="background-color: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 0 6px 6px 0; padding: 14px 16px;">
-                          <p style="margin: 0 0 4px; font-size: 13px; font-weight: 600; color: #1e40af;">Ask them to add you. It only takes 30 seconds:</p>
-                          <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #374151;">
-                            Ask them to go to <a href="https://business.google.com" style="color: #2563eb; text-decoration: underline;">business.google.com</a> &rarr; select the business &rarr; <strong>Users</strong> &rarr; <strong>Add user</strong> &rarr; enter your email &rarr; set role to <strong>Manager</strong>.
-                          </p>
-                        </td>
-                      </tr>
-                    </table>
-
-                    <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #4b5563;">
-                      If no one has claimed the listing yet, you can <a href="https://support.google.com/business/answer/2911778" style="color: #2563eb; text-decoration: underline;">claim it yourself through Google</a>.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Step 3 -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
-                <tr>
-                  <td width="40" valign="top" style="padding-top: 2px;">
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #3b82f6; color: #ffffff; font-size: 14px; font-weight: 700; text-align: center; line-height: 32px;">3</div>
-                  </td>
-                  <td style="padding-left: 12px;">
-                    <p style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #111827;">Log in and connect your profile</p>
-                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4b5563;">
-                      Sign in to Local Review Responder with the Google account that has access to your business profile. We'll automatically find your locations and start syncing reviews.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-            </td>
-          </tr>
-
-          <!-- CTA Button -->
-          <tr>
-            <td style="padding: 28px 40px 0;" align="center">
-              <table role="presentation" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="border-radius: 8px; background-color: #2563eb;">
-                    <a href="${appUrl}/login" target="_blank" style="display: inline-block; padding: 14px 36px; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 8px;">Log In to Your Account &rarr;</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Trial info -->
-          <tr>
-            <td style="padding: 20px 40px 0;" align="center">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="background-color: #f0fdf4; border-radius: 8px; padding: 16px 20px; text-align: center;">
-                    <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #166534;">
-                      <strong>Your 14-day free trial</strong> starts when you choose a location to manage. Pick a plan, and you won't be charged until your trial ends. Cancel anytime.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Help section -->
-          <tr>
-            <td style="padding: 28px 40px 36px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="border-top: 1px solid #e5e7eb; padding-top: 24px;">
-                    <p style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #111827;">Need help getting set up?</p>
-                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4b5563;">
-                      Just reply to this email and we'll walk you through it. Most people are up and running in under 5 minutes.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-        </table>
-
-        <!-- Footer -->
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding: 24px 40px; text-align: center;">
-              <p style="margin: 0 0 8px; font-size: 12px; color: #9ca3af;">
-                You're receiving this because you created an account on Local Review Responder.
-              </p>
-              <p style="margin: 0 0 8px; font-size: 12px; color: #9ca3af;">
-                &copy; 2026 Local Review Responder LLC. All rights reserved.
-              </p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                <a href="#" style="color: #9ca3af; text-decoration: underline;">Unsubscribe</a> &middot; <a href="https://localreviewresponder.com" style="color: #9ca3af; text-decoration: underline;">localreviewresponder.com</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-
-      </td>
-    </tr>
-  </table>
-
-</body>
-</html>
-  `.trim();
-}
-
-export function getAccountClosedEmailHtml(name?: string): string {
-  const greeting = name ? `Hi ${name},` : 'Hi there,';
-
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Account Closed — Local Review Responder</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+<body style="margin:0;padding:0;background-color:#f4f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f9;padding:32px 16px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          
-          <!-- Header -->
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
           <tr>
-            <td style="background-color: #2563eb; padding: 32px 40px; text-align: center;">
-              <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="48" height="48" style="display: block; margin: 0 auto 12px;" />
-              <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">
-                Local Review Responder
-              </h1>
+            <td style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:36px 40px;text-align:center;">
+              <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="180" style="display:block;margin:0 auto 16px;" />
+              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">Welcome, ${firstName}!</h1>
+              <p style="margin:8px 0 0;color:#bfdbfe;font-size:15px;">Your 14-day free trial has started.</p>
             </td>
           </tr>
-
-          <!-- Body -->
           <tr>
-            <td style="padding: 40px;">
-              <p style="color: #111827; font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">
-                ${greeting}
+            <td style="padding:36px 40px;">
+              <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
+                Thanks for signing up. You are one step away from managing your Google reviews on autopilot.
               </p>
-              <p style="color: #4b5563; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
-                Your Local Review Responder account has been closed and all associated data has been removed.
-              </p>
-              <p style="color: #4b5563; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
-                If you had any active subscriptions, they have been canceled and you will not be charged going forward.
-              </p>
-              <p style="color: #4b5563; font-size: 16px; line-height: 24px; margin: 0;">
-                If you believe this was done in error or have any questions, please reply to this email and we'll be happy to help.
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:28px;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <p style="margin:0 0 14px;color:#1e40af;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">Once connected, you can:</p>
+                    <table cellpadding="0" cellspacing="0">
+                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Reply to Google reviews instantly with AI</td></tr>
+                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Get email alerts when new reviews come in</td></tr>
+                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Embed a review widget on your website</td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h2 style="margin:0 0 16px;color:#111827;font-size:18px;font-weight:700;">Your next step: connect your business</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
+                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">1</span>
+                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
+                      <strong style="color:#111827;font-size:14px;">Make sure you have a Google Business Profile</strong><br />
+                      <span style="color:#6b7280;font-size:13px;">Don't have one yet? <a href="${gbpUrl}" style="color:#2563eb;">Create one free at business.google.com</a></span>
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
+                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">2</span>
+                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
+                      <strong style="color:#111827;font-size:14px;">Confirm you have Owner or Manager access</strong><br />
+                      <span style="color:#6b7280;font-size:13px;">You need this on the GBP profile to connect it.</span>
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;vertical-align:top;">
+                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">3</span>
+                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
+                      <strong style="color:#111827;font-size:14px;">Search for your business in the dashboard</strong><br />
+                      <span style="color:#6b7280;font-size:13px;">We'll sync your reviews automatically after you connect.</span>
+                    </span>
+                  </td>
+                </tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td align="center">
+                    <a href="${dashboardUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:8px;">
+                      Go to Dashboard &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
+                If you have any questions, just reply to this email &mdash; we're happy to help.
               </p>
             </td>
           </tr>
-
-          <!-- Footer -->
           <tr>
-            <td style="background-color: #f9fafb; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
-              <p style="color: #9ca3af; font-size: 12px; line-height: 18px; margin: 0; text-align: center;">
-                This is a confirmation that your account has been closed.<br>
-                Questions? Just reply to this email.
-              </p>
+            <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
   </table>
 </body>
-</html>
-  `.trim();
+</html>`;
 }
 
+// ─── Account Closed Email ─────────────────────────────────────────────────────
+export function getAccountClosedEmailHtml(name?: string | null): string {
+  const firstName = name ? name.split(' ')[0] : 'there';
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>Account Closed</title></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <tr>
+          <td style="background:#1d4ed8;padding:32px 40px;text-align:center;">
+            <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="160" style="display:block;margin:0 auto;" />
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <h1 style="margin:0 0 16px;color:#111827;font-size:22px;">Your account has been closed, ${firstName}</h1>
+            <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">
+              We're sorry to see you go. Your account and all associated data have been removed from our system.
+            </p>
+            <p style="margin:0;color:#374151;font-size:15px;line-height:1.6;">
+              If you ever want to come back, you're always welcome to create a new account at
+              <a href="https://app.localreviewresponder.com/register" style="color:#2563eb;">localreviewresponder.com</a>.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+            <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
 
+// ─── New Reviews Email ────────────────────────────────────────────────────────
+// Callers pass: (name, reviewsArray) where each review has:
+//   locationTitle, reviewerName, starRating, comment
 export function getNewReviewsEmailHtml(
-  name: string | undefined,
+  name: string | null | undefined,
   reviews: Array<{
-    locationTitle: string;
-    reviewerName: string;
-    starRating: number;
-    comment: string | null;
+    locationTitle?: string;
+    reviewerName?: string;
+    starRating?: string | number;
+    comment?: string | null;
   }>
 ): string {
-  const greeting = name ? `Hi ${name},` : 'Hi there,';
-  const appUrl = process.env.NEXTAUTH_URL || 'https://local-review-responder.vercel.app';
+  const firstName = name ? name.split(' ')[0] : 'there';
+  const reviewCount = reviews.length;
+  const locationTitle = reviews[0]?.locationTitle || 'your location';
+  const dashboardUrl = 'https://app.localreviewresponder.com/dashboard';
 
-  // Group reviews by location
-  const byLocation = new Map<string, typeof reviews>();
-  for (const review of reviews) {
-    if (!byLocation.has(review.locationTitle)) {
-      byLocation.set(review.locationTitle, []);
-    }
-    byLocation.get(review.locationTitle)!.push(review);
-  }
+  const stars = (rating: string | number | undefined) => {
+    const n = typeof rating === 'number' ? rating : parseInt(String(rating || '0'));
+    const filled = Math.min(5, Math.max(0, n));
+    return '&#9733;'.repeat(filled) + '&#9734;'.repeat(5 - filled);
+  };
 
-  const stars = (rating: number) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
-
-  const reviewCards = Array.from(byLocation.entries())
-    .map(
-      ([location, locReviews]) => `
-      <tr>
-        <td style="padding: 0 0 24px;">
-          <p style="margin: 0 0 12px; font-size: 15px; font-weight: 600; color: #111827;">
-            📍 ${location}
-            <span style="font-weight: 400; color: #6b7280; font-size: 13px;">
-              — ${locReviews.length} new review${locReviews.length > 1 ? 's' : ''}
-            </span>
-          </p>
-          ${locReviews
-            .map(
-              (r) => `
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
-            <tr>
-              <td style="background-color: #f9fafb; border-radius: 8px; border-left: 4px solid ${
-                r.starRating >= 4 ? '#22c55e' : r.starRating === 3 ? '#f59e0b' : '#ef4444'
-              }; padding: 14px 16px;">
-                <p style="margin: 0 0 4px; font-size: 14px;">
-                  <span style="color: ${
-                    r.starRating >= 4 ? '#16a34a' : r.starRating === 3 ? '#d97706' : '#dc2626'
-                  }; letter-spacing: 1px;">${stars(r.starRating)}</span>
-                  <span style="color: #374151; font-weight: 600; margin-left: 8px;">${r.reviewerName}</span>
-                </p>
-                ${
-                  r.comment
-                    ? `<p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: #4b5563;">"${
-                        r.comment.length > 200 ? r.comment.substring(0, 200) + '...' : r.comment
-                      }"</p>`
-                    : `<p style="margin: 8px 0 0; font-size: 13px; color: #9ca3af; font-style: italic;">No comment left</p>`
-                }
-              </td>
-            </tr>
-          </table>`
-            )
-            .join('')}
-        </td>
-      </tr>`
-    )
-    .join('');
-
-  const needsReply = reviews.filter((r) => !r.comment || r.starRating <= 3).length;
-
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Reviews — Local Review Responder</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6;">
+  const reviewRows = reviews.slice(0, 3).map(r => `
     <tr>
-      <td align="center" style="padding: 40px 16px;">
-
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 28px 40px; text-align: center;">
-              <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="48" height="48" style="display: block; margin: 0 auto 12px;" />
-              <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 700;">Local Review Responder</h1>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding: 32px 40px 0;">
-              <p style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #111827;">${greeting}</p>
-              <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6; color: #374151;">
-                You have <strong>${reviews.length} new review${reviews.length > 1 ? 's' : ''}</strong> since your last sync. Here's a summary:
-              </p>
-            </td>
-          </tr>
-
-          <!-- Review Cards -->
-          <tr>
-            <td style="padding: 0 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                ${reviewCards}
-              </table>
-            </td>
-          </tr>
-
-          <!-- CTA -->
-          <tr>
-            <td style="padding: 8px 40px 0;" align="center">
-              <table role="presentation" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="border-radius: 8px; background-color: #2563eb;">
-                    <a href="${appUrl}/dashboard" target="_blank" style="display: inline-block; padding: 14px 36px; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 8px;">View & Respond to Reviews →</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Tip -->
-          <tr>
-            <td style="padding: 24px 40px 0;" align="center">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="background-color: #fffbeb; border-radius: 8px; padding: 14px 20px; text-align: center;">
-                    <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #92400e;">
-                      💡 <strong>Tip:</strong> Responding to reviews within 24 hours boosts your local search ranking and builds customer trust.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 28px 40px 32px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center;">
-                    <p style="margin: 0 0 8px; font-size: 12px; color: #9ca3af;">
-                      You're receiving this because you have active locations on Local Review Responder.
-                    </p>
-                    <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                      <a href="#" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from review notifications</a> · <a href="https://localreviewresponder.com" style="color: #9ca3af; text-decoration: underline;">localreviewresponder.com</a>
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-        </table>
-
+      <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
+        <p style="margin:0 0 3px;color:#f59e0b;font-size:15px;">${stars(r.starRating)}</p>
+        <p style="margin:0 0 4px;color:#111827;font-size:13px;font-weight:600;">${r.reviewerName || 'Anonymous'} &middot; <span style="color:#9ca3af;font-weight:400;">${r.locationTitle || ''}</span></p>
+        ${r.comment
+          ? `<p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">${r.comment.substring(0, 160)}${r.comment.length > 160 ? '...' : ''}</p>`
+          : `<p style="margin:0;color:#9ca3af;font-size:13px;font-style:italic;">No comment left</p>`
+        }
       </td>
     </tr>
-  </table>
+  `).join('');
 
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>New Reviews</title></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <tr>
+          <td style="background:#1d4ed8;padding:32px 40px;text-align:center;">
+            <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="160" style="display:block;margin:0 auto;" />
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <h1 style="margin:0 0 4px;color:#111827;font-size:22px;">
+              You have ${reviewCount} new ${reviewCount === 1 ? 'review' : 'reviews'}!
+            </h1>
+            <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">${locationTitle}</p>
+            <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">
+              Hi ${firstName}, here's a quick look at your latest ${reviewCount === 1 ? 'review' : 'reviews'}:
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              ${reviewRows}
+            </table>
+            ${reviewCount > 3 ? `<p style="margin:0 0 20px;color:#6b7280;font-size:13px;">+ ${reviewCount - 3} more in your dashboard</p>` : ''}
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center">
+                  <a href="${dashboardUrl}" style="display:inline-block;background:#2563eb;color:#fff;font-size:15px;font-weight:700;text-decoration:none;padding:13px 32px;border-radius:8px;">
+                    View &amp; Respond to Reviews &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+            <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
 </body>
-</html>
-  `.trim();
+</html>`;
 }
