@@ -137,9 +137,7 @@ export function getWelcomeEmailHtml(name?: string | null): string {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-              <p style="margin:0;color:#9ca3af;font-size:12px;">
-                &copy; 2025 Local Review Responder
-              </p>
+              <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
             </td>
           </tr>
 
@@ -191,13 +189,31 @@ export function getAccountClosedEmailHtml(name?: string | null): string {
 }
 
 // ─── New Reviews Email ────────────────────────────────────────────────────────
+// Called by cron/sync-reviews as: getNewReviewsEmailHtml(name, reviewsArray)
 export function getNewReviewsEmailHtml(
   name: string | null | undefined,
-  locationName: string,
-  reviewCount: number,
-  dashboardUrl: string = 'https://app.localreviewresponder.com/dashboard'
+  reviews: Array<{ locationName?: string; starRating?: string | number; comment?: string | null; reviewer?: { displayName?: string } }>
 ): string {
   const firstName = name ? name.split(' ')[0] : 'there';
+  const reviewCount = reviews.length;
+  const locationName = reviews[0]?.locationName || 'your location';
+  const dashboardUrl = 'https://app.localreviewresponder.com/dashboard';
+
+  const stars = (rating: string | number | undefined) => {
+    const n = typeof rating === 'number' ? rating : parseInt(String(rating || '0'));
+    return '&#9733;'.repeat(Math.min(5, Math.max(0, n))) + '&#9734;'.repeat(Math.max(0, 5 - n));
+  };
+
+  const reviewRows = reviews.slice(0, 3).map(r => `
+    <tr>
+      <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
+        <p style="margin:0 0 4px;color:#f59e0b;font-size:15px;">${stars(r.starRating)}</p>
+        <p style="margin:0 0 4px;color:#111827;font-size:13px;font-weight:600;">${r.reviewer?.displayName || 'Anonymous'}</p>
+        ${r.comment ? `<p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">${r.comment.substring(0, 160)}${r.comment.length > 160 ? '...' : ''}</p>` : '<p style="margin:0;color:#9ca3af;font-size:13px;font-style:italic;">No comment left</p>'}
+      </td>
+    </tr>
+  `).join('');
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8" /><title>New Reviews</title></head>
@@ -212,11 +228,17 @@ export function getNewReviewsEmailHtml(
         </tr>
         <tr>
           <td style="padding:36px 40px;">
-            <h1 style="margin:0 0 8px;color:#111827;font-size:22px;">You have ${reviewCount} new ${reviewCount === 1 ? 'review' : 'reviews'}!</h1>
+            <h1 style="margin:0 0 4px;color:#111827;font-size:22px;">
+              You have ${reviewCount} new ${reviewCount === 1 ? 'review' : 'reviews'}!
+            </h1>
             <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">${locationName}</p>
-            <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
-              Hi ${firstName}, new reviews have come in for <strong>${locationName}</strong>. Head to your dashboard to view and respond.
+            <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
+              Hi ${firstName}, here's a quick look at your latest ${reviewCount === 1 ? 'review' : 'reviews'}:
             </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              ${reviewRows}
+            </table>
+            ${reviewCount > 3 ? `<p style="margin:0 0 20px;color:#6b7280;font-size:13px;">+ ${reviewCount - 3} more in your dashboard</p>` : ''}
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td align="center">
