@@ -53,8 +53,6 @@ export function getWelcomeEmailHtml(name?: string | null): string {
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-
-          <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:36px 40px;text-align:center;">
               <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="180" style="display:block;margin:0 auto 16px;" />
@@ -62,15 +60,11 @@ export function getWelcomeEmailHtml(name?: string | null): string {
               <p style="margin:8px 0 0;color:#bfdbfe;font-size:15px;">Your 14-day free trial has started.</p>
             </td>
           </tr>
-
-          <!-- Body -->
           <tr>
             <td style="padding:36px 40px;">
               <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
                 Thanks for signing up. You are one step away from managing your Google reviews on autopilot.
               </p>
-
-              <!-- What you'll get -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:28px;">
                 <tr>
                   <td style="padding:20px 24px;">
@@ -83,10 +77,7 @@ export function getWelcomeEmailHtml(name?: string | null): string {
                   </td>
                 </tr>
               </table>
-
-              <!-- Next steps -->
               <h2 style="margin:0 0 16px;color:#111827;font-size:18px;font-weight:700;">Your next step: connect your business</h2>
-
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
@@ -116,8 +107,6 @@ export function getWelcomeEmailHtml(name?: string | null): string {
                   </td>
                 </tr>
               </table>
-
-              <!-- CTA -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td align="center">
@@ -127,20 +116,16 @@ export function getWelcomeEmailHtml(name?: string | null): string {
                   </td>
                 </tr>
               </table>
-
               <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
                 If you have any questions, just reply to this email &mdash; we're happy to help.
               </p>
             </td>
           </tr>
-
-          <!-- Footer -->
           <tr>
             <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
               <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
@@ -189,27 +174,37 @@ export function getAccountClosedEmailHtml(name?: string | null): string {
 }
 
 // ─── New Reviews Email ────────────────────────────────────────────────────────
-// Called by cron/sync-reviews as: getNewReviewsEmailHtml(name, reviewsArray)
+// Callers pass: (name, reviewsArray) where each review has:
+//   locationTitle, reviewerName, starRating, comment
 export function getNewReviewsEmailHtml(
   name: string | null | undefined,
-  reviews: Array<{ locationName?: string; starRating?: string | number; comment?: string | null; reviewer?: { displayName?: string } }>
+  reviews: Array<{
+    locationTitle?: string;
+    reviewerName?: string;
+    starRating?: string | number;
+    comment?: string | null;
+  }>
 ): string {
   const firstName = name ? name.split(' ')[0] : 'there';
   const reviewCount = reviews.length;
-  const locationName = reviews[0]?.locationName || 'your location';
+  const locationTitle = reviews[0]?.locationTitle || 'your location';
   const dashboardUrl = 'https://app.localreviewresponder.com/dashboard';
 
   const stars = (rating: string | number | undefined) => {
     const n = typeof rating === 'number' ? rating : parseInt(String(rating || '0'));
-    return '&#9733;'.repeat(Math.min(5, Math.max(0, n))) + '&#9734;'.repeat(Math.max(0, 5 - n));
+    const filled = Math.min(5, Math.max(0, n));
+    return '&#9733;'.repeat(filled) + '&#9734;'.repeat(5 - filled);
   };
 
   const reviewRows = reviews.slice(0, 3).map(r => `
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
-        <p style="margin:0 0 4px;color:#f59e0b;font-size:15px;">${stars(r.starRating)}</p>
-        <p style="margin:0 0 4px;color:#111827;font-size:13px;font-weight:600;">${r.reviewer?.displayName || 'Anonymous'}</p>
-        ${r.comment ? `<p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">${r.comment.substring(0, 160)}${r.comment.length > 160 ? '...' : ''}</p>` : '<p style="margin:0;color:#9ca3af;font-size:13px;font-style:italic;">No comment left</p>'}
+        <p style="margin:0 0 3px;color:#f59e0b;font-size:15px;">${stars(r.starRating)}</p>
+        <p style="margin:0 0 4px;color:#111827;font-size:13px;font-weight:600;">${r.reviewerName || 'Anonymous'} &middot; <span style="color:#9ca3af;font-weight:400;">${r.locationTitle || ''}</span></p>
+        ${r.comment
+          ? `<p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">${r.comment.substring(0, 160)}${r.comment.length > 160 ? '...' : ''}</p>`
+          : `<p style="margin:0;color:#9ca3af;font-size:13px;font-style:italic;">No comment left</p>`
+        }
       </td>
     </tr>
   `).join('');
@@ -231,8 +226,8 @@ export function getNewReviewsEmailHtml(
             <h1 style="margin:0 0 4px;color:#111827;font-size:22px;">
               You have ${reviewCount} new ${reviewCount === 1 ? 'review' : 'reviews'}!
             </h1>
-            <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">${locationName}</p>
-            <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
+            <p style="margin:0 0 24px;color:#6b7280;font-size:14px;">${locationTitle}</p>
+            <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">
               Hi ${firstName}, here's a quick look at your latest ${reviewCount === 1 ? 'review' : 'reviews'}:
             </p>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
