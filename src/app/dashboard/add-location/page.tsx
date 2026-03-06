@@ -29,38 +29,41 @@ function AddLocationContent() {
 
   const wasCanceled = searchParams.get('canceled') === 'true';
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    } else if (status === 'authenticated') {
-      checkGoogleAndFetch();
-    }
-  }, [status, router]);
+useEffect(() => {
+  if (status === 'unauthenticated') {
+    router.push('/login');
+  } else if (status === 'authenticated') {
+    checkGoogleAndFetch();
+  }
+}, [status, router]);
 
-  const checkGoogleAndFetch = async () => {
-    try {
-      // Check from session first
-      const sessionHasGoogle = (session?.user as any)?.hasGoogleAccount;
-      if (sessionHasGoogle !== undefined) {
-        setHasGoogleAccount(sessionHasGoogle);
-        if (sessionHasGoogle) {
-          await fetchAvailableLocations();
-        }
-      } else {
-        // Fallback: check via API
-        const res = await fetch('/api/auth/check-google');
-        const data = await res.json();
-        setHasGoogleAccount(data.hasGoogleAccount);
-        if (data.hasGoogleAccount) {
-          await fetchAvailableLocations();
-        }
+const checkGoogleAndFetch = async () => {
+  try {
+    // Check from session first
+    const sessionHasGoogle = (session?.user as any)?.hasGoogleAccount;
+    if (sessionHasGoogle !== undefined) {
+      setHasGoogleAccount(sessionHasGoogle);
+      if (sessionHasGoogle) {
+        await fetchAvailableLocations();
       }
-    } catch {
-      setHasGoogleAccount(false);
-    } finally {
-      setLoading(false);
+      return; // ← don't fall through to API check
     }
-  };
+
+    // Fallback: check via API
+    const res = await fetch('/api/auth/check-google');
+    const data = await res.json();
+    setHasGoogleAccount(data.hasGoogleAccount);
+    if (data.hasGoogleAccount) {
+      await fetchAvailableLocations();
+    }
+  } catch {
+    // Don't reset hasGoogleAccount here — fetchAvailableLocations()
+    // failing doesn't mean Google isn't connected
+    console.error('Error in checkGoogleAndFetch');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchAvailableLocations = async (sync = false) => {
     try {
