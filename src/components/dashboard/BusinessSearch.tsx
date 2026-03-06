@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import {
   Search, MapPin, Star, ChevronRight, Loader2,
@@ -54,12 +55,28 @@ function ProgressSteps({ step }: { step: 1 | 2 }) {
 }
 
 export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProps) {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PlaceResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<PlaceResult | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Restore selected business from URL params after Google OAuth redirect
+  useEffect(() => {
+    const placeId = searchParams.get('placeId');
+    const businessName = searchParams.get('businessName');
+    const businessAddress = searchParams.get('businessAddress');
+
+    if (placeId && businessName && businessAddress) {
+      setSelectedBusiness({
+        placeId,
+        name: businessName,
+        address: businessAddress,
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (query.length < 3) { setResults([]); setError(null); return; }
@@ -130,7 +147,9 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
                 </p>
               </div>
             </div>
-            <button onClick={() => signIn('google', { callbackUrl: '/dashboard/add-location' })}
+            <button onClick={() => signIn('google', {
+              callbackUrl: `/dashboard?placeId=${encodeURIComponent(selectedBusiness!.placeId)}&businessName=${encodeURIComponent(selectedBusiness!.name)}&businessAddress=${encodeURIComponent(selectedBusiness!.address)}`
+            })}
               className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3.5 font-semibold transition-colors shadow-sm shadow-blue-200">
               <LogIn className="w-4 h-4" /> Connect Google account
             </button>
