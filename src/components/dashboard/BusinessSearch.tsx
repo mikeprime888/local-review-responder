@@ -130,7 +130,7 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
                 </p>
               </div>
             </div>
-            <button onClick={() => signIn('google')}
+            <button onClick={() => signIn('google', { callbackUrl: '/dashboard/add-location' })}
               className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3.5 font-semibold transition-colors shadow-sm shadow-blue-200">
               <LogIn className="w-4 h-4" /> Connect Google account
             </button>
