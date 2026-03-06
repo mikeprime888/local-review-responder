@@ -1,6 +1,7 @@
-import sgMail from '@sendgrid/mail';
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+// SendGrid HTTP API (no npm package needed — SENDGRID_API_KEY set in Vercel env)
+const SENDGRID_API_URL = 'https://api.sendgrid.com/v3/mail/send';
+const FROM_EMAIL = 'support@localreviewresponder.com';
+const FROM_NAME = 'Local Review Responder';
 
 interface SendEmailOptions {
   to: string;
@@ -10,17 +11,28 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail({ to, toName, subject, html }: SendEmailOptions) {
-  const msg = {
-    to: toName ? { email: to, name: toName } : to,
-    from: {
-      email: 'support@localreviewresponder.com',
-      name: 'Local Review Responder',
+  const response = await fetch(SENDGRID_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
     },
-    subject,
-    html,
-  };
+    body: JSON.stringify({
+      personalizations: [
+        {
+          to: [toName ? { email: to, name: toName } : { email: to }],
+        },
+      ],
+      from: { email: FROM_EMAIL, name: FROM_NAME },
+      subject,
+      content: [{ type: 'text/html', value: html }],
+    }),
+  });
 
-  await sgMail.send(msg as any);
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`SendGrid error ${response.status}: ${body}`);
+  }
 }
 
 // ─── Welcome Email ────────────────────────────────────────────────────────────
@@ -54,9 +66,8 @@ export function getWelcomeEmailHtml(name?: string | null): string {
           <!-- Body -->
           <tr>
             <td style="padding:36px 40px;">
-
               <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
-                Thanks for signing up for Local Review Responder. You're one step away from managing your Google reviews on autopilot.
+                Thanks for signing up. You are one step away from managing your Google reviews on autopilot.
               </p>
 
               <!-- What you'll get -->
@@ -65,82 +76,48 @@ export function getWelcomeEmailHtml(name?: string | null): string {
                   <td style="padding:20px 24px;">
                     <p style="margin:0 0 14px;color:#1e40af;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">Once connected, you can:</p>
                     <table cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="padding:5px 0;">
-                          <span style="color:#2563eb;font-weight:700;margin-right:8px;">&#10003;</span>
-                          <span style="color:#1e40af;font-size:14px;">Reply to Google reviews instantly with AI</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:5px 0;">
-                          <span style="color:#2563eb;font-weight:700;margin-right:8px;">&#10003;</span>
-                          <span style="color:#1e40af;font-size:14px;">Get email alerts when new reviews come in</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:5px 0;">
-                          <span style="color:#2563eb;font-weight:700;margin-right:8px;">&#10003;</span>
-                          <span style="color:#1e40af;font-size:14px;">Embed a review widget on your website</span>
-                        </td>
-                      </tr>
+                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Reply to Google reviews instantly with AI</td></tr>
+                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Get email alerts when new reviews come in</td></tr>
+                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Embed a review widget on your website</td></tr>
                     </table>
                   </td>
                 </tr>
               </table>
 
-              <!-- Next step heading -->
+              <!-- Next steps -->
               <h2 style="margin:0 0 16px;color:#111827;font-size:18px;font-weight:700;">Your next step: connect your business</h2>
 
-              <!-- Steps -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
-                    <table cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="width:28px;vertical-align:top;">
-                          <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;">1</span>
-                        </td>
-                        <td style="padding-left:12px;vertical-align:top;">
-                          <p style="margin:0;color:#111827;font-size:14px;font-weight:600;">Make sure you have a Google Business Profile</p>
-                          <p style="margin:4px 0 0;color:#6b7280;font-size:13px;">Don't have one yet? <a href="${gbpUrl}" style="color:#2563eb;">Create one free at business.google.com</a></p>
-                        </td>
-                      </tr>
-                    </table>
+                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">1</span>
+                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
+                      <strong style="color:#111827;font-size:14px;">Make sure you have a Google Business Profile</strong><br />
+                      <span style="color:#6b7280;font-size:13px;">Don't have one yet? <a href="${gbpUrl}" style="color:#2563eb;">Create one free at business.google.com</a></span>
+                    </span>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
-                    <table cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="width:28px;vertical-align:top;">
-                          <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;">2</span>
-                        </td>
-                        <td style="padding-left:12px;vertical-align:top;">
-                          <p style="margin:0;color:#111827;font-size:14px;font-weight:600;">Confirm you have Owner or Manager access</p>
-                          <p style="margin:4px 0 0;color:#6b7280;font-size:13px;">You'll need this level of access on the GBP profile to connect it.</p>
-                        </td>
-                      </tr>
-                    </table>
+                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">2</span>
+                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
+                      <strong style="color:#111827;font-size:14px;">Confirm you have Owner or Manager access</strong><br />
+                      <span style="color:#6b7280;font-size:13px;">You need this on the GBP profile to connect it.</span>
+                    </span>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding:10px 0;vertical-align:top;">
-                    <table cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="width:28px;vertical-align:top;">
-                          <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;">3</span>
-                        </td>
-                        <td style="padding-left:12px;vertical-align:top;">
-                          <p style="margin:0;color:#111827;font-size:14px;font-weight:600;">Search for your business in the dashboard</p>
-                          <p style="margin:4px 0 0;color:#6b7280;font-size:13px;">We'll sync your reviews automatically after you connect.</p>
-                        </td>
-                      </tr>
-                    </table>
+                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">3</span>
+                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
+                      <strong style="color:#111827;font-size:14px;">Search for your business in the dashboard</strong><br />
+                      <span style="color:#6b7280;font-size:13px;">We'll sync your reviews automatically after you connect.</span>
+                    </span>
                   </td>
                 </tr>
               </table>
 
-              <!-- CTA Button -->
+              <!-- CTA -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td align="center">
@@ -152,9 +129,8 @@ export function getWelcomeEmailHtml(name?: string | null): string {
               </table>
 
               <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
-                If you have any questions, just reply to this email — we're happy to help.
+                If you have any questions, just reply to this email &mdash; we're happy to help.
               </p>
-
             </td>
           </tr>
 
@@ -162,8 +138,7 @@ export function getWelcomeEmailHtml(name?: string | null): string {
           <tr>
             <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
               <p style="margin:0;color:#9ca3af;font-size:12px;">
-                &copy; ${new Date().getFullYear()} Local Review Responder &bull;
-                <a href="https://app.localreviewresponder.com/dashboard/settings" style="color:#9ca3af;">Manage email preferences</a>
+                &copy; 2025 Local Review Responder
               </p>
             </td>
           </tr>
@@ -205,7 +180,7 @@ export function getAccountClosedEmailHtml(name?: string | null): string {
         </tr>
         <tr>
           <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-            <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; ${new Date().getFullYear()} Local Review Responder</p>
+            <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
           </td>
         </tr>
       </table>
@@ -255,7 +230,7 @@ export function getNewReviewsEmailHtml(
         </tr>
         <tr>
           <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-            <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; ${new Date().getFullYear()} Local Review Responder</p>
+            <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
           </td>
         </tr>
       </table>
