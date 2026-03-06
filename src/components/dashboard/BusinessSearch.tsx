@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { signIn } from 'next-auth/react';
-import { Search, MapPin, Star, ChevronRight, Loader2, Building2, LogIn, ShieldAlert } from 'lucide-react';
+import { Search, MapPin, Star, ChevronRight, Loader2, Building2, LogIn, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 interface PlaceResult {
   placeId: string;
@@ -54,6 +54,7 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
     }, 400);
   }, [query]);
 
+  // Step 2: Business selected
   if (selectedBusiness) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
@@ -89,8 +90,8 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
                     to this business on Google Business Profile.
                   </p>
                   <p className="text-sm text-amber-700 mt-1">
-                    Currently signed in as <strong>{userEmail}</strong>.
-                    If this isn&apos;t the right account, sign out and try a different one.
+                    Currently signed in as <strong>{userEmail}</strong>. If this isn&apos;t the right account,
+                    sign out and try a different one.
                   </p>
                 </div>
               </div>
@@ -110,8 +111,8 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
                 <div>
                   <p className="text-sm font-medium text-blue-800">Connect your Google account</p>
                   <p className="text-sm text-blue-700 mt-1">
-                    You need to sign in with the Google account that has <strong>Owner</strong> or <strong>Manager</strong> access
-                    to this business on Google Business Profile.
+                    You need to sign in with the Google account that has <strong>Owner</strong> or <strong>Manager</strong>
+                    access to this business on Google Business Profile.
                   </p>
                 </div>
               </div>
@@ -136,19 +137,53 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
     );
   }
 
+  // Step 1: Search
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
       <div className="w-full max-w-lg">
-        <div className="flex flex-col items-center mb-8">
+
+        {/* Header */}
+        <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <Search className="w-8 h-8 text-blue-600" />
+            <Building2 className="w-8 h-8 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Find your business</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Add your first location</h1>
           <p className="text-gray-500 mt-2 text-center">
-            Search for your business as it appears on Google Maps to get started.
+            Connect a Google Business Profile location to start managing your reviews.
           </p>
         </div>
 
+        {/* Before you start box */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+          <p className="text-sm font-semibold text-blue-900 mb-2">Before you start, make sure you have:</p>
+          <ul className="space-y-2">
+            <li className="flex items-start gap-2 text-sm text-blue-800">
+              <CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span>A <strong>Google Business Profile</strong> listing for your business</span>
+            </li>
+            <li className="flex items-start gap-2 text-sm text-blue-800">
+              <CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span><strong>Owner or Manager</strong> access to that profile on your Google account</span>
+            </li>
+            <li className="flex items-start gap-2 text-sm text-blue-800">
+              <CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span>Your <strong>Google account</strong> connected{hasGoogleToken ? <strong className="text-green-700"> ✓ Connected as {userEmail}</strong> : ' (you\'ll be prompted to connect below)'}</span>
+            </li>
+          </ul>
+          {!hasGoogleToken && (
+            <div className="mt-3 pt-3 border-t border-blue-200">
+              <p className="text-xs text-blue-700">
+                Don&apos;t have a Google Business Profile yet?{' '}
+                <a href="https://business.google.com" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                  Create one at business.google.com
+                </a>
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Search */}
+        <p className="text-sm font-medium text-gray-700 mb-2">Search for your business</p>
         <div className="relative">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
             {loading ? (
@@ -165,6 +200,7 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
             className="w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
+        <p className="text-xs text-gray-400 mt-2">Search as it appears on Google Maps</p>
 
         {error && query.length >= 3 && (
           <div className="mt-4 text-center text-sm text-gray-500">
