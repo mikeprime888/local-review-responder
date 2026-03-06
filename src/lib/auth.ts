@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
+import { sendEmail, getWelcomeEmailHtml } from './email';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -61,6 +62,17 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === 'google' && user) {
+        // Check if this Google account already existed — if not, it's a new user
+        const existingAccount = await prisma.account.findFirst({
+          where: {
+            userId: user.id,
+            provider: 'google',
+          },
+        });
+
+        const isNewUser = !existingAccount;
+
+        // Update / create token data
         try {
           await prisma.account.updateMany({
             where: {
@@ -77,6 +89,20 @@ export const authOptions: NextAuthOptions = {
           });
         } catch (error) {
           console.log('Token update on sign-in (may be first login):', error);
+        }
+
+        // Send welcome email to brand-new Google OAuth users
+        if (isNewUser && user.email) {
+          try {
+            await sendEmail({
+              to: user.email,
+              toName: user.name || undefined,
+              subject: "Welcome to Local Review Responder \u2014 Here's How to Get Started",
+              html: getWelcomeEmailHtml(user.name),
+            });
+          } catch (err) {
+            console.error('Failed to send welcome email for Google user:', err);
+          }
         }
       }
       return true;
