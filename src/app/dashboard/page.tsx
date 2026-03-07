@@ -327,7 +327,7 @@ const fetchLocations = useCallback(async () => {
   }
 
  if (locations.length === 0) {
-  const hasGoogleToken = !!(session?.user as { googleAccessToken?: string })?.googleAccessToken;
+  const hasGoogleToken = !!(session?.user as { hasGoogleAccount?: boolean })?.hasGoogleAccount;
 return <BusinessSearch hasGoogleToken={hasGoogleToken} userEmail={session?.user?.email || ''} />;
   }
 
