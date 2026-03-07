@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getValidAccessToken } from '@/lib/auth';
-import { listAllLocations } from '@/lib/google-business';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
@@ -17,48 +16,66 @@ export async function GET(request: NextRequest) {
     const showActive = searchParams.get('active') === 'true';
     const syncFromGoogle = searchParams.get('sync') === 'true';
 
-    // If sync requested, fetch fresh data from Google
+    // If sync requested, fetch fresh data from Google using per-account iteration
+    // Note: listAllLocations() uses wildcard accounts/-/locations which misses
+    // LOCATION_GROUP account types. We iterate each account individually instead.
     if (syncFromGoogle) {
       const accessToken = await getValidAccessToken(session.user.id);
-      
+
       if (accessToken) {
-        const googleLocations = await listAllLocations(accessToken);
-        
-        // Upsert all locations from Google
-        for (const loc of googleLocations) {
-          await prisma.location.upsert({
-            where: {
-              userId_googleAccountId_locationId: {
-                userId: session.user.id,
-                googleAccountId: (loc as any).accountId || '',
-                locationId: (loc as any).locationId || '',
-              },
-            },
-            create: {
-              userId: session.user.id,
-              googleAccountId: (loc as any).accountId || '',
-              googleAccountName: (loc as any).accountName || null,
-              locationId: (loc as any).locationId || '',
-              title: (loc as any).title || 'Unknown',
-              address: (loc as any).address || null,
-              phone: (loc as any).phone || null,
-              website: (loc as any).website || null,
-              mapsUri: (loc as any).mapsUri || null,
-              averageRating: (loc as any).averageRating || null,
-              totalReviews: (loc as any).totalReviews || 0,
-              isActive: false,
-            },
-            update: {
-              googleAccountName: (loc as any).accountName || null,
-              title: (loc as any).title || 'Unknown',
-              address: (loc as any).address || null,
-              phone: (loc as any).phone || null,
-              website: (loc as any).website || null,
-              mapsUri: (loc as any).mapsUri || null,
-              averageRating: (loc as any).averageRating || null,
-              totalReviews: (loc as any).totalReviews || 0,
-            },
-          });
+        const { listAccounts, listLocations, extractAccountId, extractLocationId } = await import('@/lib/google-business');
+        const accounts = await listAccounts(accessToken);
+
+        console.log(`Syncing locations across ${accounts.length} Google accounts`);
+
+        for (const account of accounts) {
+          const accId = extractAccountId(account.name);
+          try {
+            const locs = await listLocations(accId, accessToken);
+            console.log(`Account "${account.accountName}" (${accId}) returned ${locs.length} locations`);
+
+            for (const loc of locs) {
+              const locId = extractLocationId(loc.name);
+
+              const addr = loc.storefrontAddress;
+              const formattedAddress = addr
+                ? [...(addr.addressLines || []), addr.locality, addr.administrativeArea, addr.postalCode]
+                    .filter(Boolean).join(', ')
+                : null;
+
+              await prisma.location.upsert({
+                where: {
+                  userId_googleAccountId_locationId: {
+                    userId: session.user.id,
+                    googleAccountId: accId,
+                    locationId: locId,
+                  },
+                },
+                create: {
+                  userId: session.user.id,
+                  googleAccountId: accId,
+                  googleAccountName: account.accountName || null,
+                  locationId: locId,
+                  title: loc.title || 'Unknown',
+                  address: formattedAddress,
+                  phone: loc.phoneNumbers?.primaryPhone || null,
+                  website: loc.websiteUri || null,
+                  mapsUri: loc.metadata?.mapsUri || null,
+                  isActive: false,
+                },
+                update: {
+                  googleAccountName: account.accountName || null,
+                  title: loc.title || 'Unknown',
+                  address: formattedAddress,
+                  phone: loc.phoneNumbers?.primaryPhone || null,
+                  website: loc.websiteUri || null,
+                  mapsUri: loc.metadata?.mapsUri || null,
+                },
+              });
+            }
+          } catch (err: any) {
+            console.error(`Error syncing account "${account.accountName}" (${accId}):`, err.message);
+          }
         }
       }
     }
