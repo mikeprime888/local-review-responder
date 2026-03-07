@@ -29,39 +29,41 @@ function AddLocationContent() {
 
   const wasCanceled = searchParams.get('canceled') === 'true';
 
-useEffect(() => {
-  if (status === 'unauthenticated') {
-    router.push('/login');
-  } else if (status === 'authenticated') {
-    checkGoogleAndFetch();
-  }
-}, [status, router]);
-
-const checkGoogleAndFetch = async () => {
-  try {
-    // Check from session first
-    const sessionHasGoogle = (session?.user as any)?.hasGoogleAccount;
-    if (sessionHasGoogle !== undefined) {
-      setHasGoogleAccount(sessionHasGoogle);
- if (sessionHasGoogle) {
-  await fetchAvailableLocations(true); // auto-sync on first load
-}
-
-    // Fallback: check via API
-    const res = await fetch('/api/auth/check-google');
-    const data = await res.json();
-    setHasGoogleAccount(data.hasGoogleAccount);
-    if (data.hasGoogleAccount) {
-      await fetchAvailableLocations(true);
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    } else if (status === 'authenticated') {
+      checkGoogleAndFetch();
     }
-  } catch {
-    // Don't reset hasGoogleAccount here — fetchAvailableLocations()
-    // failing doesn't mean Google isn't connected
-    console.error('Error in checkGoogleAndFetch');
-  } finally {
-    setLoading(false);
-  }
-};
+  }, [status, router]);
+
+  const checkGoogleAndFetch = async () => {
+    try {
+      // Check from session first
+      const sessionHasGoogle = (session?.user as any)?.hasGoogleAccount;
+      if (sessionHasGoogle !== undefined) {
+        setHasGoogleAccount(sessionHasGoogle);
+        if (sessionHasGoogle) {
+          await fetchAvailableLocations(true); // auto-sync on first load
+        }
+        return; // don't fall through to API check
+      }
+
+      // Fallback: check via API
+      const res = await fetch('/api/auth/check-google');
+      const data = await res.json();
+      setHasGoogleAccount(data.hasGoogleAccount);
+      if (data.hasGoogleAccount) {
+        await fetchAvailableLocations(true); // auto-sync on first load
+      }
+    } catch {
+      // Don't reset hasGoogleAccount here — fetchAvailableLocations()
+      // failing doesn't mean Google isn't connected
+      console.error('Error in checkGoogleAndFetch');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchAvailableLocations = async (sync = false) => {
     try {
@@ -211,7 +213,12 @@ const checkGoogleAndFetch = async () => {
                 </button>
               </div>
 
-              {locations.length === 0 ? (
+              {syncing ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+                  <p className="text-sm">Syncing your Google Business locations...</p>
+                </div>
+              ) : locations.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <p>No available locations found.</p>
                   <p className="text-sm mt-2">All your locations may already be subscribed, or you need to sync from Google.</p>
