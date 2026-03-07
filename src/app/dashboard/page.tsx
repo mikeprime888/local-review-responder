@@ -178,7 +178,7 @@ function RecentReviewCard({ review }: { review: Review }) {
 }
 
 function DashboardContent() {
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -208,10 +208,9 @@ useEffect(() => {
 
 useEffect(() => {
   if (searchParams.get('linked') === 'true') {
-    update();
-    window.history.replaceState({}, '', '/dashboard');
+    window.location.replace('/dashboard');
   }
-}, [searchParams, update]);
+}, [searchParams]);
 
 const fetchLocations = useCallback(async () => {
   try {
