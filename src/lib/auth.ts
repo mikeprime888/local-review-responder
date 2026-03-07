@@ -97,7 +97,7 @@ export const authOptions: NextAuthOptions = {
             await sendEmail({
               to: user.email,
               toName: user.name || undefined,
-              subject: "Welcome to Local Review Responder \u2014 Here's How to Get Started",
+              subject: "Welcome to Local Review Responder — Here's How to Get Started",
               html: getWelcomeEmailHtml(user.name),
             });
           } catch (err) {
@@ -110,21 +110,19 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
-        // Fetch isAdmin from database
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
           select: { isAdmin: true },
         });
         token.isAdmin = dbUser?.isAdmin || false;
       }
-      // After Google OAuth linking, mark that Google is connected
       if (account?.provider === 'google') {
         token.hasGoogleAccount = true;
       }
-      // On initial credentials login, check if Google account exists
-      if (user && !account?.provider?.includes('google')) {
+      // Re-check Google link from DB — picks up accounts linked via /api/auth/link-google
+      if (token.id && !token.hasGoogleAccount) {
         const googleAccount = await prisma.account.findFirst({
-          where: { userId: user.id, provider: 'google' },
+          where: { userId: token.id as string, provider: 'google' },
         });
         token.hasGoogleAccount = !!googleAccount;
       }

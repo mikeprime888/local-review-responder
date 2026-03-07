@@ -178,7 +178,7 @@ function RecentReviewCard({ review }: { review: Review }) {
 }
 
 function DashboardContent() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -200,34 +200,41 @@ function DashboardContent() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
+useEffect(() => {
+  if (status === 'unauthenticated') {
+    router.push('/login');
+  }
+}, [status, router]);
 
-  const fetchLocations = useCallback(async () => {
-    try {
-      const response = await fetch('/api/subscriptions?active=true');
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      setLocations(data.locations || []);
-      
-      const savedLocationId = localStorage.getItem('selectedLocationId');
-      if (data.locations?.length > 0) {
-        const savedExists = data.locations.some((l: Location) => l.id === savedLocationId);
-        if (savedExists && savedLocationId) {
-          setSelectedLocationId(savedLocationId);
-        } else {
-          setSelectedLocationId(data.locations[0].id);
-        }
+useEffect(() => {
+  if (searchParams.get('linked') === 'true') {
+    update();
+    window.history.replaceState({}, '', '/dashboard');
+  }
+}, [searchParams, update]);
+
+const fetchLocations = useCallback(async () => {
+  try {
+    const response = await fetch('/api/subscriptions?active=true');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    setLocations(data.locations || []);
+    
+    const savedLocationId = localStorage.getItem('selectedLocationId');
+    if (data.locations?.length > 0) {
+      const savedExists = data.locations.some((l: Location) => l.id === savedLocationId);
+      if (savedExists && savedLocationId) {
+        setSelectedLocationId(savedLocationId);
+      } else {
+        setSelectedLocationId(data.locations[0].id);
       }
-    } catch (err: unknown) {
-      console.error('Error fetching locations:', err);
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  } catch (err: unknown) {
+    console.error('Error fetching locations:', err);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const fetchReviews = useCallback(async (locationId: string) => {
     try {

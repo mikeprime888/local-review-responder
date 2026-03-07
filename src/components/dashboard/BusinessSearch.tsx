@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { signIn } from 'next-auth/react';
 import {
   Search, MapPin, Star, ChevronRight, Loader2,
   Building2, LogIn, AlertTriangle, CheckCircle2,
@@ -143,14 +142,15 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
               </div>
             </div>
             <button
-              onClick={() => {
-                sessionStorage.setItem('pendingBusiness', JSON.stringify({
-                  placeId: selectedBusiness!.placeId,
-                  name: selectedBusiness!.name,
-                  address: selectedBusiness!.address,
-                }));
-                signIn('google', { callbackUrl: '/dashboard' });
-              }}
+onClick={() => {
+  sessionStorage.setItem('pendingBusiness', JSON.stringify({
+    placeId: selectedBusiness!.placeId,
+    name: selectedBusiness!.name,
+    address: selectedBusiness!.address,
+  }));
+  window.location.href = '/api/auth/link-google';
+}}
+
               className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3.5 font-semibold transition-colors shadow-sm shadow-blue-200">
               <LogIn className="w-4 h-4" /> Connect Google account
             </button>
