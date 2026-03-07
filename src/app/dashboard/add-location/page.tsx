@@ -198,7 +198,7 @@ function AddLocationContent() {
                   <div className="text-2xl font-bold text-gray-900 mt-1">$290<span className="text-sm font-normal text-gray-500">/yr</span></div>
                 </button>
               </div>
-              <p className="text-sm text-gray-500 mt-4 text-center">All plans include a 14-day free trial</p>
+              <p className="text-sm text-gray-500 mt-4 text-center">All plans include a 14-day free trial. A credit card is required to start, but you won&apos;t be charged until the trial ends.</p>
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 p-6">

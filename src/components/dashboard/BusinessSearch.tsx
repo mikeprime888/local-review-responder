@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Search, MapPin, Star, ChevronRight, Loader2,
   Building2, LogIn, AlertTriangle, CheckCircle2,
-  MessageSquare, Bell, Globe, ArrowRight
+  MessageSquare, Bell, Globe, ArrowRight,
+  ChevronDown, ChevronUp
 } from 'lucide-react';
 
 interface PlaceResult {
@@ -59,6 +60,7 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<PlaceResult | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const [gbpExpanded, setGbpExpanded] = useState(false);
 
   // Restore selected business from sessionStorage after Google OAuth redirect
   // Note: we do NOT clear sessionStorage here — we clear it only when the user
@@ -129,6 +131,9 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
 
               </div>
             </div>
+            <p className="text-xs text-gray-500 text-center mb-4">
+              Next: choose your plan and start a 14-day free trial
+            </p>
             <a
               href="/dashboard/add-location"
               onClick={() => sessionStorage.removeItem('pendingBusiness')}
@@ -147,6 +152,9 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
                 </p>
               </div>
             </div>
+            <p className="text-xs text-gray-500 text-center mb-4">
+              After connecting, you&apos;ll choose a plan and start a 14-day free trial
+            </p>
             <button
               onClick={() => {
                 sessionStorage.setItem('pendingBusiness', JSON.stringify({
@@ -215,6 +223,23 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
                   Create one free &rarr;
                 </a>
               </p>
+              <button
+                onClick={() => setGbpExpanded(!gbpExpanded)}
+                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium mt-1"
+              >
+                {gbpExpanded ? 'Hide' : 'What is Google Business Profile?'}
+                {gbpExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>
+              {gbpExpanded && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600 space-y-1.5">
+                  <p>
+                    Google Business Profile is a free listing that lets your business show up in Google Search and Google Maps — including your reviews, hours, photos, and contact info.
+                  </p>
+                  <p>
+                    If you&apos;ve ever seen a business panel on the right side of Google search results, that&apos;s powered by Google Business Profile.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <div className="border-t border-gray-100" />
@@ -247,6 +272,11 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
           </div>
         </div>
       </div>
+
+      {/* Trial info */}
+      <p className="text-xs text-gray-400 text-center mb-5">
+        Start with a 14-day free trial — no charge today.
+      </p>
 
       {/* Search */}
       <div>

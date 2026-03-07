@@ -51,6 +51,8 @@ model User {
   password         String?          // Hashed password for email/password auth
   isAdmin          Boolean   @default(false) // Admin flag
  stripeCustomerId String?   @unique // Stripe customer ID
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
 
   // Notification preferences
   notifyNewReviews   Boolean @default(true)
