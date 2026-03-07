@@ -61,13 +61,14 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Restore selected business from sessionStorage after Google OAuth redirect
+  // Note: we do NOT clear sessionStorage here — we clear it only when the user
+  // intentionally moves forward or resets, so it survives the session reload.
   useEffect(() => {
     const pending = sessionStorage.getItem('pendingBusiness');
     if (pending) {
       try {
         const business = JSON.parse(pending);
         setSelectedBusiness(business);
-        sessionStorage.removeItem('pendingBusiness');
       } catch {}
     }
   }, []);
@@ -91,7 +92,7 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
     }, 400);
   }, [query]);
 
-  // ── Step 2 ───────────────────────────────────────────────────────────────────────────────
+  // Step 2
   if (selectedBusiness) {
     return (
       <div className="max-w-lg mx-auto px-4 py-8">
@@ -106,7 +107,12 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
             <p className="font-semibold text-gray-900 truncate">{selectedBusiness.name}</p>
             <p className="text-sm text-gray-500 truncate">{selectedBusiness.address}</p>
           </div>
-          <button onClick={() => setSelectedBusiness(null)} className="text-xs text-blue-500 hover:text-blue-700 font-medium flex-shrink-0">
+          <button
+            onClick={() => {
+              sessionStorage.removeItem('pendingBusiness');
+              setSelectedBusiness(null);
+            }}
+            className="text-xs text-blue-500 hover:text-blue-700 font-medium flex-shrink-0">
             Change
           </button>
         </div>
@@ -125,7 +131,9 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
                 </p>
               </div>
             </div>
-            <a href="/dashboard/add-location"
+            <a
+              href="/dashboard/add-location"
+              onClick={() => sessionStorage.removeItem('pendingBusiness')}
               className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3.5 font-semibold transition-colors shadow-sm shadow-blue-200">
               Continue to add location <ArrowRight className="w-4 h-4" />
             </a>
@@ -142,22 +150,25 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
               </div>
             </div>
             <button
-onClick={() => {
-  sessionStorage.setItem('pendingBusiness', JSON.stringify({
-    placeId: selectedBusiness!.placeId,
-    name: selectedBusiness!.name,
-    address: selectedBusiness!.address,
-  }));
-  window.location.href = '/api/auth/link-google';
-}}
-
+              onClick={() => {
+                sessionStorage.setItem('pendingBusiness', JSON.stringify({
+                  placeId: selectedBusiness!.placeId,
+                  name: selectedBusiness!.name,
+                  address: selectedBusiness!.address,
+                }));
+                window.location.href = '/api/auth/link-google';
+              }}
               className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3.5 font-semibold transition-colors shadow-sm shadow-blue-200">
               <LogIn className="w-4 h-4" /> Connect Google account
             </button>
           </>
         )}
 
-        <button onClick={() => setSelectedBusiness(null)}
+        <button
+          onClick={() => {
+            sessionStorage.removeItem('pendingBusiness');
+            setSelectedBusiness(null);
+          }}
           className="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors">
           &larr; Search for a different business
         </button>
@@ -165,17 +176,15 @@ onClick={() => {
     );
   }
 
-  // ── Step 1 ───────────────────────────────────────────────────────────────────────────────
+  // Step 1
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
       <ProgressSteps step={1} />
 
       {/* Feature preview banner */}
       <div className="relative rounded-2xl overflow-hidden mb-6 bg-gradient-to-br from-blue-600 to-blue-800 p-5 text-white">
-        {/* Decorative circles */}
         <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white opacity-5" />
         <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white opacity-5" />
-
         <p className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-3">What you unlock today</p>
         <div className="grid grid-cols-3 gap-3 relative z-10">
           {[
