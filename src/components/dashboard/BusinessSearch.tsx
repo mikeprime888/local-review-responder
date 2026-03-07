@@ -126,9 +126,7 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
                 <p className="text-sm text-amber-700">
                   The Google account you connect must have <strong>Owner</strong> or <strong>Manager</strong> access to this business on Google Business Profile.
                 </p>
-                <p className="text-sm text-amber-600 mt-1">
-                  Currently using <strong>{userEmail}</strong>. Wrong account? Sign out and try again.
-                </p>
+
               </div>
             </div>
             <a

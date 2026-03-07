@@ -43,18 +43,16 @@ const checkGoogleAndFetch = async () => {
     const sessionHasGoogle = (session?.user as any)?.hasGoogleAccount;
     if (sessionHasGoogle !== undefined) {
       setHasGoogleAccount(sessionHasGoogle);
-      if (sessionHasGoogle) {
-        await fetchAvailableLocations();
-      }
-      return; // ← don't fall through to API check
-    }
+ if (sessionHasGoogle) {
+  await fetchAvailableLocations(true); // auto-sync on first load
+}
 
     // Fallback: check via API
     const res = await fetch('/api/auth/check-google');
     const data = await res.json();
     setHasGoogleAccount(data.hasGoogleAccount);
     if (data.hasGoogleAccount) {
-      await fetchAvailableLocations();
+      await fetchAvailableLocations(true);
     }
   } catch {
     // Don't reset hasGoogleAccount here — fetchAvailableLocations()
