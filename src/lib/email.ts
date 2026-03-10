@@ -173,6 +173,53 @@ export function getAccountClosedEmailHtml(name?: string | null): string {
 </html>`;
 }
 
+// ─── Password Reset Email ────────────────────────────────────────────────────
+export function getPasswordResetEmailHtml(name: string | null | undefined, resetUrl: string): string {
+  const firstName = name ? name.split(' ')[0] : 'there';
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>Reset Your Password</title></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <tr>
+          <td style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 40px;text-align:center;">
+            <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="160" style="display:block;margin:0 auto;" />
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <h1 style="margin:0 0 16px;color:#111827;font-size:22px;">Reset your password</h1>
+            <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
+              Hi ${firstName}, we received a request to reset your password. Click the button below to choose a new one. This link expires in 10 minutes.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr>
+                <td align="center">
+                  <a href="${resetUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:8px;">
+                    Reset Password &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:0 0 8px;color:#6b7280;font-size:13px;line-height:1.6;">
+              If you didn&rsquo;t request this, you can safely ignore this email. Your password won&rsquo;t be changed.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+            <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // ─── New Reviews Email ────────────────────────────────────────────────────────
 // Callers pass: (name, reviewsArray) where each review has:
 //   locationTitle, reviewerName, starRating, comment
