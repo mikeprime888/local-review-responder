@@ -138,10 +138,16 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     },
   });
 
+  // For comped users, never deactivate locations via subscription status changes
+  const user = await prisma.user.findUnique({
+    where: { id: existingSub.userId },
+    select: { isComped: true },
+  });
+
   const isActive = ['active', 'trialing'].includes(subData.status);
   await prisma.location.update({
     where: { id: existingSub.locationId },
-    data: { isActive },
+    data: { isActive: user?.isComped ? true : isActive },
   });
 }
 
@@ -151,6 +157,22 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   });
 
   if (!existingSub) return;
+
+  // Check if user is comped — skip all deactivation logic
+  const user = await prisma.user.findUnique({
+    where: { id: existingSub.userId },
+    select: { isComped: true },
+  });
+
+  if (user?.isComped) {
+    // Only update subscription status, do NOT deactivate locations or touch any data
+    await prisma.subscription.update({
+      where: { stripeSubscriptionId: subscription.id },
+      data: { status: 'canceled' },
+    });
+    console.log(`Webhook: Skipping deactivation for comped user ${existingSub.userId}`);
+    return;
+  }
 
   await prisma.subscription.update({
     where: { stripeSubscriptionId: subscription.id },
