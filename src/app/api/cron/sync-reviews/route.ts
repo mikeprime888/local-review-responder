@@ -22,15 +22,24 @@ export async function GET(request: NextRequest) {
   console.log('Cron: Starting nightly review sync...');
 
   try {
-    // Get all locations with active subscriptions (active or trialing)
+    // Get all active locations: those with active/trialing subscriptions OR comped users
     const activeLocations = await prisma.location.findMany({
       where: {
         isActive: true,
-        subscription: {
-          status: {
-            in: ['active', 'trialing'],
+        OR: [
+          {
+            subscription: {
+              status: {
+                in: ['active', 'trialing'],
+              },
+            },
           },
-        },
+          {
+            user: {
+              isComped: true,
+            },
+          },
+        ],
       },
       include: {
         subscription: true,

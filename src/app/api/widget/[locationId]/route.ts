@@ -9,12 +9,13 @@ export async function GET(
   try {
     const { locationId } = params;
 
-    // Find the location and verify it has an active subscription
+    // Find the location and verify it has an active subscription or comped user
     const location = await prisma.location.findUnique({
       where: { id: locationId },
       include: {
         subscription: true,
         widgetSettings: true,
+        user: { select: { isComped: true } },
       },
     });
 
@@ -22,10 +23,11 @@ export async function GET(
       return NextResponse.json({ error: 'Location not found' }, { status: 404 });
     }
 
-    // Check for active subscription
+    // Check for active subscription or comped user
     const hasActiveSubscription =
-      location.subscription &&
-      ['active', 'trialing'].includes(location.subscription.status);
+      location.user.isComped ||
+      (location.subscription &&
+        ['active', 'trialing'].includes(location.subscription.status));
 
     if (!hasActiveSubscription) {
       return NextResponse.json({ error: 'No active subscription' }, { status: 403 });
