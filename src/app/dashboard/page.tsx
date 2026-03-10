@@ -210,7 +210,8 @@ useEffect(() => {
 
 useEffect(() => {
   if (searchParams.get('linked') === 'true') {
-    window.location.replace('/dashboard');
+    // After Google OAuth, go straight to add-location flow
+    window.location.replace('/dashboard/add-location');
   }
 }, [searchParams]);
 
