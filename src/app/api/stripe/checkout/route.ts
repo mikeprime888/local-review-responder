@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { locationId, priceType = 'monthly' } = body;
+    const { locationId, plan, priceType: priceTypeLegacy } = body;
+    const priceType = plan || priceTypeLegacy || 'monthly';
 
     if (!locationId) {
       return NextResponse.json(
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
       locationName: location.title,
       priceType: priceType as 'monthly' | 'yearly',
       successUrl: `${baseUrl}/dashboard?subscription=success&location=${locationId}`,
-      cancelUrl: `${baseUrl}/locations/add?canceled=true`,
+      cancelUrl: `${baseUrl}/dashboard/add-location?canceled=true`,
     });
 
     return NextResponse.json({ 

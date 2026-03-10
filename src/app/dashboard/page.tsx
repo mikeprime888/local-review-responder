@@ -190,12 +190,14 @@ function DashboardContent() {
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
 
   const selectedLocation = locations.find(l => l.id === selectedLocationId);
 
   useEffect(() => {
     if (searchParams.get('subscription') === 'success') {
       setSuccessMessage('🎉 Location added successfully! Your 14-day free trial has started.');
+      setIsFirstVisit(true);
       window.history.replaceState({}, '', '/dashboard');
     }
   }, [searchParams]);
@@ -208,7 +210,8 @@ useEffect(() => {
 
 useEffect(() => {
   if (searchParams.get('linked') === 'true') {
-    window.location.replace('/dashboard');
+    // After Google OAuth, go straight to add-location flow
+    window.location.replace('/dashboard/add-location');
   }
 }, [searchParams]);
 
@@ -342,7 +345,10 @@ return <BusinessSearch hasGoogleToken={hasGoogleToken} userEmail={session?.user?
       {/* Top Nav Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <h1 className="text-xl font-bold text-gray-900">
-          Welcome back{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}! 👋
+          {isFirstVisit
+            ? `Welcome${session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}! 🎉`
+            : `Welcome back${session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}! 👋`
+          }
         </h1>
         <div className="flex items-center gap-3">
           <LocationSwitcher
