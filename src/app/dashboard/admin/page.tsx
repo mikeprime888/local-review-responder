@@ -10,7 +10,9 @@ interface AdminUser {
   name: string | null;
   email: string | null;
   isAdmin: boolean;
-  createdAt: string;
+  isComped: boolean;
+  compedAt: string | null;
+  compedNote: string | null;
   providers: string[];
   locationCount: number;
   subscriptionCount: number;
@@ -24,6 +26,9 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [compingEmail, setCompingEmail] = useState<string | null>(null);
+  const [compNote, setCompNote] = useState('');
+  const [showNoteInput, setShowNoteInput] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -87,6 +92,73 @@ export default function AdminPage() {
     }
   };
 
+  const handleGrantComp = async (email: string | null) => {
+    if (!email) return;
+
+    const note = compNote.trim() || undefined;
+    setShowNoteInput(null);
+    setCompNote('');
+
+    try {
+      setCompingEmail(email);
+      setError(null);
+
+      const response = await fetch('/api/admin/comp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, note }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to grant comp access');
+      }
+
+      setSuccessMessage(data.message);
+      await fetchUsers();
+
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setCompingEmail(null);
+    }
+  };
+
+  const handleRevokeComp = async (email: string | null) => {
+    if (!email) return;
+    if (!confirm(`Revoke comp access for ${email}? They will need to re-subscribe to regain access.`)) {
+      return;
+    }
+
+    try {
+      setCompingEmail(email);
+      setError(null);
+
+      const response = await fetch('/api/admin/comp', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to revoke comp access');
+      }
+
+      setSuccessMessage(data.message);
+      await fetchUsers();
+
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setCompingEmail(null);
+    }
+  };
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -139,75 +211,141 @@ export default function AdminPage() {
         )}
 
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Auth</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Locations</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Subscriptions</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">
-                      {user.name || 'No name'}
-                      {user.isAdmin && (
-                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                          Admin
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                    <div className="text-xs text-gray-400 font-mono mt-1">{user.id}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-1">
-                      {user.providers.includes('google') && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          Google
-                        </span>
-                      )}
-                      {user.providers.length === 0 && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                          Email/PW
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{user.locationCount}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{user.subscriptionCount}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {user.isAdmin ? (
-                      <span className="text-xs text-gray-400">Protected</span>
-                    ) : (
-                      <button
-                        onClick={() => handleDelete(user.id, user.email)}
-                        disabled={deletingId === user.id}
-                        className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
-                      >
-                        {deletingId === user.id ? 'Deleting...' : 'Delete'}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {users.length === 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                    No users found.
-                  </td>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Auth</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Locations</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Subs</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Comp</th>
+                  <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">
+                        {user.name || 'No name'}
+                        {user.isAdmin && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-500">{user.email}</div>
+                      <div className="text-xs text-gray-400 font-mono mt-1">{user.id}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-1">
+                        {user.providers.includes('google') && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            Google
+                          </span>
+                        )}
+                        {user.providers.length === 0 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                            Email/PW
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{user.locationCount}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{user.subscriptionCount}</td>
+                    <td className="px-6 py-4">
+                      {user.isComped ? (
+                        <div>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            Comped
+                          </span>
+                          {user.compedAt && (
+                            <div className="text-xs text-gray-400 mt-1">
+                              {new Date(user.compedAt).toLocaleDateString()}
+                            </div>
+                          )}
+                          {user.compedNote && (
+                            <div className="text-xs text-gray-500 mt-0.5 italic max-w-[150px] truncate" title={user.compedNote}>
+                              {user.compedNote}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => handleRevokeComp(user.email)}
+                            disabled={compingEmail === user.email}
+                            className="mt-1 text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                          >
+                            {compingEmail === user.email ? 'Revoking...' : 'Revoke'}
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          {showNoteInput === user.id ? (
+                            <div className="flex flex-col gap-1">
+                              <input
+                                type="text"
+                                placeholder="Note (optional)"
+                                value={compNote}
+                                onChange={(e) => setCompNote(e.target.value)}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 w-36"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleGrantComp(user.email);
+                                  if (e.key === 'Escape') { setShowNoteInput(null); setCompNote(''); }
+                                }}
+                                autoFocus
+                              />
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => handleGrantComp(user.email)}
+                                  disabled={compingEmail === user.email}
+                                  className="text-xs text-green-600 hover:text-green-800 disabled:opacity-50"
+                                >
+                                  {compingEmail === user.email ? 'Granting...' : 'Confirm'}
+                                </button>
+                                <button
+                                  onClick={() => { setShowNoteInput(null); setCompNote(''); }}
+                                  className="text-xs text-gray-500 hover:text-gray-700"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setShowNoteInput(user.id)}
+                              className="text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-2 py-1"
+                            >
+                              Grant Comp
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {user.isAdmin ? (
+                        <span className="text-xs text-gray-400">Protected</span>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(user.id, user.email)}
+                          disabled={deletingId === user.id}
+                          className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+                        >
+                          {deletingId === user.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {users.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      No users found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </main>
     </div>

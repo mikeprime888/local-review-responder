@@ -34,6 +34,9 @@ export async function GET() {
         name: true,
         email: true,
         isAdmin: true,
+        isComped: true,
+        compedAt: true,
+        compedNote: true,
         accounts: {
           select: {
             provider: true,
@@ -54,6 +57,9 @@ export async function GET() {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      isComped: user.isComped,
+      compedAt: user.compedAt,
+      compedNote: user.compedNote,
       providers: user.accounts.map((a) => a.provider),
       locationCount: user._count.locations,
       subscriptionCount: user._count.subscriptions,
