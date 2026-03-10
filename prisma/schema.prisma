@@ -52,6 +52,11 @@ model User {
   isAdmin          Boolean   @default(false) // Admin flag
  stripeCustomerId String?   @unique // Stripe customer ID
 
+  // Comp access (admin-granted free access)
+  isComped           Boolean   @default(false)
+  compedAt           DateTime?
+  compedNote         String?
+
   // Notification preferences
   notifyNewReviews   Boolean @default(true)
   notifyLowRated     Boolean @default(true)
