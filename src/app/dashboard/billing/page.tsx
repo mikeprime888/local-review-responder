@@ -1,9 +1,9 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { CreditCard, CheckCircle, Clock, AlertCircle, Download, FileText, ExternalLink } from 'lucide-react';
+import { CreditCard, CheckCircle, Clock, AlertCircle, Download, FileText, ExternalLink, Trash2 } from 'lucide-react';
 
 interface Subscription {
   id: string;
@@ -34,6 +34,10 @@ function BillingContent() {
   const [loading, setLoading] = useState(true);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     if (!session) return;
@@ -82,6 +86,23 @@ function BillingContent() {
       console.error('Failed to open portal:', err);
     } finally {
       setPortalLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      const res = await fetch('/api/account/delete', { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to delete account');
+      }
+      await signOut({ redirect: false });
+      window.location.href = '/login?deleted=true';
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Something went wrong');
+      setDeleteLoading(false);
     }
   };
 
@@ -328,6 +349,72 @@ function BillingContent() {
           </div>
         )}
       </div>
+
+      {/* Danger Zone */}
+      <div className="mt-12 border border-red-300 rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-red-600 mb-1">Danger Zone</h2>
+        <p className="text-sm text-gray-600 mb-1">Permanently delete your account and all associated data</p>
+        <p className="text-sm text-gray-500 mb-4">
+          This will cancel your subscription, delete all locations, reviews, and account data. This action cannot be undone.
+        </p>
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors"
+        >
+          <Trash2 className="h-4 w-4" />
+          Cancel Account &amp; Delete All Data
+        </button>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Are you absolutely sure?</h3>
+            <p className="text-sm text-gray-600 mb-3">This action is permanent and cannot be undone. The following will be deleted:</p>
+            <ul className="text-sm text-gray-600 mb-4 list-disc list-inside space-y-1">
+              <li>All locations and reviews</li>
+              <li>All subscription and billing data</li>
+              <li>Your account and sign-in credentials</li>
+              <li>Any active subscriptions will be canceled immediately</li>
+            </ul>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type <span className="font-mono font-bold">DELETE</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+              placeholder="DELETE"
+              autoFocus
+            />
+            {deleteError && (
+              <p className="mt-2 text-sm text-red-600">{deleteError}</p>
+            )}
+            <div className="flex items-center justify-end gap-3 mt-5">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                  setDeleteError('');
+                }}
+                disabled={deleteLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete My Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

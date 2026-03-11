@@ -1,21 +1,20 @@
 'use client';
 
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 
-// Prevent static prerendering
-export const dynamic = 'force-dynamic';
-
-export default function LoginPage() {
+function LoginContent() {
   const { status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const isDeleted = searchParams.get('deleted') === 'true';
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -71,6 +70,12 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Sign in to manage your Google reviews</p>
         </div>
+
+        {isDeleted && (
+          <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+            Your account and all associated data have been permanently deleted. We&apos;re sorry to see you go.
+          </div>
+        )}
 
         {/* Google Sign In */}
         <button
@@ -167,5 +172,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
