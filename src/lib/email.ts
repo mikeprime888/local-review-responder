@@ -63,7 +63,7 @@ export function getWelcomeEmailHtml(name?: string | null): string {
 
           <!-- HERO: name + trial message -->
           <tr>
-            <td style="background:transparent;padding:32px 40px;text-align:center;">
+            <td style="background:transparent;padding:0 40px 32px 40px;text-align:center;">
               <h1 style="margin:0 0 8px;color:#111827;font-size:24px;font-weight:700;">Welcome, ${firstName}!</h1>
               <p style="margin:0;color:#374151;font-size:15px;">Your 14-day free trial is active. Let's get your reviews connected.</p>
             </td>
