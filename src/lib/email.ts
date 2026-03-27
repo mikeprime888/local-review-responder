@@ -52,20 +52,20 @@ export function getWelcomeEmailHtml(name?: string | null): string {
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f9;padding:32px 16px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fffcf5;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
-          <!-- HEADER: logo only, clean white background -->
+          <!-- HEADER: logo image -->
           <tr>
-            <td style="background:#ffffff;padding:28px 40px;text-align:center;border-bottom:1px solid #e5e7eb;">
-              <img src="https://app.localreviewresponder.com/logo.png" alt="Local Review Responder" width="200" style="display:block;margin:0 auto;" />
+            <td style="background:#fffcf5;padding:28px 40px;text-align:center;border-bottom:1px solid #e5e7eb;">
+              <img src="https://app.localreviewresponder.com/lrr-email-header.jpg" alt="Local Review Responder" width="200" style="display:block;margin:0 auto;" />
             </td>
           </tr>
 
           <!-- HERO: name + trial message -->
           <tr>
-            <td style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 40px;text-align:center;">
-              <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;font-weight:700;">Welcome, ${firstName}!</h1>
-              <p style="margin:0;color:#bfdbfe;font-size:15px;">Your 14-day free trial is active. Let's get your reviews connected.</p>
+            <td style="background:transparent;padding:32px 40px;text-align:center;">
+              <h1 style="margin:0 0 8px;color:#111827;font-size:24px;font-weight:700;">Welcome, ${firstName}!</h1>
+              <p style="margin:0;color:#374151;font-size:15px;">Your 14-day free trial is active. Let's get your reviews connected.</p>
             </td>
           </tr>
 
