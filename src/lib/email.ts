@@ -56,8 +56,8 @@ export function getWelcomeEmailHtml(name?: string | null): string {
 
           <!-- HEADER: logo image -->
           <tr>
-            <td style="background:#fffcf5;padding:0;text-align:center;border-bottom:1px solid #e5e7eb;">
-              <img src="https://app.localreviewresponder.com/lrr-email-header.jpg" alt="Local Review Responder" width="600" style="display:block;width:100%;height:auto;" />
+            <td style="background:#fffcf5;padding:0;text-align:center;">
+              <img src="https://app.localreviewresponder.com/lrr-email-header-v2.jpg" alt="Local Review Responder" width="600" style="display:block;width:100%;height:auto;" />
             </td>
           </tr>
 
