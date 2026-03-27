@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useOnboarding } from '@/context/OnboardingContext';
 import LocationSwitcher from '@/components/dashboard/LocationSwitcher';
 import { StatsBar } from '@/components/dashboard/StatsBar';
 import { SyncButton } from '@/components/dashboard/SyncButton';
@@ -191,6 +192,7 @@ function DashboardContent() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const { setIsOnboarding } = useOnboarding();
 
   const selectedLocation = locations.find(l => l.id === selectedLocationId);
 
@@ -221,7 +223,8 @@ const fetchLocations = useCallback(async () => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
     setLocations(data.locations || []);
-    
+    setIsOnboarding(!data.locations?.length);
+
     const savedLocationId = localStorage.getItem('selectedLocationId');
     if (data.locations?.length > 0) {
       const savedExists = data.locations.some((l: Location) => l.id === savedLocationId);
@@ -236,7 +239,7 @@ const fetchLocations = useCallback(async () => {
   } finally {
     setLoading(false);
   }
-}, []);
+}, [setIsOnboarding]);
 
   const fetchReviews = useCallback(async (locationId: string) => {
     try {

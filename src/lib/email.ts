@@ -52,19 +52,60 @@ export function getWelcomeEmailHtml(name?: string | null): string {
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f9;padding:32px 16px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fffcf5;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+          <!-- HEADER: logo image -->
           <tr>
-            <td style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:36px 40px;text-align:center;">
-              <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="180" style="display:block;margin:0 auto 16px;" />
-              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">Welcome, ${firstName}!</h1>
-              <p style="margin:8px 0 0;color:#bfdbfe;font-size:15px;">Your 14-day free trial has started.</p>
+            <td style="background:#fffcf5;padding:28px 40px;text-align:center;border-bottom:1px solid #e5e7eb;">
+              <img src="https://app.localreviewresponder.com/lrr-email-header.jpg" alt="Local Review Responder" width="200" style="display:block;margin:0 auto;" />
             </td>
           </tr>
+
+          <!-- HERO: name + trial message -->
+          <tr>
+            <td style="background:transparent;padding:32px 40px;text-align:center;">
+              <h1 style="margin:0 0 8px;color:#111827;font-size:24px;font-weight:700;">Welcome, ${firstName}!</h1>
+              <p style="margin:0;color:#374151;font-size:15px;">Your 14-day free trial is active. Let's get your reviews connected.</p>
+            </td>
+          </tr>
+
+          <!-- BODY -->
           <tr>
             <td style="padding:36px 40px;">
-              <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
-                Thanks for signing up. You are one step away from managing your Google reviews on autopilot.
-              </p>
+
+              <!-- QUALIFIER SECTION -->
+              <h2 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Before you dive in — which situation is yours?</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+
+                <!-- Path 1: Ready to go -->
+                <tr>
+                  <td style="padding:12px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:8px;">
+                    <p style="margin:0 0 4px;color:#166534;font-size:14px;font-weight:700;">&#9989;&nbsp; I own or manage a Google Business Profile</p>
+                    <p style="margin:0;color:#166534;font-size:13px;">You're all set. Head to the dashboard and connect your account — it takes about 2 minutes.</p>
+                  </td>
+                </tr>
+                <tr><td style="padding:4px 0;"></td></tr>
+
+                <!-- Path 2: Needs access -->
+                <tr>
+                  <td style="padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+                    <p style="margin:0 0 4px;color:#92400e;font-size:14px;font-weight:700;">&#9888;&#65039;&nbsp; I manage reviews for someone else's business</p>
+                    <p style="margin:0;color:#92400e;font-size:13px;">You'll need Owner or Manager access on their Google Business Profile before connecting. Ask the owner to add you at <a href="${gbpUrl}" style="color:#92400e;">business.google.com</a>.</p>
+                  </td>
+                </tr>
+                <tr><td style="padding:4px 0;"></td></tr>
+
+                <!-- Path 3: No GBP yet -->
+                <tr>
+                  <td style="padding:12px 16px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;">
+                    <p style="margin:0 0 4px;color:#075985;font-size:14px;font-weight:700;">&#10067;&nbsp; I don't have a Google Business Profile yet</p>
+                    <p style="margin:0;color:#075985;font-size:13px;">Create one free at <a href="${gbpUrl}" style="color:#075985;">business.google.com</a>. Once it's verified, come back and connect it here.</p>
+                  </td>
+                </tr>
+
+              </table>
+
+              <!-- BENEFITS BOX -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:28px;">
                 <tr>
                   <td style="padding:20px 24px;">
@@ -77,36 +118,8 @@ export function getWelcomeEmailHtml(name?: string | null): string {
                   </td>
                 </tr>
               </table>
-              <h2 style="margin:0 0 16px;color:#111827;font-size:18px;font-weight:700;">Your next step: connect your business</h2>
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-                <tr>
-                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
-                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">1</span>
-                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
-                      <strong style="color:#111827;font-size:14px;">Make sure you have a Google Business Profile</strong><br />
-                      <span style="color:#6b7280;font-size:13px;">Don't have one yet? <a href="${gbpUrl}" style="color:#2563eb;">Create one free at business.google.com</a></span>
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;vertical-align:top;">
-                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">2</span>
-                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
-                      <strong style="color:#111827;font-size:14px;">Confirm you have Owner or Manager access</strong><br />
-                      <span style="color:#6b7280;font-size:13px;">You need this on the GBP profile to connect it.</span>
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:10px 0;vertical-align:top;">
-                    <span style="display:inline-block;width:22px;height:22px;background:#2563eb;color:#fff;border-radius:50%;text-align:center;font-size:12px;font-weight:700;line-height:22px;vertical-align:top;">3</span>
-                    <span style="display:inline-block;padding-left:12px;vertical-align:top;max-width:480px;">
-                      <strong style="color:#111827;font-size:14px;">Search for your business in the dashboard</strong><br />
-                      <span style="color:#6b7280;font-size:13px;">We'll sync your reviews automatically after you connect.</span>
-                    </span>
-                  </td>
-                </tr>
-              </table>
+
+              <!-- CTA -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td align="center">
@@ -116,16 +129,21 @@ export function getWelcomeEmailHtml(name?: string | null): string {
                   </td>
                 </tr>
               </table>
+
               <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
-                If you have any questions, just reply to this email &mdash; we're happy to help.
+                Questions? Just reply to this email &mdash; we're happy to help.
               </p>
+
             </td>
           </tr>
+
+          <!-- FOOTER -->
           <tr>
             <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-              <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder</p>
+              <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder. All rights reserved.</p>
             </td>
           </tr>
+
         </table>
       </td>
     </tr>
