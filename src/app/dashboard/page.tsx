@@ -215,17 +215,6 @@ useEffect(() => {
   }
 }, [searchParams]);
 
-// Redirect non-privileged users with no locations to onboarding
-// Runs AFTER both loading is done and session is fully hydrated
-useEffect(() => {
-  if (!loading && status === 'authenticated' && session?.user) {
-    const privileged = !!(session.user as any).isAdmin || !!(session.user as any).isComped;
-    if (locations.length === 0 && !privileged) {
-      router.replace('/onboarding');
-    }
-  }
-}, [loading, status, session, locations, router]);
-
 const fetchLocations = useCallback(async () => {
   try {
     const response = await fetch('/api/subscriptions?active=true');
@@ -333,6 +322,16 @@ const fetchLocations = useCallback(async () => {
   };
 
   if (status === 'loading' || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Session is hydrated and API call is done — safe to check both
+  if (locations.length === 0 && !isPrivileged) {
+    router.replace('/onboarding');
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
