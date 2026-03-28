@@ -195,6 +195,13 @@ function DashboardContent() {
   const { setIsOnboarding } = useOnboarding();
   const isPrivileged = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isComped;
 
+  // Override onboarding for admin/comped users — keep sidebar visible
+  useEffect(() => {
+    if (isPrivileged) {
+      setIsOnboarding(false);
+    }
+  }, [isPrivileged, setIsOnboarding]);
+
   const selectedLocation = locations.find(l => l.id === selectedLocationId);
 
   useEffect(() => {
@@ -224,7 +231,7 @@ const fetchLocations = useCallback(async () => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
     setLocations(data.locations || []);
-    setIsOnboarding(!data.locations?.length && !isPrivileged);
+    setIsOnboarding(!data.locations?.length);
 
     const savedLocationId = localStorage.getItem('selectedLocationId');
     if (data.locations?.length > 0) {
@@ -240,7 +247,7 @@ const fetchLocations = useCallback(async () => {
   } finally {
     setLoading(false);
   }
-}, [setIsOnboarding, isPrivileged]);
+}, [setIsOnboarding]);
 
   const fetchReviews = useCallback(async (locationId: string) => {
     try {
