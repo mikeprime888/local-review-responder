@@ -215,18 +215,23 @@ useEffect(() => {
   }
 }, [searchParams]);
 
+// Redirect non-privileged users with no locations to onboarding
+// Runs AFTER both loading is done and session is fully hydrated
+useEffect(() => {
+  if (!loading && status === 'authenticated' && session?.user) {
+    const privileged = !!(session.user as any).isAdmin || !!(session.user as any).isComped;
+    if (locations.length === 0 && !privileged) {
+      router.replace('/onboarding');
+    }
+  }
+}, [loading, status, session, locations, router]);
+
 const fetchLocations = useCallback(async () => {
   try {
     const response = await fetch('/api/subscriptions?active=true');
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
     setLocations(data.locations || []);
-
-    // Redirect non-privileged users with no locations to onboarding
-    if (!data.locations?.length && !isPrivileged) {
-      router.replace('/onboarding');
-      return;
-    }
 
     const savedLocationId = localStorage.getItem('selectedLocationId');
     if (data.locations?.length > 0) {
@@ -242,7 +247,7 @@ const fetchLocations = useCallback(async () => {
   } finally {
     setLoading(false);
   }
-}, [isPrivileged, router]);
+}, []);
 
   const fetchReviews = useCallback(async (locationId: string) => {
     try {
