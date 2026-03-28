@@ -192,6 +192,7 @@ function DashboardContent() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [isPrivileged, setIsPrivileged] = useState(false);
+  const [setupSkipped, setSetupSkipped] = useState(false);
 
   const selectedLocation = locations.find(l => l.id === selectedLocationId);
 
@@ -218,6 +219,7 @@ useEffect(() => {
 
 useEffect(() => {
   if (searchParams.get('setup') === 'skipped') {
+    setSetupSkipped(true);
     window.history.replaceState({}, '', '/dashboard');
   }
 }, [searchParams]);
@@ -339,7 +341,6 @@ const fetchLocations = useCallback(async () => {
   }
 
   // API call is done — isPrivileged comes from server, not client session
-  const setupSkipped = searchParams.get('setup') === 'skipped';
   if (locations.length === 0 && !isPrivileged && !setupSkipped) {
     router.replace('/onboarding');
     return (
