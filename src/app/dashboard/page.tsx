@@ -186,11 +186,12 @@ function DashboardContent() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [locationsFetched, setLocationsFetched] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
-  const isPrivileged = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isComped;
+  const [isPrivileged, setIsPrivileged] = useState(false);
 
   const selectedLocation = locations.find(l => l.id === selectedLocationId);
 
@@ -221,6 +222,8 @@ const fetchLocations = useCallback(async () => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
     setLocations(data.locations || []);
+    setIsPrivileged(!!(data.isAdmin || data.isComped));
+    setLocationsFetched(true);
 
     const savedLocationId = localStorage.getItem('selectedLocationId');
     if (data.locations?.length > 0) {
@@ -321,7 +324,7 @@ const fetchLocations = useCallback(async () => {
     setSelectedLocationId(locationId);
   };
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading' || loading || !locationsFetched) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -329,7 +332,7 @@ const fetchLocations = useCallback(async () => {
     );
   }
 
-  // Session is hydrated and API call is done — safe to check both
+  // API call is done — isPrivileged comes from server, not client session
   if (locations.length === 0 && !isPrivileged) {
     router.replace('/onboarding');
     return (

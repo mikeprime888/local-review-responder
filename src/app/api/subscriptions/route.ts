@@ -100,7 +100,15 @@ export async function GET(request: NextRequest) {
       orderBy: { title: 'asc' },
     });
 
+    // Fetch user privilege flags from DB (server-side, no hydration issues)
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true, isComped: true },
+    });
+
     return NextResponse.json({
+      isAdmin: dbUser?.isAdmin || false,
+      isComped: dbUser?.isComped || false,
       locations: locations.map(loc => ({
         id: loc.id,
         googleAccountId: loc.googleAccountId,

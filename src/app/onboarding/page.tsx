@@ -27,7 +27,8 @@ export default function OnboardingPage() {
           return; // API failed — don't redirect, show onboarding
         }
         const data = await response.json();
-        if (data.locations?.length > 0) {
+        // Redirect to dashboard if user has locations OR is admin/comped
+        if (data.locations?.length > 0 || data.isAdmin || data.isComped) {
           router.replace('/dashboard');
           return;
         }
