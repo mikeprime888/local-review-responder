@@ -73,7 +73,14 @@ function AddLocationContent() {
       const response = await fetch(url);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to fetch locations');
-      setLocations(data.locations || []);
+      const fetchedLocations = data.locations || [];
+      setLocations(fetchedLocations);
+
+      // After initial sync, if no locations found, redirect to guidance screen
+      if (sync && fetchedLocations.length === 0) {
+        router.replace('/onboarding?step=no-locations');
+        return;
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
