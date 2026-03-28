@@ -10,6 +10,7 @@ declare module 'next-auth' {
       image?: string | null;
       hasGoogleAccount?: boolean;
       isAdmin?: boolean;
+      isComped?: boolean;
     };
   }
   interface User {
@@ -22,5 +23,6 @@ declare module 'next-auth/jwt' {
     id: string;
     hasGoogleAccount?: boolean;
     isAdmin?: boolean;
+    isComped?: boolean;
   }
 }

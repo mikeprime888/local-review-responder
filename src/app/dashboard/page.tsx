@@ -193,6 +193,7 @@ function DashboardContent() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const { setIsOnboarding } = useOnboarding();
+  const isPrivileged = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isComped;
 
   const selectedLocation = locations.find(l => l.id === selectedLocationId);
 
@@ -223,7 +224,7 @@ const fetchLocations = useCallback(async () => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
     setLocations(data.locations || []);
-    setIsOnboarding(!data.locations?.length);
+    setIsOnboarding(!data.locations?.length && !isPrivileged);
 
     const savedLocationId = localStorage.getItem('selectedLocationId');
     if (data.locations?.length > 0) {
@@ -239,7 +240,7 @@ const fetchLocations = useCallback(async () => {
   } finally {
     setLoading(false);
   }
-}, [setIsOnboarding]);
+}, [setIsOnboarding, isPrivileged]);
 
   const fetchReviews = useCallback(async (locationId: string) => {
     try {
@@ -332,7 +333,7 @@ const fetchLocations = useCallback(async () => {
     );
   }
 
- if (locations.length === 0) {
+ if (locations.length === 0 && !isPrivileged) {
   const hasGoogleToken = !!(session?.user as { hasGoogleAccount?: boolean })?.hasGoogleAccount;
 return <BusinessSearch hasGoogleToken={hasGoogleToken} userEmail={session?.user?.email || ''} />;
   }
