@@ -160,6 +160,16 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
           <LogIn className="w-4 h-4" /> Connect Google account
         </button>
       )}
+
+      {/* Skip link */}
+      <p className="text-center mt-4">
+        <a
+          href="/dashboard?setup=skipped"
+          className="text-sm text-gray-400 hover:text-gray-600 underline"
+        >
+          I don&apos;t have a Google Business Profile yet
+        </a>
+      </p>
     </div>
   );
 }
