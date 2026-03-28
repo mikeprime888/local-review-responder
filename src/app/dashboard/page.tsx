@@ -3,12 +3,10 @@
 import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useOnboarding } from '@/context/OnboardingContext';
 import LocationSwitcher from '@/components/dashboard/LocationSwitcher';
 import { StatsBar } from '@/components/dashboard/StatsBar';
 import { SyncButton } from '@/components/dashboard/SyncButton';
 import Link from 'next/link';
-import { BusinessSearch } from '@/components/dashboard/BusinessSearch';
 
 interface Location {
   id: string;
@@ -192,15 +190,7 @@ function DashboardContent() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
-  const { setIsOnboarding } = useOnboarding();
   const isPrivileged = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isComped;
-
-  // Override onboarding for admin/comped users — keep sidebar visible
-  useEffect(() => {
-    if (isPrivileged) {
-      setIsOnboarding(false);
-    }
-  }, [isPrivileged, setIsOnboarding]);
 
   const selectedLocation = locations.find(l => l.id === selectedLocationId);
 
@@ -231,7 +221,12 @@ const fetchLocations = useCallback(async () => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
     setLocations(data.locations || []);
-    setIsOnboarding(!data.locations?.length);
+
+    // Redirect non-privileged users with no locations to onboarding
+    if (!data.locations?.length && !isPrivileged) {
+      router.replace('/onboarding');
+      return;
+    }
 
     const savedLocationId = localStorage.getItem('selectedLocationId');
     if (data.locations?.length > 0) {
@@ -247,7 +242,7 @@ const fetchLocations = useCallback(async () => {
   } finally {
     setLoading(false);
   }
-}, [setIsOnboarding]);
+}, [isPrivileged, router]);
 
   const fetchReviews = useCallback(async (locationId: string) => {
     try {
@@ -338,11 +333,6 @@ const fetchLocations = useCallback(async () => {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
-  }
-
- if (locations.length === 0 && !isPrivileged) {
-  const hasGoogleToken = !!(session?.user as { hasGoogleAccount?: boolean })?.hasGoogleAccount;
-return <BusinessSearch hasGoogleToken={hasGoogleToken} userEmail={session?.user?.email || ''} />;
   }
 
   const recentReviews = reviews.slice(0, 5);
