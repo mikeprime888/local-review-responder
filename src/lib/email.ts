@@ -304,9 +304,9 @@ export function getWelcomeEmailHtml(name?: string | null): string {
     Welcome to Local Review Responder. Here's what to do next based on how your Google Business Profile connection went.
   </div>
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="outer">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="outer" style="width:100%;background-color:#f5f1ea;padding:25px 0;">
     <tr>
-      <td align="center">
+      <td align="center" style="padding:25px 0;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="container">
 
           <!-- Header -->
