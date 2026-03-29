@@ -1,12 +1,32 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, LockKeyhole, MapPin, Gift, Mail, ArrowRight } from 'lucide-react';
 
 // ─── Scenario type ────────────────────────────────────────────────────────────
 type Scenario = 'gbp-owner' | 'no-access' | 'no-gbp';
+
+// ─── Reminder button hook ─────────────────────────────────────────────────────
+function useReminder(email: string | null | undefined) {
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const send = async () => {
+    if (sent || sending) return;
+    setSending(true);
+    try {
+      await fetch('/api/reminder', { method: 'POST' });
+      setSent(true);
+    } catch {
+      // silently fail
+    }
+    setSending(false);
+  };
+
+  return { sent, sending, send, email: email || '' };
+}
 
 // ─── No-locations fallback (preserved) ────────────────────────────────────────
 function NoLocationsFound() {
@@ -17,7 +37,7 @@ function NoLocationsFound() {
         style={{ backgroundColor: '#ffffff', borderRadius: 20, border: '1px solid #ece7df' }}
       >
         {/* Header */}
-        <div className="text-center" style={{ padding: '24px 32px', borderBottom: '1px solid #ece7df' }}>
+        <div className="relative text-center" style={{ padding: '24px 32px', borderBottom: '1px solid #ece7df' }}>
           <a href="https://localreviewresponder.com" target="_blank" rel="noopener noreferrer">
             <img src="/lrr-email-logo.png" alt="Local Review Responder" width={400} className="mx-auto" style={{ height: 'auto' }} />
           </a>
@@ -62,13 +82,16 @@ function NoLocationsFound() {
   );
 }
 
-// ─── Progress bar ─────────────────────────────────────────────────────────────
-function ProgressBar() {
+// ─── Progress section ─────────────────────────────────────────────────────────
+function ProgressSection() {
   return (
-    <div className="text-center" style={{ padding: '16px 32px 0' }}>
-      <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
+    <div style={{ padding: '16px 32px 0' }}>
+      <p className="text-center" style={{ fontSize: 12, color: '#64748b', margin: 0, marginBottom: 8 }}>
         Connect Google &nbsp;→&nbsp; Choose location &nbsp;→&nbsp; Start trial
       </p>
+      <div style={{ height: 6, borderRadius: 999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+        <div style={{ width: '33%', height: '100%', borderRadius: 999, backgroundColor: '#145da0' }} />
+      </div>
     </div>
   );
 }
@@ -121,7 +144,7 @@ const scenarios: {
 ];
 
 // ─── Contextual hint ──────────────────────────────────────────────────────────
-function ContextualHint({ scenario }: { scenario: Scenario }) {
+function ContextualHint({ scenario, reminder }: { scenario: Scenario; reminder: ReturnType<typeof useReminder> }) {
   if (scenario === 'gbp-owner') {
     return (
       <div style={{ backgroundColor: '#eef8f1', border: '1px solid #a7dbba', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
@@ -142,9 +165,20 @@ function ContextualHint({ scenario }: { scenario: Scenario }) {
           </a>{' '}
           → Manage → Users. Once added as Owner or Manager, come back and connect.
         </p>
-        <a href="/api/reminder" className="inline-flex items-center gap-1.5 mt-2 underline font-medium" style={{ fontSize: 13, color: '#9a5616' }}>
-          <Mail size={14} /> Email me a reminder to come back
-        </a>
+        {reminder.sent ? (
+          <p className="mt-2" style={{ fontSize: 13, color: '#9a5616', margin: '8px 0 0' }}>
+            ✓ Reminder sent to {reminder.email}
+          </p>
+        ) : (
+          <button
+            onClick={reminder.send}
+            disabled={reminder.sending}
+            className="inline-flex items-center gap-2 mt-2 underline font-medium cursor-pointer bg-transparent border-none p-0"
+            style={{ fontSize: 13, color: '#9a5616' }}
+          >
+            <Mail size={14} /> {reminder.sending ? 'Sending...' : 'Email me a reminder to come back'}
+          </button>
+        )}
       </div>
     );
   }
@@ -158,15 +192,26 @@ function ContextualHint({ scenario }: { scenario: Scenario }) {
         </a>
         . Google typically verifies new profiles within a few days — come back once confirmed.
       </p>
-      <a href="/api/reminder" className="inline-flex items-center gap-1.5 mt-2 underline font-medium" style={{ fontSize: 13, color: '#135d9c' }}>
-        <Mail size={14} /> Email me a reminder to come back
-      </a>
+      {reminder.sent ? (
+        <p className="mt-2" style={{ fontSize: 13, color: '#135d9c', margin: '8px 0 0' }}>
+          ✓ Reminder sent to {reminder.email}
+        </p>
+      ) : (
+        <button
+          onClick={reminder.send}
+          disabled={reminder.sending}
+          className="inline-flex items-center gap-2 mt-2 underline font-medium cursor-pointer bg-transparent border-none p-0"
+          style={{ fontSize: 13, color: '#135d9c' }}
+        >
+          <Mail size={14} /> {reminder.sending ? 'Sending...' : 'Email me a reminder to come back'}
+        </button>
+      )}
     </div>
   );
 }
 
 // ─── Off-ramp section ─────────────────────────────────────────────────────────
-function OffRamp() {
+function OffRamp({ reminder }: { reminder: ReturnType<typeof useReminder> }) {
   return (
     <div
       id="off-ramp"
@@ -180,17 +225,26 @@ function OffRamp() {
         No problem — use one of the options below and come back when you&apos;re ready.
       </p>
 
-      <a
-        href="/api/reminder"
-        className="flex items-center justify-center gap-2 w-full text-white font-bold transition-colors"
-        style={{ backgroundColor: '#64748b', borderRadius: 12, padding: 13, fontSize: 14, marginBottom: 12 }}
-      >
-        <Mail size={16} /> Email me a reminder to come back
-      </a>
+      {reminder.sent ? (
+        <div className="text-center" style={{ padding: '13px 0', marginBottom: 12 }}>
+          <p className="font-bold" style={{ fontSize: 14, color: '#1d6b3b' }}>
+            ✓ Reminder sent to {reminder.email}
+          </p>
+        </div>
+      ) : (
+        <button
+          onClick={reminder.send}
+          disabled={reminder.sending}
+          className="flex items-center justify-center gap-2 w-full text-white font-bold transition-colors cursor-pointer border-none"
+          style={{ backgroundColor: '#64748b', borderRadius: 12, padding: 13, fontSize: 14, marginBottom: 12 }}
+        >
+          <Mail size={16} /> {reminder.sending ? 'Sending...' : 'Email me a reminder to come back'}
+        </button>
+      )}
 
       <p className="text-center" style={{ fontSize: 13, color: '#94a3b8' }}>
         Questions?{' '}
-        <a href="mailto:support@localreviewresponder.com" className="underline" style={{ color: '#94a3b8' }}>
+        <a href="mailto:support@localreviewresponder.com" className="underline" style={{ color: '#145da0' }}>
           Contact support
         </a>
       </p>
@@ -214,6 +268,7 @@ function OnboardingContent() {
   const searchParams = useSearchParams();
   const [checking, setChecking] = useState(true);
   const [selected, setSelected] = useState<Scenario>('gbp-owner');
+  const reminder = useReminder(session?.user?.email);
 
   const step = searchParams.get('step');
 
@@ -274,19 +329,29 @@ function OnboardingContent() {
         style={{ backgroundColor: '#ffffff', borderRadius: 20, border: '1px solid #ece7df' }}
       >
         {/* Header */}
-        <div className="text-center" style={{ padding: '24px 32px', borderBottom: '1px solid #ece7df' }}>
+        <div className="relative text-center" style={{ padding: '24px 32px', borderBottom: '1px solid #ece7df' }}>
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="absolute bg-transparent border-none cursor-pointer"
+            style={{ top: 16, right: 16, fontSize: 12, color: '#94a3b8', textDecoration: 'none', padding: 0 }}
+          >
+            Sign out
+          </button>
           <a href="https://localreviewresponder.com" target="_blank" rel="noopener noreferrer">
             <img src="/lrr-email-logo.png" alt="Local Review Responder" width={400} className="mx-auto" style={{ height: 'auto' }} />
           </a>
           <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 8 }}>Smarter review management for local businesses</p>
         </div>
 
-        {/* Progress bar */}
-        <ProgressBar />
+        {/* Progress section */}
+        <ProgressSection />
 
         {/* Card body */}
         <div style={{ padding: '28px 32px 0' }}>
-          {/* Headline */}
+          {/* Eyebrow + headline */}
+          <p className="font-bold uppercase" style={{ fontSize: 11, letterSpacing: '1.2px', color: '#145da0', marginBottom: 8 }}>
+            Step 1 of 3
+          </p>
           <h1 className="font-bold" style={{ fontSize: 22, color: '#0f172a', marginBottom: 8 }}>
             Connect your Google Business Profile
           </h1>
@@ -358,7 +423,7 @@ function OnboardingContent() {
           </div>
 
           {/* Contextual hint */}
-          <ContextualHint scenario={selected} />
+          <ContextualHint scenario={selected} reminder={reminder} />
         </div>
 
         {/* Card footer */}
@@ -383,34 +448,22 @@ function OnboardingContent() {
           )}
 
           {/* Secondary escape */}
-          <div className="text-center" style={{ marginTop: 12 }}>
-            <a
-              href="#off-ramp"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById('off-ramp')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              style={{ fontSize: 13, color: '#94a3b8' }}
-            >
-              Having trouble? See what to do ↓
-            </a>
-          </div>
-
-          {/* Skip for now */}
-          <div className="text-center mt-2">
-            <a
-              href="/dashboard?setup=skipped"
-              className="underline"
-              style={{ fontSize: 13, color: '#94a3b8' }}
-            >
-              I don&apos;t have a Google Business Profile yet — skip for now
-            </a>
-          </div>
+          <a
+            href="#off-ramp"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('off-ramp')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="block text-center"
+            style={{ fontSize: 13, color: '#94a3b8', marginTop: 12 }}
+          >
+            Having trouble? See what to do ↓
+          </a>
         </div>
       </div>
 
       {/* Off-ramp section */}
-      <OffRamp />
+      <OffRamp reminder={reminder} />
 
       {/* Bottom spacer */}
       <div style={{ height: 48 }} />
