@@ -314,8 +314,8 @@ export function getWelcomeEmailHtml(name?: string | null): string {
             <td class="header">
               <img src="https://app.localreviewresponder.com/lrr-email-logo.png"
                    alt="Local Review Responder"
-                   width="200"
-                   style="display:block; margin:0 auto; width:200px; height:auto;" />
+                   width="400"
+                   style="display:block; margin:0 auto; width:400px; max-width:100%; height:auto;" />
               <p class="brand-sub">Smarter review management for local businesses</p>
             </td>
           </tr>
