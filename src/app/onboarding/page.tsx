@@ -65,13 +65,10 @@ function NoLocationsFound() {
 // ─── Progress bar ─────────────────────────────────────────────────────────────
 function ProgressBar() {
   return (
-    <div style={{ padding: '20px 32px 0' }}>
-      <p className="text-center" style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
-        Step 1 of 3 &nbsp;·&nbsp; Connect Google &nbsp;→&nbsp; Choose location &nbsp;→&nbsp; Start trial
+    <div className="text-center" style={{ padding: '16px 32px 0' }}>
+      <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
+        Connect Google &nbsp;→&nbsp; Choose location &nbsp;→&nbsp; Start trial
       </p>
-      <div style={{ height: 6, borderRadius: 999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-        <div style={{ width: '33%', height: '100%', borderRadius: 999, backgroundColor: '#145da0' }} />
-      </div>
     </div>
   );
 }
@@ -289,10 +286,7 @@ function OnboardingContent() {
 
         {/* Card body */}
         <div style={{ padding: '28px 32px 0' }}>
-          {/* Eyebrow + headline */}
-          <p className="font-bold uppercase" style={{ fontSize: 11, letterSpacing: '1.2px', color: '#145da0', marginBottom: 8 }}>
-            Step 1 of 3
-          </p>
+          {/* Headline */}
           <h1 className="font-bold" style={{ fontSize: 22, color: '#0f172a', marginBottom: 8 }}>
             Connect your Google Business Profile
           </h1>
