@@ -330,7 +330,7 @@ function OnboardingContent() {
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
             className="absolute bg-transparent border-none cursor-pointer hover:opacity-80"
-            style={{ top: 16, right: 16, fontSize: 13, color: '#145da0', fontWeight: 600, textDecoration: 'underline', padding: 0 }}
+            style={{ top: 16, right: 16, fontSize: 13, color: '#145da0', fontWeight: 600, textDecoration: 'none', padding: 0 }}
           >
             Sign out
           </button>
@@ -340,11 +340,11 @@ function OnboardingContent() {
           <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 8 }}>Smarter review management for local businesses</p>
         </div>
 
-        {/* Progress section */}
-        <ProgressSection />
-
         {/* Card body */}
         <div style={{ padding: '28px 32px 0' }}>
+          {/* Progress section */}
+          <ProgressSection />
+
           {/* Eyebrow + headline */}
           <p className="font-bold uppercase" style={{ fontSize: 11, letterSpacing: '1.2px', color: '#145da0', marginBottom: 8 }}>
             Step 1 of 3
