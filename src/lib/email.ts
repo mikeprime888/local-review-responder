@@ -100,7 +100,7 @@ export function getWelcomeEmailHtml(name?: string | null): string {
     .outer {
       width: 100%;
       background-color: #f5f1ea;
-      padding: 28px 0;
+      padding: 25px 0;
     }
 
     .container {
