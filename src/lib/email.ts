@@ -38,109 +38,399 @@ export async function sendEmail({ to, toName, subject, html }: SendEmailOptions)
 // ─── Welcome Email ────────────────────────────────────────────────────────────
 export function getWelcomeEmailHtml(name?: string | null): string {
   const firstName = name ? name.split(' ')[0] : 'there';
-  const dashboardUrl = 'https://app.localreviewresponder.com/dashboard';
-  const gbpUrl = 'https://business.google.com';
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Welcome to Local Review Responder</title>
+  <style>
+    body, table, td, p, a {
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+
+    table, td {
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+
+    table {
+      border-collapse: collapse !important;
+    }
+
+    img {
+      border: 0;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+      display: block;
+    }
+
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background-color: #f5f1ea;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #0f172a;
+    }
+
+    a {
+      color: #145da0;
+      text-decoration: underline;
+    }
+
+    .preheader {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      color: transparent;
+      height: 0;
+      width: 0;
+      overflow: hidden;
+      mso-hide: all;
+      font-size: 1px;
+      line-height: 1px;
+    }
+
+    .outer {
+      width: 100%;
+      background-color: #f5f1ea;
+      padding: 28px 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background-color: #ffffff;
+      border-radius: 18px;
+    }
+
+    .pad {
+      padding-left: 28px;
+      padding-right: 28px;
+    }
+
+    .header {
+      padding: 34px 28px 20px 28px;
+      text-align: center;
+      border-bottom: 1px solid #ece7df;
+    }
+
+    .brand-sub {
+      font-size: 14px;
+      line-height: 22px;
+      color: #64748b;
+      margin: 8px 0 0 0;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: bold;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #145da0;
+      margin: 0 0 10px 0;
+    }
+
+    .warm-opener {
+      font-size: 16px;
+      line-height: 28px;
+      color: #475569;
+      margin: 0 0 16px 0;
+    }
+
+    .hero-title {
+      font-size: 34px;
+      line-height: 42px;
+      font-weight: bold;
+      color: #0f172a;
+      letter-spacing: -0.6px;
+      margin: 0 0 14px 0;
+    }
+
+    .hero-copy {
+      font-size: 18px;
+      line-height: 30px;
+      color: #475569;
+      margin: 0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      line-height: 26px;
+      font-weight: bold;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .card {
+      border-radius: 16px;
+    }
+
+    .card-green {
+      background-color: #eef8f1;
+      border: 1px solid #a7dbba;
+    }
+
+    .card-amber {
+      background-color: #fdf7ec;
+      border: 1px solid #e8c77a;
+    }
+
+    .card-blue {
+      background-color: #eef5fe;
+      border: 1px solid #a9c9f1;
+    }
+
+    .card-cell {
+      padding: 22px 22px 22px 22px;
+    }
+
+    .icon-wrap {
+      width: 44px;
+      vertical-align: top;
+      font-size: 28px;
+      line-height: 30px;
+      padding-right: 12px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      line-height: 26px;
+      font-weight: bold;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.2px;
+    }
+
+    .card-title-green {
+      color: #1d6b3b;
+    }
+
+    .card-title-amber {
+      color: #9a5616;
+    }
+
+    .card-title-blue {
+      color: #135d9c;
+    }
+
+    .card-copy {
+      font-size: 16px;
+      line-height: 27px;
+      color: #334155;
+      margin: 0;
+    }
+
+    .btn {
+      display: inline-block;
+      background-color: #145da0;
+      color: #ffffff !important;
+      text-decoration: none !important;
+      font-size: 16px;
+      line-height: 16px;
+      font-weight: bold;
+      padding: 16px 28px;
+      border-radius: 999px;
+    }
+
+    .secondary-copy {
+      font-size: 15px;
+      line-height: 26px;
+      color: #64748b;
+      margin: 0;
+    }
+
+    .footer {
+      border-top: 1px solid #ece7df;
+      padding: 26px 28px 34px 28px;
+      text-align: center;
+    }
+
+    .footer-copy {
+      font-size: 13px;
+      line-height: 22px;
+      color: #64748b;
+      margin: 0;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        border-radius: 0 !important;
+      }
+
+      .pad {
+        padding-left: 18px !important;
+        padding-right: 18px !important;
+      }
+
+      .header {
+        padding: 28px 18px 18px 18px !important;
+      }
+
+      .hero-title {
+        font-size: 28px !important;
+        line-height: 36px !important;
+      }
+
+      .hero-copy {
+        font-size: 17px !important;
+        line-height: 28px !important;
+      }
+
+      .card-title {
+        font-size: 17px !important;
+        line-height: 25px !important;
+      }
+
+      .card-copy {
+        font-size: 15px !important;
+        line-height: 25px !important;
+      }
+
+      .card-cell {
+        padding: 18px !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin:0;padding:0;background-color:#f4f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f9;padding:32px 16px;">
+<body>
+  <div class="preheader">
+    Welcome to Local Review Responder. Here's what to do next based on how your Google Business Profile connection went.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="outer">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fffcf5;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="container">
 
-          <!-- HEADER: logo image -->
+          <!-- Header -->
           <tr>
-            <td style="background:#fffcf5;padding:0;text-align:center;">
-              <img src="https://app.localreviewresponder.com/lrr-email-header-v3.jpg" alt="Local Review Responder" width="600" style="display:block;width:100%;height:auto;" />
+            <td class="header">
+              <img src="https://app.localreviewresponder.com/lrr-email-logo.png"
+                   alt="Local Review Responder"
+                   width="200"
+                   style="display:block; margin:0 auto; width:200px; height:auto;" />
+              <p class="brand-sub">Smarter review management for local businesses</p>
             </td>
           </tr>
 
-          <!-- HERO: name + trial message -->
+          <!-- Intro -->
           <tr>
-            <td style="background:transparent;padding:0 40px 32px 40px;text-align:center;">
-              <h1 style="margin:0 0 8px;color:#111827;font-size:24px;font-weight:700;">Welcome, ${firstName}!</h1>
-              <p style="margin:0;color:#374151;font-size:15px;">Your 14-day free trial is active. Let's get your reviews connected.</p>
+            <td class="pad" style="padding-top: 34px; padding-bottom: 12px;">
+              <p class="eyebrow">Welcome aboard</p>
+              <p class="warm-opener">Thanks for signing up, ${firstName} — great to have you here.</p>
+              <h1 class="hero-title" style="margin: 0 0 14px 0;">How did your Google Business Profile connection go?</h1>
+              <p class="hero-copy" style="margin: 0;">
+                Depending on what happened when you tried to connect, here's exactly what to do next.
+              </p>
             </td>
           </tr>
 
-          <!-- BODY -->
+          <!-- Section heading -->
           <tr>
-            <td style="padding:36px 40px;">
+            <td class="pad" style="padding-top: 20px; padding-bottom: 8px;">
+              <p class="section-title">Find your situation below:</p>
+            </td>
+          </tr>
 
-              <!-- QUALIFIER SECTION -->
-              <h2 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Before you dive in — which situation is yours?</h2>
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-
-                <!-- Path 1: Ready to go -->
+          <!-- Card 1 -->
+          <tr>
+            <td class="pad" style="padding-top: 10px; padding-bottom: 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card card-green">
                 <tr>
-                  <td style="padding:12px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:8px;">
-                    <p style="margin:0 0 4px;color:#166534;font-size:14px;font-weight:700;">&#9989;&nbsp; I own or manage a Google Business Profile</p>
-                    <p style="margin:0;color:#166534;font-size:13px;">You're all set. Head to the dashboard and connect your account — it takes about 2 minutes.</p>
-                  </td>
-                </tr>
-                <tr><td style="padding:4px 0;"></td></tr>
-
-                <!-- Path 2: Needs access -->
-                <tr>
-                  <td style="padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
-                    <p style="margin:0 0 4px;color:#92400e;font-size:14px;font-weight:700;">&#9888;&#65039;&nbsp; I manage reviews for someone else's business</p>
-                    <p style="margin:0;color:#92400e;font-size:13px;">You'll need Owner or Manager access on their Google Business Profile before connecting. Ask the owner to add you at <a href="${gbpUrl}" style="color:#92400e;">business.google.com</a>.</p>
-                  </td>
-                </tr>
-                <tr><td style="padding:4px 0;"></td></tr>
-
-                <!-- Path 3: No GBP yet -->
-                <tr>
-                  <td style="padding:12px 16px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;">
-                    <p style="margin:0 0 4px;color:#075985;font-size:14px;font-weight:700;">&#10067;&nbsp; I don't have a Google Business Profile yet</p>
-                    <p style="margin:0;color:#075985;font-size:13px;">Create one free at <a href="${gbpUrl}" style="color:#075985;">business.google.com</a>. Once it's verified, come back and connect it here.</p>
-                  </td>
-                </tr>
-
-              </table>
-
-              <!-- BENEFITS BOX -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:28px;">
-                <tr>
-                  <td style="padding:20px 24px;">
-                    <p style="margin:0 0 14px;color:#1e40af;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">Once connected, you can:</p>
-                    <table cellpadding="0" cellspacing="0">
-                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Reply to Google reviews instantly with AI</td></tr>
-                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Get email alerts when new reviews come in</td></tr>
-                      <tr><td style="padding:5px 0;color:#1e40af;font-size:14px;">&#10003;&nbsp;&nbsp;Embed a review widget on your website</td></tr>
+                  <td class="card-cell">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td class="icon-wrap" style="color: #1d6b3b;">&#9989;</td>
+                        <td valign="top">
+                          <p class="card-title card-title-green" style="margin: 0 0 8px 0;">It connected — you're all set</p>
+                          <p class="card-copy" style="margin: 0;">
+                            Your reviews are syncing and your 14-day free trial has started. Head to your dashboard to start generating AI responses and see what's come in.
+                          </p>
+                        </td>
+                      </tr>
                     </table>
                   </td>
                 </tr>
               </table>
-
-              <!-- CTA -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-                <tr>
-                  <td align="center">
-                    <a href="${dashboardUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:8px;">
-                      Go to Dashboard &rarr;
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
-                Questions? Just reply to this email &mdash; we're happy to help.
-              </p>
-
             </td>
           </tr>
 
-          <!-- FOOTER -->
+          <!-- Card 2 -->
           <tr>
-            <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-              <p style="margin:0;color:#9ca3af;font-size:12px;">&copy; 2025 Local Review Responder. All rights reserved.</p>
+            <td class="pad" style="padding-top: 8px; padding-bottom: 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card card-amber">
+                <tr>
+                  <td class="card-cell">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td class="icon-wrap" style="color: #9a5616;">&#9888;&#65039;</td>
+                        <td valign="top">
+                          <p class="card-title card-title-amber" style="margin: 0 0 8px 0;">It didn't connect — access issue</p>
+                          <p class="card-copy" style="margin: 0;">
+                            You'll need <strong>Owner</strong> or <strong>Manager</strong> access on the Google Business Profile before connecting. Ask the profile owner to add you at
+                            <strong><a href="https://business.google.com/" target="_blank">business.google.com</a></strong>, then come back and try again.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Card 3 -->
+          <tr>
+            <td class="pad" style="padding-top: 8px; padding-bottom: 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card card-blue">
+                <tr>
+                  <td class="card-cell">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td class="icon-wrap" style="color: #135d9c;">&#128506;&#65039;</td>
+                        <td valign="top">
+                          <p class="card-title card-title-blue" style="margin: 0 0 8px 0;">You don't have a Google Business Profile yet</p>
+                          <p class="card-copy" style="margin: 0;">
+                            No problem — create one free at
+                            <strong><a href="https://business.google.com/" target="_blank">business.google.com</a></strong>. Once Google verifies it (usually a few days), come back and connect it to get started.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td class="pad" align="center" style="padding-top: 0; padding-bottom: 16px;">
+              <a href="https://app.localreviewresponder.com/dashboard" target="_blank" class="btn">Go to My Dashboard</a>
+            </td>
+          </tr>
+
+          <!-- Support -->
+          <tr>
+            <td class="pad" style="padding-top: 8px; padding-bottom: 32px;" align="center">
+              <p class="secondary-copy" style="margin: 0;">
+                Have a question or ran into something unexpected? Just reply to this email — we're happy to help.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td class="footer">
+              <p class="footer-copy" style="margin: 0 0 8px 0;">Built to help local businesses respond faster, stay consistent, and make more of every review.</p>
+              <p class="footer-copy" style="margin: 0;">&copy; 2026 Local Review Responder LLC.&nbsp; All rights reserved.</p>
             </td>
           </tr>
 
