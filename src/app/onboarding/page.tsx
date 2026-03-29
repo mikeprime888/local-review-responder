@@ -85,13 +85,10 @@ function NoLocationsFound() {
 // ─── Progress section ─────────────────────────────────────────────────────────
 function ProgressSection() {
   return (
-    <div style={{ padding: '16px 32px 0' }}>
-      <p className="text-center" style={{ fontSize: 12, color: '#64748b', margin: 0, marginBottom: 8 }}>
+    <div className="text-center" style={{ padding: '16px 32px 0' }}>
+      <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
         Connect Google &nbsp;→&nbsp; Choose location &nbsp;→&nbsp; Start trial
       </p>
-      <div style={{ height: 6, borderRadius: 999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-        <div style={{ width: '33%', height: '100%', borderRadius: 999, backgroundColor: '#145da0' }} />
-      </div>
     </div>
   );
 }
@@ -332,8 +329,8 @@ function OnboardingContent() {
         <div className="relative text-center" style={{ padding: '24px 32px', borderBottom: '1px solid #ece7df' }}>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="absolute bg-transparent border-none cursor-pointer"
-            style={{ top: 16, right: 16, fontSize: 12, color: '#94a3b8', textDecoration: 'none', padding: 0 }}
+            className="absolute bg-transparent border-none cursor-pointer hover:opacity-80"
+            style={{ top: 16, right: 16, fontSize: 13, color: '#145da0', fontWeight: 600, textDecoration: 'underline', padding: 0 }}
           >
             Sign out
           </button>
