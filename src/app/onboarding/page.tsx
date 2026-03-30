@@ -331,7 +331,6 @@ function OnboardingContent() {
             <a href="https://localreviewresponder.com" target="_blank" rel="noopener noreferrer">
               <img src="/lrr-email-logo.png" alt="Local Review Responder" width={400} style={{ height: 'auto' }} />
             </a>
-            <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 8 }}>Smarter review management for local businesses</p>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 16 }}>
             <button
