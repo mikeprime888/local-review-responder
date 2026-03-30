@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions, getValidAccessToken } from '@/lib/auth';
+import { listAllReviews, starRatingToNumber, extractReviewId } from '@/lib/google-business';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -44,6 +45,63 @@ export async function POST(request: NextRequest) {
       where: { id: locationId },
       data: { isActive: true },
     });
+
+    // Trigger review sync server-side so it completes regardless of navigation
+    try {
+      const accessToken = await getValidAccessToken(session.user.id);
+      const result = await listAllReviews(
+        location.googleAccountId,
+        location.locationId,
+        accessToken
+      );
+
+      for (const review of result.reviews) {
+        const reviewId = extractReviewId(review.name);
+        await prisma.review.upsert({
+          where: {
+            locationId_googleReviewId: {
+              locationId: location.id,
+              googleReviewId: reviewId,
+            },
+          },
+          update: {
+            reviewerName: review.reviewer.displayName || 'Anonymous',
+            reviewerPhoto: review.reviewer.profilePhotoUrl || null,
+            starRating: starRatingToNumber(review.starRating),
+            comment: review.comment || null,
+            reviewReply: review.reviewReply?.comment || null,
+            replyTime: review.reviewReply?.updateTime ? new Date(review.reviewReply.updateTime) : null,
+            googleUpdatedAt: new Date(review.updateTime),
+          },
+          create: {
+            locationId: location.id,
+            googleReviewId: reviewId,
+            reviewerName: review.reviewer.displayName || 'Anonymous',
+            reviewerPhoto: review.reviewer.profilePhotoUrl || null,
+            starRating: starRatingToNumber(review.starRating),
+            comment: review.comment || null,
+            reviewReply: review.reviewReply?.comment || null,
+            replyTime: review.reviewReply?.updateTime ? new Date(review.reviewReply.updateTime) : null,
+            googleCreatedAt: new Date(review.createTime),
+            googleUpdatedAt: new Date(review.updateTime),
+            isPublished: true,
+            publishedAt: new Date(),
+          },
+        });
+      }
+
+      await prisma.location.update({
+        where: { id: location.id },
+        data: {
+          averageRating: result.averageRating || null,
+          totalReviews: result.totalReviewCount || result.reviews.length,
+          lastSyncedAt: new Date(),
+        },
+      });
+    } catch (syncError: any) {
+      console.error('Review sync error during activation:', syncError);
+      // Don't fail activation if sync fails — location is active, user can sync manually
+    }
 
     return NextResponse.json({ activated: true }, { status: 200 });
   } catch (error: any) {

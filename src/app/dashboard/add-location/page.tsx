@@ -102,7 +102,6 @@ function AddLocationContent() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Failed to activate location');
         if (data.activated) {
-          fetch(`/api/google/reviews?sync=true&locationId=${locationId}`);
           router.push('/dashboard');
           return;
         }
