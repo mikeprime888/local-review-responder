@@ -320,7 +320,7 @@ function OnboardingContent() {
 
   return (
     <div id="top" className="flex flex-col items-center min-h-screen px-4 py-12">
-      {/* Main card */}
+      {/* Panel 1: Header + step info */}
       <div
         className="w-full max-w-2xl overflow-hidden"
         style={{ backgroundColor: '#ffffff', borderRadius: 20, border: '1px solid #ece7df' }}
@@ -341,7 +341,7 @@ function OnboardingContent() {
         </div>
 
         {/* Card body */}
-        <div style={{ padding: '28px 32px 0' }}>
+        <div style={{ padding: '28px 32px 32px' }}>
           {/* Progress section */}
           <ProgressSection />
 
@@ -367,16 +367,26 @@ function OnboardingContent() {
             </span>
           </div>
 
-          {/* Section heading */}
+          {/* Requirements */}
           <p className="font-bold uppercase" style={{ fontSize: 11, letterSpacing: '1px', color: '#64748b', marginBottom: 4 }}>
             To connect, you&apos;ll need
           </p>
-          <p style={{ fontSize: 14, color: '#64748b', lineHeight: '22px', marginBottom: 4 }}>
+          <p style={{ fontSize: 14, color: '#64748b', lineHeight: '22px', marginBottom: 0 }}>
             A verified Google Business Profile and Owner or Manager access on that profile.
           </p>
-          <p className="font-bold" style={{ fontSize: 14, color: '#0f172a', marginBottom: 10 }}>
-            Select your situation:
-          </p>
+        </div>
+      </div>
+
+      {/* Panel 2: Situation selector */}
+      <div
+        className="w-full max-w-2xl overflow-hidden mt-4"
+        style={{ backgroundColor: '#ffffff', borderRadius: 20, border: '1px solid #ece7df' }}
+      >
+        <div style={{ padding: '28px 32px 0' }}>
+          {/* Heading */}
+          <h2 className="font-bold" style={{ fontSize: 22, color: '#0f172a', marginBottom: 16 }}>
+            Select your situation
+          </h2>
 
           {/* Radio selector */}
           <div style={{ border: '1px solid #ece7df', borderRadius: 14, overflow: 'hidden', marginBottom: 8 }}>
