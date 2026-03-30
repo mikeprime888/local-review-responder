@@ -316,7 +316,6 @@ export function getWelcomeEmailHtml(name?: string | null): string {
                    alt="Local Review Responder"
                    width="400"
                    style="display:block; margin:0 auto; width:400px; max-width:100%; height:auto;" />
-              <p class="brand-sub">Smarter review management for local businesses</p>
             </td>
           </tr>
 
