@@ -238,7 +238,7 @@ function AddLocationContent() {
                         <div className="font-medium text-gray-900">{location.title}</div>
                         {location.address && <div className="text-sm text-gray-500">{location.address}</div>}
                         <div className="text-sm text-gray-400 mt-1">
-                          {location.averageRating && `${location.averageRating} stars - `}{location.totalReviews} reviews
+                          {location.totalReviews > 0 ? `${location.averageRating ? `${location.averageRating} stars - ` : ''}${location.totalReviews} reviews` : 'Reviews sync after adding'}
                         </div>
                       </div>
                       <button
