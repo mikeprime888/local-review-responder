@@ -452,8 +452,8 @@ export function getAccountClosedEmailHtml(name?: string | null): string {
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
         <tr>
-          <td style="background:#1d4ed8;padding:32px 40px;text-align:center;">
-            <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="160" style="display:block;margin:0 auto;" />
+          <td style="background:#ffffff;padding:28px 40px;text-align:center;border-bottom:1px solid #ece7df;">
+            <img src="https://app.localreviewresponder.com/lrr-email-logo.png" alt="Local Review Responder" width="400" style="display:block;margin:0 auto;max-width:100%;height:auto;" />
           </td>
         </tr>
         <tr>
@@ -491,8 +491,8 @@ export function getPasswordResetEmailHtml(name: string | null | undefined, reset
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
         <tr>
-          <td style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 40px;text-align:center;">
-            <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="160" style="display:block;margin:0 auto;" />
+          <td style="background:#ffffff;padding:28px 40px;text-align:center;border-bottom:1px solid #ece7df;">
+            <img src="https://app.localreviewresponder.com/lrr-email-logo.png" alt="Local Review Responder" width="400" style="display:block;margin:0 auto;max-width:100%;height:auto;" />
           </td>
         </tr>
         <tr>
@@ -571,8 +571,8 @@ export function getNewReviewsEmailHtml(
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
         <tr>
-          <td style="background:#1d4ed8;padding:32px 40px;text-align:center;">
-            <img src="https://app.localreviewresponder.com/logo-white.png" alt="Local Review Responder" width="160" style="display:block;margin:0 auto;" />
+          <td style="background:#ffffff;padding:28px 40px;text-align:center;border-bottom:1px solid #ece7df;">
+            <img src="https://app.localreviewresponder.com/lrr-email-logo.png" alt="Local Review Responder" width="400" style="display:block;margin:0 auto;max-width:100%;height:auto;" />
           </td>
         </tr>
         <tr>
@@ -610,4 +610,53 @@ export function getNewReviewsEmailHtml(
 </body>
 </html>`;
 }
+// ─── Reminder Email ───────────────────────────────────────────────────────────
+export function getReminderEmailHtml(name?: string | null): string {
+  const firstName = name ? name.split(' ')[0] : 'there';
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>Reminder: Connect your Google Business Profile</title></head>
+<body style="margin:0;padding:0;background:#f5f1ea;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f1ea;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:18px;overflow:hidden;">
+        <tr>
+          <td style="background:#ffffff;padding:28px 40px;text-align:center;border-bottom:1px solid #ece7df;">
+            <img src="https://app.localreviewresponder.com/lrr-email-logo.png" alt="Local Review Responder" width="400" style="display:block;margin:0 auto;max-width:100%;height:auto;" />
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <p style="margin:0 0 6px;font-size:12px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:#145da0;">Just a reminder</p>
+            <h1 style="margin:0 0 16px;color:#0f172a;font-size:26px;line-height:34px;font-weight:bold;">Connect your Google Business Profile</h1>
+            <p style="margin:0 0 24px;color:#475569;font-size:16px;line-height:27px;">
+              Hi ${firstName}, you asked us to remind you to come back and connect your Google Business Profile. Your 14-day free trial is waiting — it starts the moment you connect.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr>
+                <td align="center">
+                  <a href="https://app.localreviewresponder.com/onboarding" style="display:inline-block;background:#145da0;color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;padding:16px 32px;border-radius:999px;">
+                    Continue Setup &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:0;color:#64748b;font-size:14px;line-height:24px;text-align:center;">
+              Questions? Just reply to this email — we're happy to help.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #ece7df;padding:24px 40px;text-align:center;">
+            <p style="margin:0 0 6px;font-size:13px;color:#64748b;">Built to help local businesses respond faster, stay consistent, and make more of every review.</p>
+            <p style="margin:0;font-size:13px;color:#64748b;">&copy; 2026 Local Review Responder LLC.&nbsp; All rights reserved.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // deploy trigger

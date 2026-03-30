@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { sendEmail } from '@/lib/email';
+import { sendEmail, getReminderEmailHtml } from '@/lib/email';
 
 export async function POST() {
   const session = await getServerSession(authOptions);
@@ -15,11 +15,7 @@ export async function POST() {
       to: session.user.email,
       toName: session.user.name || undefined,
       subject: 'Reminder: Connect your Google Business Profile',
-      html: `<p>Hi ${firstName},</p>
-<p>You asked us to remind you to come back and connect your Google Business Profile to Local Review Responder.</p>
-<p><a href="https://app.localreviewresponder.com/onboarding">Click here to continue →</a></p>
-<p>If you have any questions, just reply to this email.</p>
-<p>— The Local Review Responder Team</p>`,
+      html: getReminderEmailHtml(session.user.name),
     });
 
     return Response.json({ success: true });
