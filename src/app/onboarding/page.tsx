@@ -342,9 +342,6 @@ function OnboardingContent() {
 
         {/* Card body */}
         <div style={{ padding: '28px 32px 32px' }}>
-          {/* Progress section */}
-          <ProgressSection />
-
           {/* Eyebrow + headline */}
           <p className="font-bold uppercase" style={{ fontSize: 11, letterSpacing: '1.2px', color: '#145da0', marginBottom: 8 }}>
             Step 1 of 3
