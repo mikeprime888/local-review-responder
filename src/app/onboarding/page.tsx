@@ -326,7 +326,7 @@ function OnboardingContent() {
         style={{ backgroundColor: '#ffffff', borderRadius: 20, border: '1px solid #ece7df' }}
       >
         {/* Header */}
-        <div className="relative text-center" style={{ padding: '24px 32px', borderBottom: '1px solid #ece7df' }}>
+        <div className="relative text-center" style={{ padding: '24px 32px' }}>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
             className="absolute bg-transparent border-none cursor-pointer hover:opacity-80"
@@ -342,10 +342,7 @@ function OnboardingContent() {
 
         {/* Card body */}
         <div style={{ padding: '28px 32px 32px' }}>
-          {/* Eyebrow + headline */}
-          <p className="font-bold uppercase" style={{ fontSize: 11, letterSpacing: '1.2px', color: '#145da0', marginBottom: 8 }}>
-            Step 1 of 3
-          </p>
+          {/* Headline */}
           <h1 className="font-bold" style={{ fontSize: 22, color: '#0f172a', marginBottom: 8 }}>
             Connect your Google Business Profile
           </h1>
