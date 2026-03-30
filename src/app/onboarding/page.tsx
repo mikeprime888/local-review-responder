@@ -326,18 +326,25 @@ function OnboardingContent() {
         style={{ backgroundColor: '#ffffff', borderRadius: 20, border: '1px solid #ece7df' }}
       >
         {/* Header */}
-        <div className="relative text-center" style={{ padding: '24px 32px' }}>
-          <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="absolute bg-transparent border-none cursor-pointer hover:opacity-80"
-            style={{ top: 16, right: 16, fontSize: 13, color: '#145da0', fontWeight: 600, textDecoration: 'none', padding: 0 }}
-          >
-            Sign out
-          </button>
-          <a href="https://localreviewresponder.com" target="_blank" rel="noopener noreferrer">
-            <img src="/lrr-email-logo.png" alt="Local Review Responder" width={400} className="mx-auto" style={{ height: 'auto' }} />
-          </a>
-          <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 8 }}>Smarter review management for local businesses</p>
+        <div className="flex items-start justify-between" style={{ padding: '24px 32px' }}>
+          <div>
+            <a href="https://localreviewresponder.com" target="_blank" rel="noopener noreferrer">
+              <img src="/lrr-email-logo.png" alt="Local Review Responder" width={400} style={{ height: 'auto' }} />
+            </a>
+            <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 8 }}>Smarter review management for local businesses</p>
+          </div>
+          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 16 }}>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="bg-transparent border-none cursor-pointer hover:opacity-80 block"
+              style={{ fontSize: 13, color: '#145da0', fontWeight: 600, textDecoration: 'none', padding: 0 }}
+            >
+              Sign out
+            </button>
+            <p style={{ fontSize: 11, color: '#94a3b8', margin: '3px 0 0', lineHeight: '1.3' }}>
+              You can return any time<br />to complete setup.
+            </p>
+          </div>
         </div>
 
         {/* Card body */}
