@@ -92,6 +92,21 @@ function AddLocationContent() {
     try {
       setCheckoutLoading(locationId);
       setError(null);
+
+      if ((session?.user as any)?.isComped) {
+        const response = await fetch('/api/locations/activate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ locationId }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to activate location');
+        if (data.activated) {
+          router.push('/dashboard');
+          return;
+        }
+      }
+
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
