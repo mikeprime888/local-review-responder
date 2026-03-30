@@ -379,7 +379,7 @@ function OnboardingContent() {
         <div style={{ padding: '28px 32px 0' }}>
           {/* Heading */}
           <h2 className="font-bold" style={{ fontSize: 22, color: '#0f172a', marginBottom: 16 }}>
-            Select your situation
+            Select your Situation
           </h2>
 
           {/* Radio selector */}
