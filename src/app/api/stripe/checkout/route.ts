@@ -19,6 +19,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
+    if ((session.user as any).isComped) {
+      return NextResponse.json(
+        { error: 'Comped accounts do not require a subscription.' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { locationId, plan, priceType: priceTypeLegacy } = body;
     const priceType = plan || priceTypeLegacy || 'monthly';
