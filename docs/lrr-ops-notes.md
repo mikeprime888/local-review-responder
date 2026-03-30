@@ -52,7 +52,7 @@ Steps taken to recover:
 | Guard | Location | What it does |
 |---|---|---|
 | `isComped` UI redirect | `src/app/onboarding/page.tsx` | Redirects comped users to dashboard, skipping onboarding entirely |
-| `isComped` Stripe checkout guard | `src/app/api/stripe/checkout/route.ts` | Returns 403 if user is comped — Stripe never called |
+| `isComped` Stripe checkout guard | `src/app/api/stripe/checkout/route.ts` | Returns 403 if user is comped — Stripe never called ✅ implemented 3/30/2026 |
 | `isComped` webhook guard | Stripe webhook handler | Prevents `subscription.deleted` from deactivating comped user locations |
 | `isAdmin`/`isComped` onboarding redirect guard | `src/app/onboarding/page.tsx` | Prevents privileged users from being redirected to onboarding post-login |
 
@@ -97,4 +97,4 @@ SELECT email, "isComped", "isAdmin" FROM "User";
 
 ---
 
-*Last updated: 2026-03-30*
+*Last updated: 2026-03-30 — Added isComped Stripe checkout guard*
