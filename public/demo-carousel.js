@@ -225,9 +225,15 @@
       + '</div>'
       + '</div>'
 
+      // Carousel with left/right arrows
+      + '<div style="display:flex;align-items:center;gap:12px;">'
+
+      // Left arrow
+      + '<button id="lrr-demo-prev" style="width:38px;height:38px;border-radius:50%;border:1px solid #e5e7eb;background:#ffffff;color:#6b7280;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.06);">\u2039</button>'
+
       // Slide viewport
-      + '<div style="overflow:hidden;border-radius:16px;">'
-      + '<div id="lrr-demo-slider" style="display:flex;transition:transform 0.5s ease;width:' + (total * 100) + '%;">';
+      + '<div style="overflow:hidden;border-radius:16px;flex:1;min-width:0;">'
+      + '<div id="lrr-demo-slider" style="display:flex;transition:transform 0.8s ease;width:' + (total * 100) + '%;">';
 
     // Build all pages as flex children
     for (var p = 0; p < total; p++) {
@@ -243,13 +249,14 @@
     html += '</div>'
       + '</div>'
 
-      // Navigation
-      + '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;">'
-      + '<button id="lrr-demo-prev" style="width:38px;height:38px;border-radius:50%;border:1px solid #e5e7eb;background:#ffffff;color:#6b7280;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;">\u2039</button>'
-      + '<div id="lrr-demo-dots" style="display:flex;align-items:center;gap:8px;">'
-      + buildDots()
+      // Right arrow
+      + '<button id="lrr-demo-next" style="width:38px;height:38px;border-radius:50%;border:1px solid #e5e7eb;background:#ffffff;color:#6b7280;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.06);">\u203A</button>'
+
       + '</div>'
-      + '<button id="lrr-demo-next" style="width:38px;height:38px;border-radius:50%;border:1px solid #e5e7eb;background:#ffffff;color:#6b7280;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;">\u203A</button>'
+
+      // Dots below
+      + '<div id="lrr-demo-dots" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;">'
+      + buildDots()
       + '</div>'
 
       // Responsive style
@@ -272,11 +279,14 @@
       goTo((currentPage + 1) % t);
     });
 
-    var dots = document.getElementById('lrr-demo-dots').children;
-    for (var d = 0; d < dots.length; d++) {
-      (function (idx) {
-        dots[idx].addEventListener('click', function () { goTo(idx); });
-      })(d);
+    var dotsContainer = document.getElementById('lrr-demo-dots');
+    if (dotsContainer) {
+      var dots = dotsContainer.children;
+      for (var d = 0; d < dots.length; d++) {
+        (function (idx) {
+          dots[idx].addEventListener('click', function () { goTo(idx); });
+        })(d);
+      }
     }
 
     // Pause on hover
@@ -309,7 +319,7 @@
     slideTo(currentPage);
     updateDots();
     resetAuto();
-    setTimeout(function () { isTransitioning = false; }, 500);
+    setTimeout(function () { isTransitioning = false; }, 800);
   }
 
   function startAuto() {
