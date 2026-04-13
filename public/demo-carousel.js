@@ -57,9 +57,14 @@
     }
   ];
 
-  var currentIndex = 0;
+  var currentPage = 0;
   var autoTimer = null;
   var isTransitioning = false;
+  var CARDS_PER_PAGE = 3;
+
+  function getTotalPages() {
+    return Math.ceil(reviews.length / CARDS_PER_PAGE);
+  }
 
   function getInitials(name) {
     var parts = name.split(' ');
@@ -78,70 +83,97 @@
   function buildCard(review) {
     var initials = getInitials(review.reviewer);
 
-    var card = ''
-      + '<div style="opacity:1;transform:translateY(0);transition:opacity 0.4s ease,transform 0.4s ease;">'
+    return ''
+      + '<div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);display:flex;flex-direction:column;min-width:0;box-sizing:border-box;">'
 
       // Business badge
-      + '<div style="margin-bottom:16px;">'
-      + '<span style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;border-radius:999px;padding:5px 12px;">'
-      + '<span style="font-size:13px;line-height:1;">\u2302</span>'
-      + '<span style="font-size:12px;color:#6b7280;">' + review.business + '</span>'
+      + '<div style="margin-bottom:12px;">'
+      + '<span style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;border-radius:999px;padding:4px 10px;">'
+      + '<span style="font-size:12px;line-height:1;">\u2302</span>'
+      + '<span style="font-size:11px;color:#6b7280;">' + review.business + '</span>'
       + '</span>'
       + '</div>'
 
       // Reviewer row
-      + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">'
-      + '<div style="width:44px;height:44px;border-radius:50%;background:' + review.avatarBg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
-      + '<span style="font-size:15px;font-weight:600;color:' + review.avatarText + ';">' + initials + '</span>'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+      + '<div style="width:38px;height:38px;border-radius:50%;background:' + review.avatarBg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+      + '<span style="font-size:13px;font-weight:600;color:' + review.avatarText + ';">' + initials + '</span>'
       + '</div>'
-      + '<div>'
-      + '<div style="font-size:15px;font-weight:500;color:#1f2937;">' + review.reviewer + '</div>'
-      + '<div style="display:flex;align-items:center;gap:6px;margin-top:2px;">'
+      + '<div style="min-width:0;">'
+      + '<div style="font-size:14px;font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + review.reviewer + '</div>'
+      + '<div style="display:flex;align-items:center;gap:4px;margin-top:2px;">'
       + renderStars(review.rating)
-      + '<span style="font-size:13px;color:#9ca3af;margin-left:4px;">3 weeks ago</span>'
+      + '<span style="font-size:12px;color:#9ca3af;margin-left:4px;">3 weeks ago</span>'
       + '</div>'
       + '</div>'
       + '</div>'
 
       // Review text
-      + '<div style="font-size:15px;line-height:1.65;color:#374151;border-left:2px solid #e5e7eb;padding-left:12px;margin-bottom:18px;">'
+      + '<div style="font-size:13px;line-height:1.6;color:#374151;border-left:2px solid #e5e7eb;padding-left:10px;margin-bottom:14px;flex:1;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">'
       + review.review
       + '</div>'
 
       // AI response box
-      + '<div style="background:#f9fafb;border-radius:10px;padding:14px 16px;">'
-      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">'
-      + '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0;"></span>'
-      + '<span style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#9ca3af;">AI-generated response</span>'
+      + '<div style="background:#f9fafb;border-radius:10px;padding:12px 14px;">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">'
+      + '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1D9E75;flex-shrink:0;"></span>'
+      + '<span style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#9ca3af;">AI-generated response</span>'
       + '</div>'
-      + '<div style="font-size:14px;line-height:1.6;color:#4b5563;">'
+      + '<div style="font-size:12px;line-height:1.55;color:#4b5563;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">'
       + review.response
       + '</div>'
       + '</div>'
 
       + '</div>';
+  }
 
-    return card;
+  function buildCards(page) {
+    var start = page * CARDS_PER_PAGE;
+    var pageReviews = reviews.slice(start, start + CARDS_PER_PAGE);
+    var html = '';
+    for (var i = 0; i < pageReviews.length; i++) {
+      html += buildCard(pageReviews[i]);
+    }
+    return html;
+  }
+
+  function buildDots() {
+    var total = getTotalPages();
+    var html = '';
+    for (var i = 0; i < total; i++) {
+      var isActive = i === currentPage;
+      html += '<button style="width:' + (isActive ? '24px' : '8px') + ';height:8px;border-radius:4px;border:none;padding:0;cursor:pointer;'
+        + 'background:' + (isActive ? '#1D9E75' : '#d1d5db') + ';transition:all 0.3s;"></button>';
+    }
+    return html;
   }
 
   function render() {
-    var review = reviews[currentIndex];
-
     var html = ''
-      + '<div style="max-width:680px;margin:0 auto;font-family:system-ui,-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">'
+      + '<div style="max-width:960px;margin:0 auto;font-family:system-ui,-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">'
 
       // Section headings
-      + '<div style="text-align:center;margin-bottom:28px;">'
+      + '<div style="text-align:center;margin-bottom:24px;">'
       + '<div style="font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:#9ca3af;margin-bottom:8px;">See it in action</div>'
       + '<h2 style="font-size:22px;font-weight:500;color:#1f2937;margin:0 0 8px 0;">Real reviews. AI-crafted responses.</h2>'
       + '<p style="font-size:15px;color:#9ca3af;margin:0;line-height:1.5;">Watch how Local Review Responder turns every review into a branded reply &mdash; in seconds.</p>'
       + '</div>'
 
-      // Card
-      + '<div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);">'
-      + '<div id="lrr-demo-card">'
-      + buildCard(review)
+      // Overall rating banner
+      + '<div style="text-align:center;margin-bottom:24px;">'
+      + '<div style="display:inline-flex;align-items:center;gap:8px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">'
+      + '<span style="font-size:20px;font-weight:700;color:#1f2937;">Overall rating</span>'
+      + '<span style="font-size:20px;font-weight:700;color:#1f2937;">4.7</span>'
+      + '<span style="color:#F0A500;font-size:20px;line-height:1;">\u2605</span>'
+      + '<span style="font-size:14px;color:#9ca3af;">based on</span>'
+      + '<span style="font-size:14px;font-weight:600;color:#1f2937;">163</span>'
+      + '<span style="font-size:14px;color:#9ca3af;">reviews</span>'
       + '</div>'
+      + '</div>'
+
+      // Cards grid
+      + '<div id="lrr-demo-track" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;opacity:1;transform:translateY(0);transition:opacity 0.4s ease,transform 0.4s ease;">'
+      + buildCards(currentPage)
       + '</div>'
 
       // Navigation
@@ -153,13 +185,25 @@
       + '<button id="lrr-demo-next" style="width:38px;height:38px;border-radius:50%;border:1px solid #e5e7eb;background:#ffffff;color:#6b7280;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;">\u203A</button>'
       + '</div>'
 
+      // Responsive style
+      + '<style>'
+      + '@media (max-width: 768px) { #lrr-demo-track { grid-template-columns: 1fr !important; } }'
+      + '@media (min-width: 769px) and (max-width: 1024px) { #lrr-demo-track { grid-template-columns: repeat(2, 1fr) !important; } }'
+      + '</style>'
+
       + '</div>';
 
     container.innerHTML = html;
 
     // Bind events
-    document.getElementById('lrr-demo-prev').addEventListener('click', function () { goTo((currentIndex - 1 + reviews.length) % reviews.length); });
-    document.getElementById('lrr-demo-next').addEventListener('click', function () { goTo((currentIndex + 1) % reviews.length); });
+    document.getElementById('lrr-demo-prev').addEventListener('click', function () {
+      var total = getTotalPages();
+      goTo((currentPage - 1 + total) % total);
+    });
+    document.getElementById('lrr-demo-next').addEventListener('click', function () {
+      var total = getTotalPages();
+      goTo((currentPage + 1) % total);
+    });
 
     var dots = document.getElementById('lrr-demo-dots').children;
     for (var i = 0; i < dots.length; i++) {
@@ -174,40 +218,23 @@
     wrapper.addEventListener('mouseleave', startAuto);
   }
 
-  function buildDots() {
-    var html = '';
-    for (var i = 0; i < reviews.length; i++) {
-      var isActive = i === currentIndex;
-      html += '<button style="width:' + (isActive ? '24px' : '8px') + ';height:8px;border-radius:4px;border:none;padding:0;cursor:pointer;'
-        + 'background:' + (isActive ? '#1D9E75' : '#d1d5db') + ';transition:all 0.3s;"></button>';
-    }
-    return html;
-  }
-
-  function updateCard(newIndex) {
-    var cardWrapper = document.getElementById('lrr-demo-card');
-    var inner = cardWrapper.firstChild;
-    if (!inner) return;
+  function updateCards(newPage) {
+    var track = document.getElementById('lrr-demo-track');
+    if (!track) return;
 
     // Fade out
-    inner.style.opacity = '0';
-    inner.style.transform = 'translateY(8px)';
+    track.style.opacity = '0';
+    track.style.transform = 'translateY(8px)';
 
     setTimeout(function () {
-      currentIndex = newIndex;
-      cardWrapper.innerHTML = buildCard(reviews[currentIndex]);
-
-      // Start hidden
-      var newInner = cardWrapper.firstChild;
-      newInner.style.opacity = '0';
-      newInner.style.transform = 'translateY(8px)';
+      currentPage = newPage;
+      track.innerHTML = buildCards(currentPage);
 
       // Force reflow then fade in
-      void newInner.offsetHeight;
-      newInner.style.opacity = '1';
-      newInner.style.transform = 'translateY(0)';
+      void track.offsetHeight;
+      track.style.opacity = '1';
+      track.style.transform = 'translateY(0)';
 
-      // Update dots
       updateDots();
       isTransitioning = false;
     }, 300);
@@ -218,22 +245,23 @@
     if (!dotsEl) return;
     var dots = dotsEl.children;
     for (var i = 0; i < dots.length; i++) {
-      dots[i].style.width = i === currentIndex ? '24px' : '8px';
-      dots[i].style.background = i === currentIndex ? '#1D9E75' : '#d1d5db';
+      dots[i].style.width = i === currentPage ? '24px' : '8px';
+      dots[i].style.background = i === currentPage ? '#1D9E75' : '#d1d5db';
     }
   }
 
-  function goTo(index) {
-    if (isTransitioning || index === currentIndex) return;
+  function goTo(page) {
+    if (isTransitioning || page === currentPage) return;
     isTransitioning = true;
     resetAuto();
-    updateCard(index);
+    updateCards(page);
   }
 
   function startAuto() {
     stopAuto();
     autoTimer = setInterval(function () {
-      var next = (currentIndex + 1) % reviews.length;
+      var total = getTotalPages();
+      var next = (currentPage + 1) % total;
       goTo(next);
     }, 5000);
   }
