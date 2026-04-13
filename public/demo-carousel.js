@@ -16,6 +16,7 @@
       rating: 5,
       avatarBg: '#E1F5EE',
       avatarText: '#085041',
+      meta: '2 days ago',
       review: "Absolutely love this place! Dr. Patel was so gentle and took the time to explain everything. I\u2019ve always been nervous about the dentist, but the whole team made me feel completely at ease. My teeth have never looked better!"
     },
     {
@@ -24,6 +25,7 @@
       rating: 4,
       avatarBg: '#E6F1FB',
       avatarText: '#0C447C',
+      meta: '1 week ago',
       review: "Great gym with tons of equipment and friendly staff. The locker rooms could use an upgrade and it gets pretty crowded during peak hours, but overall a solid place to train. The personal trainers are very knowledgeable."
     },
     {
@@ -32,6 +34,7 @@
       rating: 5,
       avatarBg: '#FAEEDA',
       avatarText: '#633806',
+      meta: '3 days ago',
       review: "Took my parents here for their anniversary and it was absolutely perfect. The lamb shank was melt-in-your-mouth incredible, and our server Jenna went above and beyond all evening. The atmosphere is warm and romantic. Already planning our next visit!"
     },
     {
@@ -40,6 +43,7 @@
       rating: 3,
       avatarBg: '#EAF3DE',
       avatarText: '#27500A',
+      meta: '2 weeks ago',
       review: "Mixed experience. The team did a beautiful job with our garden beds but showed up an hour late without calling. The finished result looks great, but communication needs improvement. Would probably try again if that\u2019s addressed."
     },
     {
@@ -48,6 +52,7 @@
       rating: 5,
       avatarBg: '#EEEDFE',
       avatarText: '#3C3489',
+      meta: '5 days ago',
       review: "These guys saved me when my car broke down on a Friday afternoon. They fit me in last-minute, diagnosed the issue within an hour, and had me back on the road before they closed. Fair pricing, no upsell nonsense. This is my shop now."
     },
     {
@@ -56,6 +61,7 @@
       rating: 5,
       avatarBg: '#FBEAF0',
       avatarText: '#72243E',
+      meta: '1 day ago',
       review: "My son was really struggling with algebra and after just 6 weeks with his tutor, he went from a D to a B+. The tutors are patient, encouraging, and actually make math fun. I wish we had found this place sooner!"
     },
     {
@@ -64,6 +70,7 @@
       rating: 5,
       avatarBg: '#E1F5EE',
       avatarText: '#085041',
+      meta: '3 weeks ago',
       review: "We stayed for our 10th anniversary and it exceeded every expectation. The room was immaculate, the harbor view was stunning at sunrise, and the front desk staff upgraded us without us even asking. The breakfast spread was incredible. We will absolutely be back."
     },
     {
@@ -72,6 +79,7 @@
       rating: 4,
       avatarBg: '#E6F1FB',
       avatarText: '#0C447C',
+      meta: '4 days ago',
       review: "Dr. Nguyen is fantastic and really listened to my concerns about my skin. The treatment plan she recommended has made a noticeable difference in just a few weeks. The only downside is the wait time \u2014 I was in the waiting room for nearly 40 minutes past my appointment. Would still recommend."
     },
     {
@@ -80,6 +88,7 @@
       rating: 5,
       avatarBg: '#FAEEDA',
       avatarText: '#633806',
+      meta: '10 days ago',
       review: "Ordered a custom dining table and it arrived exactly on time and exactly as described. The craftsmanship is outstanding \u2014 this is clearly built to last decades. The team kept me updated throughout the build process which I really appreciated. Worth every penny."
     },
     {
@@ -88,6 +97,7 @@
       rating: 3,
       avatarBg: '#EAF3DE',
       avatarText: '#27500A',
+      meta: '2 weeks ago',
       review: "The movers were friendly and careful with our belongings, which I really appreciated. However, the job took almost two hours longer than quoted, which pushed the cost up significantly. A more accurate time estimate upfront would have made a big difference to our experience."
     },
     {
@@ -96,6 +106,7 @@
       rating: 5,
       avatarBg: '#EEEDFE',
       avatarText: '#3C3489',
+      meta: '6 days ago',
       review: "I brought in my rescue dog Biscuit for the first time and he was absolutely terrified. The vet and nurses were so calm and gentle with him that by the end he was actually wagging his tail. They took the time to explain everything clearly and the pricing was very transparent. This is Biscuit\u2019s clinic for life."
     },
     {
@@ -104,6 +115,7 @@
       rating: 5,
       avatarBg: '#FBEAF0',
       avatarText: '#72243E',
+      meta: '3 weeks ago',
       review: "We\u2019d been putting off getting serious about retirement planning for years and finally took the leap with Summit. Our advisor Michael broke everything down in plain language with zero jargon. We left our first meeting with an actual plan for the first time ever. Genuinely life-changing."
     }
   ];
@@ -154,7 +166,7 @@
       + '<div style="font-size:14px;font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + review.reviewer + '</div>'
       + '<div style="display:flex;align-items:center;gap:4px;margin-top:2px;">'
       + renderStars(review.rating)
-      + '<span style="font-size:12px;color:#9ca3af;margin-left:4px;">3 weeks ago</span>'
+      + '<span style="font-size:12px;color:#9ca3af;margin-left:4px;">' + review.meta + '</span>'
       + '</div>'
       + '</div>'
       + '</div>'
