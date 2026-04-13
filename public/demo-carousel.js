@@ -1,10 +1,10 @@
-<!--
-  Local Review Responder — Demo Carousel
-  Paste this into your marketing site where you want the carousel to appear:
-
-  <div id="lrr-demo-carousel"></div>
-  <script src="https://app.localreviewresponder.com/demo-carousel.js" async></script>
--->
+/**
+ * Local Review Responder — Demo Carousel
+ * Paste this into your marketing site where you want the carousel to appear:
+ *
+ * <div id="lrr-demo-carousel"></div>
+ * <script src="https://app.localreviewresponder.com/demo-carousel.js" async></script>
+ */
 (function () {
   var container = document.getElementById('lrr-demo-carousel');
   if (!container) return;
