@@ -16,8 +16,7 @@
       rating: 5,
       avatarBg: '#E1F5EE',
       avatarText: '#085041',
-      review: "Absolutely love this place! Dr. Patel was so gentle and took the time to explain everything. I\u2019ve always been nervous about the dentist, but the whole team made me feel completely at ease. My teeth have never looked better!",
-      response: "Thank you so much, Amanda! We\u2019re thrilled to hear your visit went smoothly \u2014 helping patients feel comfortable is what we\u2019re all about. Dr. Patel and the team really appreciate your kind words. We look forward to seeing you at your next visit!"
+      review: "Absolutely love this place! Dr. Patel was so gentle and took the time to explain everything. I\u2019ve always been nervous about the dentist, but the whole team made me feel completely at ease. My teeth have never looked better!"
     },
     {
       business: 'Peak Performance Gym',
@@ -25,8 +24,7 @@
       rating: 4,
       avatarBg: '#E6F1FB',
       avatarText: '#0C447C',
-      review: "Great gym with tons of equipment and friendly staff. The locker rooms could use an upgrade and it gets pretty crowded during peak hours, but overall a solid place to train. The personal trainers are very knowledgeable.",
-      response: "Thanks for the honest feedback, Marcus! We\u2019re glad you\u2019re enjoying the equipment and our trainer team. You\u2019re right about the locker rooms \u2014 a renovation is planned for Q2. In the meantime, come in before 7am for a quieter experience. See you on the floor!"
+      review: "Great gym with tons of equipment and friendly staff. The locker rooms could use an upgrade and it gets pretty crowded during peak hours, but overall a solid place to train. The personal trainers are very knowledgeable."
     },
     {
       business: 'The Golden Fork Restaurant',
@@ -34,8 +32,7 @@
       rating: 5,
       avatarBg: '#FAEEDA',
       avatarText: '#633806',
-      review: "Took my parents here for their anniversary and it was absolutely perfect. The lamb shank was melt-in-your-mouth incredible, and our server Jenna went above and beyond all evening. The atmosphere is warm and romantic. Already planning our next visit!",
-      response: "What a beautiful way to celebrate! We\u2019re so honored you chose The Golden Fork for such a special occasion, Priya. We\u2019ll make sure Jenna knows she made the evening memorable. The lamb shank is truly one of Chef Marco\u2019s labors of love. We can\u2019t wait to welcome you and your family back soon."
+      review: "Took my parents here for their anniversary and it was absolutely perfect. The lamb shank was melt-in-your-mouth incredible, and our server Jenna went above and beyond all evening. The atmosphere is warm and romantic. Already planning our next visit!"
     },
     {
       business: 'Greenleaf Landscaping',
@@ -43,8 +40,7 @@
       rating: 3,
       avatarBg: '#EAF3DE',
       avatarText: '#27500A',
-      review: "Mixed experience. The team did a beautiful job with our garden beds but showed up an hour late without calling. The finished result looks great, but communication needs improvement. Would probably try again if that\u2019s addressed.",
-      response: "Tom and Beth, thank you for your patience and for sharing this. The garden beds look stunning, but you\u2019re right that punctuality and communication should never be an afterthought. We\u2019re addressing this with our scheduling team and would love the chance to earn your full confidence on your next project."
+      review: "Mixed experience. The team did a beautiful job with our garden beds but showed up an hour late without calling. The finished result looks great, but communication needs improvement. Would probably try again if that\u2019s addressed."
     },
     {
       business: 'BlueSky Auto Repair',
@@ -52,8 +48,63 @@
       rating: 5,
       avatarBg: '#EEEDFE',
       avatarText: '#3C3489',
-      review: "These guys saved me when my car broke down on a Friday afternoon. They fit me in last-minute, diagnosed the issue within an hour, and had me back on the road before they closed. Fair pricing, no upsell nonsense. This is my shop now.",
-      response: "Jordan, we\u2019re so glad we could get you sorted on such short notice! Breakdowns are stressful enough without having to wait days for a fix. Our team takes pride in being straight with customers \u2014 no fluff, just good work at a fair price. Welcome to the BlueSky family!"
+      review: "These guys saved me when my car broke down on a Friday afternoon. They fit me in last-minute, diagnosed the issue within an hour, and had me back on the road before they closed. Fair pricing, no upsell nonsense. This is my shop now."
+    },
+    {
+      business: 'Bright Minds Tutoring',
+      reviewer: 'Sandra Okafor',
+      rating: 5,
+      avatarBg: '#FBEAF0',
+      avatarText: '#72243E',
+      review: "My son was really struggling with algebra and after just 6 weeks with his tutor, he went from a D to a B+. The tutors are patient, encouraging, and actually make math fun. I wish we had found this place sooner!"
+    },
+    {
+      business: 'Harbor View Hotel',
+      reviewer: 'Derek & Lisa Fontaine',
+      rating: 5,
+      avatarBg: '#E1F5EE',
+      avatarText: '#085041',
+      review: "We stayed for our 10th anniversary and it exceeded every expectation. The room was immaculate, the harbor view was stunning at sunrise, and the front desk staff upgraded us without us even asking. The breakfast spread was incredible. We will absolutely be back."
+    },
+    {
+      business: 'ClearSkin Dermatology',
+      reviewer: 'Olivia Marsh',
+      rating: 4,
+      avatarBg: '#E6F1FB',
+      avatarText: '#0C447C',
+      review: "Dr. Nguyen is fantastic and really listened to my concerns about my skin. The treatment plan she recommended has made a noticeable difference in just a few weeks. The only downside is the wait time \u2014 I was in the waiting room for nearly 40 minutes past my appointment. Would still recommend."
+    },
+    {
+      business: 'Iron & Oak Furniture Co.',
+      reviewer: 'Paul Strickland',
+      rating: 5,
+      avatarBg: '#FAEEDA',
+      avatarText: '#633806',
+      review: "Ordered a custom dining table and it arrived exactly on time and exactly as described. The craftsmanship is outstanding \u2014 this is clearly built to last decades. The team kept me updated throughout the build process which I really appreciated. Worth every penny."
+    },
+    {
+      business: 'SwiftMove Removals',
+      reviewer: 'Fatima Al-Hassan',
+      rating: 3,
+      avatarBg: '#EAF3DE',
+      avatarText: '#27500A',
+      review: "The movers were friendly and careful with our belongings, which I really appreciated. However, the job took almost two hours longer than quoted, which pushed the cost up significantly. A more accurate time estimate upfront would have made a big difference to our experience."
+    },
+    {
+      business: 'Paws & Claws Veterinary Clinic',
+      reviewer: 'Ryan Holloway',
+      rating: 5,
+      avatarBg: '#EEEDFE',
+      avatarText: '#3C3489',
+      review: "I brought in my rescue dog Biscuit for the first time and he was absolutely terrified. The vet and nurses were so calm and gentle with him that by the end he was actually wagging his tail. They took the time to explain everything clearly and the pricing was very transparent. This is Biscuit\u2019s clinic for life."
+    },
+    {
+      business: 'Summit Financial Planning',
+      reviewer: 'Karen & David Osei',
+      rating: 5,
+      avatarBg: '#FBEAF0',
+      avatarText: '#72243E',
+      review: "We\u2019d been putting off getting serious about retirement planning for years and finally took the leap with Summit. Our advisor Michael broke everything down in plain language with zero jargon. We left our first meeting with an actual plan for the first time ever. Genuinely life-changing."
     }
   ];
 
@@ -109,19 +160,8 @@
       + '</div>'
 
       // Review text
-      + '<div style="font-size:13px;line-height:1.6;color:#374151;border-left:2px solid #e5e7eb;padding-left:10px;margin-bottom:14px;flex:1;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">'
+      + '<div style="font-size:13px;line-height:1.6;color:#374151;border-left:2px solid #e5e7eb;padding-left:10px;flex:1;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;">'
       + review.review
-      + '</div>'
-
-      // AI response box
-      + '<div style="background:#f9fafb;border-radius:10px;padding:12px 14px;">'
-      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">'
-      + '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1D9E75;flex-shrink:0;"></span>'
-      + '<span style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#9ca3af;">AI-generated response</span>'
-      + '</div>'
-      + '<div style="font-size:12px;line-height:1.55;color:#4b5563;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">'
-      + review.response
-      + '</div>'
       + '</div>'
 
       + '</div>';
@@ -149,6 +189,8 @@
   }
 
   function render() {
+    var total = getTotalPages();
+
     var html = ''
       + '<div style="max-width:960px;margin:0 auto;font-family:system-ui,-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">'
 
@@ -166,14 +208,27 @@
       + '<span style="font-size:20px;font-weight:700;color:#1f2937;">4.7</span>'
       + '<span style="color:#F0A500;font-size:20px;line-height:1;">\u2605</span>'
       + '<span style="font-size:14px;color:#9ca3af;">based on</span>'
-      + '<span style="font-size:14px;font-weight:600;color:#1f2937;">163</span>'
+      + '<span style="font-size:20px;font-weight:700;color:#1f2937;">163</span>'
       + '<span style="font-size:14px;color:#9ca3af;">reviews</span>'
       + '</div>'
       + '</div>'
 
-      // Cards grid
-      + '<div id="lrr-demo-track" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;opacity:1;transform:translateY(0);transition:opacity 0.4s ease,transform 0.4s ease;">'
-      + buildCards(currentPage)
+      // Slide viewport
+      + '<div style="overflow:hidden;border-radius:16px;">'
+      + '<div id="lrr-demo-slider" style="display:flex;transition:transform 0.5s ease;width:' + (total * 100) + '%;">';
+
+    // Build all pages as flex children
+    for (var p = 0; p < total; p++) {
+      var start = p * CARDS_PER_PAGE;
+      var pageReviews = reviews.slice(start, start + CARDS_PER_PAGE);
+      html += '<div style="min-width:' + (100 / total) + '%;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;box-sizing:border-box;">';
+      for (var i = 0; i < pageReviews.length; i++) {
+        html += buildCard(pageReviews[i]);
+      }
+      html += '</div>';
+    }
+
+    html += '</div>'
       + '</div>'
 
       // Navigation
@@ -187,8 +242,8 @@
 
       // Responsive style
       + '<style>'
-      + '@media (max-width: 768px) { #lrr-demo-track { grid-template-columns: 1fr !important; } }'
-      + '@media (min-width: 769px) and (max-width: 1024px) { #lrr-demo-track { grid-template-columns: repeat(2, 1fr) !important; } }'
+      + '@media (max-width: 768px) { #lrr-demo-slider > div { grid-template-columns: 1fr !important; } }'
+      + '@media (min-width: 769px) and (max-width: 1024px) { #lrr-demo-slider > div { grid-template-columns: repeat(2, 1fr) !important; } }'
       + '</style>'
 
       + '</div>';
@@ -197,19 +252,19 @@
 
     // Bind events
     document.getElementById('lrr-demo-prev').addEventListener('click', function () {
-      var total = getTotalPages();
-      goTo((currentPage - 1 + total) % total);
+      var t = getTotalPages();
+      goTo((currentPage - 1 + t) % t);
     });
     document.getElementById('lrr-demo-next').addEventListener('click', function () {
-      var total = getTotalPages();
-      goTo((currentPage + 1) % total);
+      var t = getTotalPages();
+      goTo((currentPage + 1) % t);
     });
 
     var dots = document.getElementById('lrr-demo-dots').children;
-    for (var i = 0; i < dots.length; i++) {
+    for (var d = 0; d < dots.length; d++) {
       (function (idx) {
         dots[idx].addEventListener('click', function () { goTo(idx); });
-      })(i);
+      })(d);
     }
 
     // Pause on hover
@@ -218,26 +273,11 @@
     wrapper.addEventListener('mouseleave', startAuto);
   }
 
-  function updateCards(newPage) {
-    var track = document.getElementById('lrr-demo-track');
-    if (!track) return;
-
-    // Fade out
-    track.style.opacity = '0';
-    track.style.transform = 'translateY(8px)';
-
-    setTimeout(function () {
-      currentPage = newPage;
-      track.innerHTML = buildCards(currentPage);
-
-      // Force reflow then fade in
-      void track.offsetHeight;
-      track.style.opacity = '1';
-      track.style.transform = 'translateY(0)';
-
-      updateDots();
-      isTransitioning = false;
-    }, 300);
+  function slideTo(page) {
+    var slider = document.getElementById('lrr-demo-slider');
+    if (!slider) return;
+    var offset = page * (100 / getTotalPages());
+    slider.style.transform = 'translateX(-' + offset + '%)';
   }
 
   function updateDots() {
@@ -253,8 +293,11 @@
   function goTo(page) {
     if (isTransitioning || page === currentPage) return;
     isTransitioning = true;
+    currentPage = page;
+    slideTo(currentPage);
+    updateDots();
     resetAuto();
-    updateCards(page);
+    setTimeout(function () { isTransitioning = false; }, 500);
   }
 
   function startAuto() {
