@@ -13,6 +13,8 @@ import { sendEmail, getNewReviewsEmailHtml } from '@/lib/email';
  * Protected by CRON_SECRET to prevent unauthorized access.
  */
 export async function GET(request: NextRequest) {
+  console.log(`[Cron] Invoked at ${new Date().toISOString()}`);
+
   // Verify cron secret
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -78,6 +80,10 @@ export async function GET(request: NextRequest) {
       totalSynced: number;
       error?: string;
     }> = [];
+
+    let processedCount = 0;
+    let emailsSent = 0;
+    let skippedCount = 0;
 
     // Process each user's locations
     for (const [userId, locations] of Array.from(locationsByUser.entries())) {
@@ -208,7 +214,9 @@ export async function GET(request: NextRequest) {
       }
 
       // Send email notification if there are new reviews for this user
+      let emailAttempted = false;
       if (userNewReviews.length > 0 && locations[0].user.email) {
+        emailAttempted = true;
         try {
           const html = getNewReviewsEmailHtml(
             locations[0].user.name || undefined,
@@ -222,16 +230,23 @@ export async function GET(request: NextRequest) {
             toName: locations[0].user.name || undefined,
           });
 
+          emailsSent++;
           console.log(`Cron: Sent new review notification to ${locations[0].user.email} (${userNewReviews.length} new reviews)`);
         } catch (emailError: any) {
           console.error(`Cron: Failed to send email to ${locations[0].user.email}:`, emailError.message);
         }
+      } else if (userNewReviews.length === 0) {
+        skippedCount++;
       }
+
+      processedCount++;
+      console.log(`[Cron] user=${locations[0].user.email} locations=${locations.length} newReviews=${userNewReviews.length} emailAttempted=${emailAttempted}`);
     }
 
     const totalNew = results.reduce((sum, r) => sum + r.newReviews, 0);
     const totalSynced = results.reduce((sum, r) => sum + r.totalSynced, 0);
 
+    console.log(`[Cron] Completed. Users processed: ${processedCount}, emails sent: ${emailsSent}, emails skipped (no new reviews): ${skippedCount}`);
     console.log(`Cron: Complete — ${totalSynced} reviews synced, ${totalNew} new across ${activeLocations.length} locations`);
 
     return NextResponse.json({
