@@ -52,6 +52,7 @@ export interface GBPLocation {
   metadata?: {
     mapsUri?: string;
     newReviewUri?: string;
+    placeId?: string;
   };
 }
 
@@ -162,7 +163,7 @@ export async function listLocations(
   accountId: string,
   accessToken: string
 ): Promise<GBPLocation[]> {
-  const readMask = 'name,title,storefrontAddress,websiteUri,phoneNumbers,metadata';
+  const readMask = 'name,title,storefrontAddress,websiteUri,phoneNumbers,metadata.mapsUri,metadata.placeId,metadata.newReviewUri';
   let allLocations: GBPLocation[] = [];
   let nextPageToken: string | undefined;
   
@@ -184,7 +185,7 @@ export async function listLocations(
  * Endpoint: GET mybusinessbusinessinformation.googleapis.com/v1/accounts/-/locations
  */
 export async function listAllLocations(accessToken: string): Promise<GBPLocation[]> {
-  const readMask = 'name,title,storefrontAddress,websiteUri,phoneNumbers,metadata';
+  const readMask = 'name,title,storefrontAddress,websiteUri,phoneNumbers,metadata.mapsUri,metadata.placeId,metadata.newReviewUri';
   let allLocations: GBPLocation[] = [];
   let nextPageToken: string | undefined;
   

@@ -59,12 +59,15 @@
     .then(function (data) {
       if (!data.reviews || data.reviews.length === 0) return;
 
-      var cfg        = data.settings || {};
-      var theme      = cfg.theme      || 'light';
-      var accent     = cfg.accentColor || '#4285F4';
-      var layout     = cfg.layout     || 'carousel';
-      var showName   = cfg.showName   !== false;
-      var showDate   = cfg.showDate   !== false;
+      var cfg                = data.settings || {};
+      var theme              = cfg.theme      || 'light';
+      var accent             = cfg.accentColor || '#4285F4';
+      var layout             = cfg.layout     || 'carousel';
+      var showName           = cfg.showName   !== false;
+      var showDate           = cfg.showDate   !== false;
+      var showHeaderBar      = cfg.showHeaderBar      !== false;
+      var showWriteBtn       = cfg.showWriteReviewButton !== false;
+      var newReviewUri       = (data.location && data.location.newReviewUri) || '';
 
       var isDark      = theme === 'dark';
       var bgWrap      = isDark ? '#1a1a2e' : '#EBF2FA';
@@ -152,17 +155,26 @@
       var html = '<div id="' + widgetId + '" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
                + 'background:' + bgWrap + ';border-radius:20px;padding:28px;max-width:100%;box-sizing:border-box;">';
 
-      // Header
-      if (data.location) {
+      // Header bar (overall rating + Write a review button)
+      if (showHeaderBar && data.location) {
         var avg   = (data.location.averageRating || 0).toFixed(1);
         var total = data.location.totalReviews || 0;
-        html += '<div style="text-align:center;margin-bottom:20px;">';
-        html += '<div style="display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;">';
-        html += '<span style="font-size:clamp(20px,4vw,32px);font-weight:700;color:' + colText + ';">Overall Rating</span>';
-        html += '<span style="font-size:clamp(20px,4vw,32px);font-weight:700;color:' + colText + ';">' + avg + '</span>';
-        html += '<span style="color:#F4B400;font-size:clamp(20px,4vw,32px);line-height:1;">&#9733;</span>';
-        html += '<span style="font-size:clamp(13px,2vw,16px);color:' + colSub + ';">| ' + total + ' reviews</span>';
+        html += '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;'
+              + 'padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;'
+              + 'flex-wrap:wrap;gap:12px;box-sizing:border-box;">';
+        // Left: rating + count
+        html += '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;">';
+        html += '<span style="font-size:16px;font-weight:600;color:' + colText + ';">Overall rating</span>';
+        html += '<span style="font-size:18px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
+        html += '<span style="color:' + accent + ';font-size:18px;line-height:1;">&#9733;</span>';
+        html += '<span style="font-size:14px;color:' + colSub + ';">| ' + total + ' reviews</span>';
         html += '</div>';
+        // Right: Write a review button
+        if (showWriteBtn && newReviewUri) {
+          html += '<a href="' + newReviewUri + '" target="_blank" rel="noopener" '
+                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;'
+                + 'padding:10px 18px;border-radius:8px;display:inline-block;white-space:nowrap;">Write a review</a>';
+        }
         html += '</div>';
       }
 

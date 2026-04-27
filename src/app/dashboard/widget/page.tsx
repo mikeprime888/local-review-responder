@@ -18,6 +18,8 @@ interface WidgetSettings {
   showName: boolean;
   showDate: boolean;
   showBadge: boolean;
+  showHeaderBar: boolean;
+  showWriteReviewButton: boolean;
   limitReviews: boolean;
   maxReviews: number;
   minRating: number;
@@ -541,6 +543,8 @@ function WidgetContent() {
     showName: true,
     showDate: true,
     showBadge: true,
+    showHeaderBar: true,
+    showWriteReviewButton: true,
     limitReviews: true,
     maxReviews: 10,
     minRating: 1,
@@ -582,6 +586,8 @@ function WidgetContent() {
             showName: s.showName !== false,
             showDate: s.showDate !== false,
             showBadge: s.showBadge !== false,
+            showHeaderBar: s.showHeaderBar !== false,
+            showWriteReviewButton: s.showWriteReviewButton !== false,
             limitReviews: s.limitReviews !== false,
             maxReviews: s.maxReviews ?? 10,
             minRating: s.minStars ?? 1,
@@ -635,6 +641,8 @@ function WidgetContent() {
           showName: settings.showName,
           showDate: settings.showDate,
           showBadge: settings.showBadge,
+          showHeaderBar: settings.showHeaderBar,
+          showWriteReviewButton: settings.showWriteReviewButton,
           limitReviews: settings.limitReviews,
           maxReviews: settings.maxReviews,
           minRating: settings.minRating,
@@ -780,6 +788,50 @@ function WidgetContent() {
                       />
                       <span className="text-sm text-gray-500 font-mono">{settings.accentColor}</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Header Bar */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <label className="block text-sm font-medium text-gray-700">Show overall rating bar</label>
+                      <p className="text-xs text-gray-500 mt-0.5">Display rating and review count above reviews</p>
+                    </div>
+                    <button
+                      onClick={() => setSettings({ ...settings, showHeaderBar: !settings.showHeaderBar })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.showHeaderBar ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.showHeaderBar ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <div
+                    className={`mt-3 pt-3 border-t border-gray-200 flex items-start justify-between gap-4 transition-opacity ${
+                      settings.showHeaderBar ? 'opacity-100' : 'opacity-50 pointer-events-none'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <label className="block text-sm font-medium text-gray-700">Show Write a review button</label>
+                      <p className="text-xs text-gray-500 mt-0.5">Links to Google review form</p>
+                    </div>
+                    <button
+                      onClick={() => setSettings({ ...settings, showWriteReviewButton: !settings.showWriteReviewButton })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.showWriteReviewButton ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.showWriteReviewButton ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
                   </div>
                 </div>
 
