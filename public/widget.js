@@ -160,20 +160,20 @@
         var avg   = (data.location.averageRating || 0).toFixed(1);
         var total = data.location.totalReviews || 0;
         html += '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;'
-              + 'padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;'
-              + 'flex-wrap:wrap;gap:12px;box-sizing:border-box;">';
-        // Left: rating + count
-        html += '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;">';
-        html += '<span style="font-size:16px;font-weight:600;color:' + colText + ';">Overall rating</span>';
-        html += '<span style="font-size:18px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
-        html += '<span style="color:#F4B400;font-size:18px;line-height:1;">&#9733;</span>';
-        html += '<span style="font-size:16px;font-weight:600;color:' + colText + ';">| ' + total + ' reviews</span>';
+              + 'padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;'
+              + 'flex-wrap:wrap;gap:24px;box-sizing:border-box;text-align:center;">';
+        // Rating + count
+        html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;min-width:0;">';
+        html += '<span style="font-size:18px;font-weight:600;color:' + colText + ';">Overall rating</span>';
+        html += '<span style="font-size:22px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
+        html += '<span style="color:#F4B400;font-size:22px;line-height:1;">&#9733;</span>';
+        html += '<span style="font-size:18px;font-weight:600;color:' + colText + ';">| ' + total + ' reviews</span>';
         html += '</div>';
-        // Right: Write a review button
+        // Write a review button
         if (showWriteBtn && newReviewUri) {
           html += '<a href="' + newReviewUri + '" target="_blank" rel="noopener" '
-                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;'
-                + 'padding:10px 18px;border-radius:8px;display:inline-block;white-space:nowrap;">Write a review</a>';
+                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;'
+                + 'padding:11px 22px;border-radius:8px;display:inline-block;white-space:nowrap;">Write a review</a>';
         }
         html += '</div>';
       }

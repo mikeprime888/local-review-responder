@@ -451,22 +451,23 @@ function WidgetPreview({
               background: cardBg,
               border: `1px solid ${borderColor}`,
               borderRadius: '16px',
-              padding: '14px 18px',
+              padding: '16px 22px',
               marginBottom: '14px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: 'center',
               flexWrap: 'wrap',
-              gap: '12px',
+              gap: '24px',
+              textAlign: 'center',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', minWidth: 0 }}>
-              <span style={{ fontSize: '15px', fontWeight: 600, color: textColor }}>Overall rating</span>
-              <span style={{ fontSize: '17px', fontWeight: 700, color: textColor }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', minWidth: 0 }}>
+              <span style={{ fontSize: '17px', fontWeight: 600, color: textColor }}>Overall rating</span>
+              <span style={{ fontSize: '20px', fontWeight: 700, color: textColor }}>
                 {(previewLocation?.averageRating ?? 4.8).toFixed(1)}
               </span>
-              <span style={{ color: '#F4B400', fontSize: '17px', lineHeight: 1 }}>★</span>
-              <span style={{ fontSize: '15px', fontWeight: 600, color: textColor }}>
+              <span style={{ color: '#F4B400', fontSize: '20px', lineHeight: 1 }}>★</span>
+              <span style={{ fontSize: '17px', fontWeight: 600, color: textColor }}>
                 | {previewLocation?.totalReviews ?? 24} reviews
               </span>
             </div>
@@ -480,9 +481,9 @@ function WidgetPreview({
                   background: accent,
                   color: '#ffffff',
                   textDecoration: 'none',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   fontWeight: 600,
-                  padding: '8px 16px',
+                  padding: '10px 20px',
                   borderRadius: '8px',
                   whiteSpace: 'nowrap',
                   cursor: previewLocation?.newReviewUri ? 'pointer' : 'default',
