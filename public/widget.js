@@ -166,8 +166,8 @@
         html += '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;">';
         html += '<span style="font-size:16px;font-weight:600;color:' + colText + ';">Overall rating</span>';
         html += '<span style="font-size:18px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
-        html += '<span style="color:' + accent + ';font-size:18px;line-height:1;">&#9733;</span>';
-        html += '<span style="font-size:14px;color:' + colSub + ';">| ' + total + ' reviews</span>';
+        html += '<span style="color:#F4B400;font-size:18px;line-height:1;">&#9733;</span>';
+        html += '<span style="font-size:16px;font-weight:600;color:' + colText + ';">| ' + total + ' reviews</span>';
         html += '</div>';
         // Right: Write a review button
         if (showWriteBtn && newReviewUri) {
