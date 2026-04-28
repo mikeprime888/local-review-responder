@@ -444,15 +444,16 @@ function WidgetPreview({
           opacity: reviewsLoading ? 0.5 : 1,
         }}
       >
-        {/* Header (overall rating + optional Write a review button) */}
+        {/* Header (overall rating + optional inline Write a review button) */}
         {settings.showHeaderBar && (
           <div
             style={{
               marginBottom: '18px',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              gap: '14px',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: '18px',
             }}
           >
             <div

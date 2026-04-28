@@ -155,12 +155,12 @@
       var html = '<div id="' + widgetId + '" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
                + 'background:' + bgWrap + ';border-radius:20px;padding:28px;max-width:100%;box-sizing:border-box;">';
 
-      // Header (overall rating + optional Write a review button)
+      // Header (overall rating + optional inline Write a review button)
       if (showHeaderBar && data.location) {
         var avg   = (data.location.averageRating || 0).toFixed(1);
         var total = data.location.totalReviews || 0;
-        html += '<div style="margin-bottom:18px;display:flex;flex-direction:column;align-items:center;gap:14px;">';
-        // Rating heading
+        html += '<div style="margin-bottom:18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:18px;">';
+        // Rating heading — kept as one cohesive group
         html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
         html += '<span style="font-size:20px;font-weight:500;color:' + colSub + ';">Overall rating</span>';
         html += '<span style="font-size:26px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
@@ -169,10 +169,10 @@
         html += '<span style="font-size:26px;font-weight:700;color:' + colText + ';">' + total + '</span>';
         html += '<span style="font-size:20px;font-weight:500;color:' + colSub + ';">reviews</span>';
         html += '</div>';
-        // Write a review button (rendered below when enabled)
+        // Write a review button — inline beside the heading (wraps below on narrow widths)
         if (showWriteBtn && newReviewUri) {
           html += '<a href="' + newReviewUri + '" target="_blank" rel="noopener" '
-                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;'
+                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;'
                 + 'padding:10px 22px;border-radius:8px;display:inline-block;white-space:nowrap;">Write a review</a>';
         }
         html += '</div>';
