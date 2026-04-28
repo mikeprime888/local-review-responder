@@ -43,6 +43,8 @@ export async function GET(
       showDate: true,
       showName: true,
       showBadge: true,
+      showHeaderBar: true,
+      showWriteReviewButton: true,
     };
 
     // Fetch published reviews that meet the minimum star filter
@@ -71,6 +73,8 @@ export async function GET(
         averageRating: location.averageRating,
         totalReviews: location.totalReviews,
         mapsUri: location.mapsUri,
+        placeId: location.placeId,
+        newReviewUri: location.newReviewUri,
       },
       settings: {
         layout: settings.layout,
@@ -79,6 +83,8 @@ export async function GET(
         showDate: settings.showDate,
         showName: settings.showName,
         showBadge: settings.showBadge,
+        showHeaderBar: settings.showHeaderBar,
+        showWriteReviewButton: settings.showWriteReviewButton,
       },
       reviews,
     });

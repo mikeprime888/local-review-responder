@@ -116,6 +116,8 @@ model Location {
   phone             String?  // Primary phone
   website           String?  // Website URL
   mapsUri           String?  // Google Maps link
+  placeId           String?  // Google Place ID (from GBP metadata)
+  newReviewUri      String?  // Direct "write a review" URL (from GBP metadata)
   averageRating     Float?   // Average star rating
   totalReviews      Int      @default(0)
   isActive          Boolean  @default(false) // Is this location subscribed/active?
@@ -175,6 +177,8 @@ model WidgetSettings {
   showDate    Boolean @default(true)
   showName    Boolean @default(true)
   showBadge   Boolean @default(true)        // "Powered by Local Review Responder"
+  showHeaderBar         Boolean @default(true) // Overall rating bar above reviews
+  showWriteReviewButton Boolean @default(true) // "Write a review" button in header bar
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

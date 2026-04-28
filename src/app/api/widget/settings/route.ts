@@ -41,6 +41,8 @@ export async function GET(request: NextRequest) {
           showName: true,
           showDate: true,
           showBadge: true,
+          showHeaderBar: true,
+          showWriteReviewButton: true,
           maxReviews: 6,
           limitReviews: true,
           minRating: 0,
@@ -57,6 +59,8 @@ export async function GET(request: NextRequest) {
         showName: settings.showName,
         showDate: settings.showDate,
         showBadge: settings.showBadge,
+        showHeaderBar: settings.showHeaderBar,
+        showWriteReviewButton: settings.showWriteReviewButton,
         maxReviews: settings.maxReviews,
         limitReviews: settings.limitReviews,
         minRating: settings.minStars, // DB: minStars → Frontend: minRating
@@ -80,7 +84,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { locationId, layout, theme, accentColor, maxReviews, minRating, limitReviews, showDate, showName, showBadge } = body;
+    const { locationId, layout, theme, accentColor, maxReviews, minRating, limitReviews, showDate, showName, showBadge, showHeaderBar, showWriteReviewButton } = body;
 
     if (!locationId) {
       return NextResponse.json({ error: 'locationId is required' }, { status: 400 });
@@ -112,6 +116,8 @@ export async function PUT(request: NextRequest) {
         showDate: showDate ?? true,
         showName: showName ?? true,
         showBadge: showBadge ?? true,
+        showHeaderBar: showHeaderBar ?? true,
+        showWriteReviewButton: showWriteReviewButton ?? true,
       },
       update: {
         layout,
@@ -123,6 +129,8 @@ export async function PUT(request: NextRequest) {
         showDate,
         showName,
         showBadge,
+        showHeaderBar,
+        showWriteReviewButton,
       },
     });
 

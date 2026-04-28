@@ -18,6 +18,8 @@ interface WidgetSettings {
   showName: boolean;
   showDate: boolean;
   showBadge: boolean;
+  showHeaderBar: boolean;
+  showWriteReviewButton: boolean;
   limitReviews: boolean;
   maxReviews: number;
   minRating: number;
@@ -208,15 +210,23 @@ function ReviewModal({
   );
 }
 
+interface PreviewLocation {
+  averageRating: number | null;
+  totalReviews: number;
+  newReviewUri: string | null;
+}
+
 // ─── Live Preview Component ─────────────────────────────────────────────────
 function WidgetPreview({
   settings,
   liveReviews,
   reviewsLoading,
+  previewLocation,
 }: {
   settings: WidgetSettings;
   liveReviews: LiveReview[];
   reviewsLoading: boolean;
+  previewLocation: PreviewLocation | null;
 }) {
   const [carouselPage, setCarouselPage] = useState(0);
   const [modalReview, setModalReview] = useState<LiveReview | null>(null);
@@ -434,6 +444,57 @@ function WidgetPreview({
           opacity: reviewsLoading ? 0.5 : 1,
         }}
       >
+        {/* Header Bar */}
+        {settings.showHeaderBar && (
+          <div
+            style={{
+              background: cardBg,
+              border: `1px solid ${borderColor}`,
+              borderRadius: '16px',
+              padding: '14px 18px',
+              marginBottom: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', minWidth: 0 }}>
+              <span style={{ fontSize: '15px', fontWeight: 600, color: textColor }}>Overall rating</span>
+              <span style={{ fontSize: '17px', fontWeight: 700, color: textColor }}>
+                {(previewLocation?.averageRating ?? 4.8).toFixed(1)}
+              </span>
+              <span style={{ color: accent, fontSize: '17px', lineHeight: 1 }}>★</span>
+              <span style={{ fontSize: '13px', color: subText }}>
+                | {previewLocation?.totalReviews ?? 24} reviews
+              </span>
+            </div>
+            {settings.showWriteReviewButton && (
+              <a
+                href={previewLocation?.newReviewUri || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => { if (!previewLocation?.newReviewUri) e.preventDefault(); }}
+                style={{
+                  background: accent,
+                  color: '#ffffff',
+                  textDecoration: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  whiteSpace: 'nowrap',
+                  cursor: previewLocation?.newReviewUri ? 'pointer' : 'default',
+                  opacity: previewLocation?.newReviewUri ? 1 : 0.6,
+                }}
+              >
+                Write a review
+              </a>
+            )}
+          </div>
+        )}
+
         {/* Carousel Layout — multi-card, 3 per page */}
         {layout === 'carousel' && (
           <div>
@@ -533,6 +594,7 @@ function WidgetContent() {
 
   const [liveReviews, setLiveReviews] = useState<LiveReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [previewLocation, setPreviewLocation] = useState<PreviewLocation | null>(null);
 
   const [settings, setSettings] = useState<WidgetSettings>({
     layout: 'carousel',
@@ -541,6 +603,8 @@ function WidgetContent() {
     showName: true,
     showDate: true,
     showBadge: true,
+    showHeaderBar: true,
+    showWriteReviewButton: true,
     limitReviews: true,
     maxReviews: 10,
     minRating: 1,
@@ -582,6 +646,8 @@ function WidgetContent() {
             showName: s.showName !== false,
             showDate: s.showDate !== false,
             showBadge: s.showBadge !== false,
+            showHeaderBar: s.showHeaderBar !== false,
+            showWriteReviewButton: s.showWriteReviewButton !== false,
             limitReviews: s.limitReviews !== false,
             maxReviews: s.maxReviews ?? 10,
             minRating: s.minStars ?? 1,
@@ -598,6 +664,15 @@ function WidgetContent() {
     fetch(`/api/widget/${selectedLocationId}`)
       .then((res) => res.json())
       .then((data) => {
+        if (data.location) {
+          setPreviewLocation({
+            averageRating: data.location.averageRating ?? null,
+            totalReviews: data.location.totalReviews ?? 0,
+            newReviewUri: data.location.newReviewUri ?? null,
+          });
+        } else {
+          setPreviewLocation(null);
+        }
         if (data.reviews && data.reviews.length > 0) {
           const mapped: LiveReview[] = data.reviews.map((r: any) => ({
             id: r.id,
@@ -615,6 +690,7 @@ function WidgetContent() {
       })
       .catch(() => {
         setLiveReviews([]);
+        setPreviewLocation(null);
         setReviewsLoading(false);
       });
   }, [selectedLocationId]);
@@ -635,6 +711,8 @@ function WidgetContent() {
           showName: settings.showName,
           showDate: settings.showDate,
           showBadge: settings.showBadge,
+          showHeaderBar: settings.showHeaderBar,
+          showWriteReviewButton: settings.showWriteReviewButton,
           limitReviews: settings.limitReviews,
           maxReviews: settings.maxReviews,
           minRating: settings.minRating,
@@ -783,6 +861,50 @@ function WidgetContent() {
                   </div>
                 </div>
 
+                {/* Header Bar */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <label className="block text-sm font-medium text-gray-700">Show overall rating bar</label>
+                      <p className="text-xs text-gray-500 mt-0.5">Display rating and review count above reviews</p>
+                    </div>
+                    <button
+                      onClick={() => setSettings({ ...settings, showHeaderBar: !settings.showHeaderBar })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.showHeaderBar ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.showHeaderBar ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <div
+                    className={`mt-3 pt-3 border-t border-gray-200 flex items-start justify-between gap-4 transition-opacity ${
+                      settings.showHeaderBar ? 'opacity-100' : 'opacity-50 pointer-events-none'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <label className="block text-sm font-medium text-gray-700">Show Write a review button</label>
+                      <p className="text-xs text-gray-500 mt-0.5">Links to Google review form</p>
+                    </div>
+                    <button
+                      onClick={() => setSettings({ ...settings, showWriteReviewButton: !settings.showWriteReviewButton })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.showWriteReviewButton ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.showWriteReviewButton ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
                 {/* Number of Reviews + Min Rating */}
                 <div className="grid grid-cols-2 gap-4">
                   {/* Limit Reviews */}
@@ -879,7 +1001,7 @@ function WidgetContent() {
                 <h3 className="text-base font-semibold text-gray-900">Live Preview</h3>
                 <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Sample data</span>
               </div>
-              <WidgetPreview settings={settings} liveReviews={liveReviews} reviewsLoading={reviewsLoading} />
+              <WidgetPreview settings={settings} liveReviews={liveReviews} reviewsLoading={reviewsLoading} previewLocation={previewLocation} />
             </div>
           </div>
         )}

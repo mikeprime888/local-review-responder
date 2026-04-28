@@ -112,6 +112,8 @@ export async function GET(request: NextRequest) {
               phone: loc.phoneNumbers?.primaryPhone || null,
               website: loc.websiteUri || null,
               mapsUri: loc.metadata?.mapsUri || null,
+              placeId: loc.metadata?.placeId || null,
+              newReviewUri: loc.metadata?.newReviewUri || null,
               googleAccountName: accountName,
             },
             create: {
@@ -124,6 +126,8 @@ export async function GET(request: NextRequest) {
               phone: loc.phoneNumbers?.primaryPhone || null,
               website: loc.websiteUri || null,
               mapsUri: loc.metadata?.mapsUri || null,
+              placeId: loc.metadata?.placeId || null,
+              newReviewUri: loc.metadata?.newReviewUri || null,
             },
           });
 
