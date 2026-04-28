@@ -210,15 +210,23 @@ function ReviewModal({
   );
 }
 
+interface PreviewLocation {
+  averageRating: number | null;
+  totalReviews: number;
+  newReviewUri: string | null;
+}
+
 // ─── Live Preview Component ─────────────────────────────────────────────────
 function WidgetPreview({
   settings,
   liveReviews,
   reviewsLoading,
+  previewLocation,
 }: {
   settings: WidgetSettings;
   liveReviews: LiveReview[];
   reviewsLoading: boolean;
+  previewLocation: PreviewLocation | null;
 }) {
   const [carouselPage, setCarouselPage] = useState(0);
   const [modalReview, setModalReview] = useState<LiveReview | null>(null);
@@ -436,6 +444,57 @@ function WidgetPreview({
           opacity: reviewsLoading ? 0.5 : 1,
         }}
       >
+        {/* Header Bar */}
+        {settings.showHeaderBar && (
+          <div
+            style={{
+              background: cardBg,
+              border: `1px solid ${borderColor}`,
+              borderRadius: '16px',
+              padding: '14px 18px',
+              marginBottom: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', minWidth: 0 }}>
+              <span style={{ fontSize: '15px', fontWeight: 600, color: textColor }}>Overall rating</span>
+              <span style={{ fontSize: '17px', fontWeight: 700, color: textColor }}>
+                {(previewLocation?.averageRating ?? 4.8).toFixed(1)}
+              </span>
+              <span style={{ color: accent, fontSize: '17px', lineHeight: 1 }}>★</span>
+              <span style={{ fontSize: '13px', color: subText }}>
+                | {previewLocation?.totalReviews ?? 24} reviews
+              </span>
+            </div>
+            {settings.showWriteReviewButton && (
+              <a
+                href={previewLocation?.newReviewUri || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => { if (!previewLocation?.newReviewUri) e.preventDefault(); }}
+                style={{
+                  background: accent,
+                  color: '#ffffff',
+                  textDecoration: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  whiteSpace: 'nowrap',
+                  cursor: previewLocation?.newReviewUri ? 'pointer' : 'default',
+                  opacity: previewLocation?.newReviewUri ? 1 : 0.6,
+                }}
+              >
+                Write a review
+              </a>
+            )}
+          </div>
+        )}
+
         {/* Carousel Layout — multi-card, 3 per page */}
         {layout === 'carousel' && (
           <div>
@@ -535,6 +594,7 @@ function WidgetContent() {
 
   const [liveReviews, setLiveReviews] = useState<LiveReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [previewLocation, setPreviewLocation] = useState<PreviewLocation | null>(null);
 
   const [settings, setSettings] = useState<WidgetSettings>({
     layout: 'carousel',
@@ -604,6 +664,15 @@ function WidgetContent() {
     fetch(`/api/widget/${selectedLocationId}`)
       .then((res) => res.json())
       .then((data) => {
+        if (data.location) {
+          setPreviewLocation({
+            averageRating: data.location.averageRating ?? null,
+            totalReviews: data.location.totalReviews ?? 0,
+            newReviewUri: data.location.newReviewUri ?? null,
+          });
+        } else {
+          setPreviewLocation(null);
+        }
         if (data.reviews && data.reviews.length > 0) {
           const mapped: LiveReview[] = data.reviews.map((r: any) => ({
             id: r.id,
@@ -621,6 +690,7 @@ function WidgetContent() {
       })
       .catch(() => {
         setLiveReviews([]);
+        setPreviewLocation(null);
         setReviewsLoading(false);
       });
   }, [selectedLocationId]);
@@ -931,7 +1001,7 @@ function WidgetContent() {
                 <h3 className="text-base font-semibold text-gray-900">Live Preview</h3>
                 <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Sample data</span>
               </div>
-              <WidgetPreview settings={settings} liveReviews={liveReviews} reviewsLoading={reviewsLoading} />
+              <WidgetPreview settings={settings} liveReviews={liveReviews} reviewsLoading={reviewsLoading} previewLocation={previewLocation} />
             </div>
           </div>
         )}
