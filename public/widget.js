@@ -155,25 +155,25 @@
       var html = '<div id="' + widgetId + '" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
                + 'background:' + bgWrap + ';border-radius:20px;padding:28px;max-width:100%;box-sizing:border-box;">';
 
-      // Header bar (overall rating + Write a review button)
+      // Header (overall rating + optional Write a review button)
       if (showHeaderBar && data.location) {
         var avg   = (data.location.averageRating || 0).toFixed(1);
         var total = data.location.totalReviews || 0;
-        html += '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;'
-              + 'padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;'
-              + 'flex-wrap:wrap;gap:24px;box-sizing:border-box;text-align:center;">';
-        // Rating + count
-        html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;min-width:0;">';
-        html += '<span style="font-size:18px;font-weight:600;color:' + colText + ';">Overall rating</span>';
-        html += '<span style="font-size:22px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
-        html += '<span style="color:#F4B400;font-size:22px;line-height:1;">&#9733;</span>';
-        html += '<span style="font-size:18px;font-weight:600;color:' + colText + ';">| ' + total + ' reviews</span>';
+        html += '<div style="margin-bottom:18px;display:flex;flex-direction:column;align-items:center;gap:14px;">';
+        // Rating heading
+        html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
+        html += '<span style="font-size:20px;font-weight:500;color:' + colSub + ';">Overall rating</span>';
+        html += '<span style="font-size:26px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
+        html += '<span style="color:#F4B400;font-size:24px;line-height:1;">&#9733;</span>';
+        html += '<span style="font-size:20px;font-weight:500;color:' + colSub + ';">based on</span>';
+        html += '<span style="font-size:26px;font-weight:700;color:' + colText + ';">' + total + '</span>';
+        html += '<span style="font-size:20px;font-weight:500;color:' + colSub + ';">reviews</span>';
         html += '</div>';
-        // Write a review button
+        // Write a review button (rendered below when enabled)
         if (showWriteBtn && newReviewUri) {
           html += '<a href="' + newReviewUri + '" target="_blank" rel="noopener" '
-                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;'
-                + 'padding:11px 22px;border-radius:8px;display:inline-block;white-space:nowrap;">Write a review</a>';
+                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;'
+                + 'padding:10px 22px;border-radius:8px;display:inline-block;white-space:nowrap;">Write a review</a>';
         }
         html += '</div>';
       }

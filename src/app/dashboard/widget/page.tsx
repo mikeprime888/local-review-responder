@@ -444,32 +444,38 @@ function WidgetPreview({
           opacity: reviewsLoading ? 0.5 : 1,
         }}
       >
-        {/* Header Bar */}
+        {/* Header (overall rating + optional Write a review button) */}
         {settings.showHeaderBar && (
           <div
             style={{
-              background: cardBg,
-              border: `1px solid ${borderColor}`,
-              borderRadius: '16px',
-              padding: '16px 22px',
-              marginBottom: '14px',
+              marginBottom: '18px',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              gap: '24px',
-              textAlign: 'center',
+              gap: '14px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', minWidth: 0 }}>
-              <span style={{ fontSize: '17px', fontWeight: 600, color: textColor }}>Overall rating</span>
-              <span style={{ fontSize: '20px', fontWeight: 700, color: textColor }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                textAlign: 'center',
+                lineHeight: 1.2,
+              }}
+            >
+              <span style={{ fontSize: '18px', fontWeight: 500, color: subText }}>Overall rating</span>
+              <span style={{ fontSize: '24px', fontWeight: 700, color: textColor }}>
                 {(previewLocation?.averageRating ?? 4.8).toFixed(1)}
               </span>
-              <span style={{ color: '#F4B400', fontSize: '20px', lineHeight: 1 }}>★</span>
-              <span style={{ fontSize: '17px', fontWeight: 600, color: textColor }}>
-                | {previewLocation?.totalReviews ?? 24} reviews
+              <span style={{ color: '#F4B400', fontSize: '22px', lineHeight: 1 }}>★</span>
+              <span style={{ fontSize: '18px', fontWeight: 500, color: subText }}>based on</span>
+              <span style={{ fontSize: '24px', fontWeight: 700, color: textColor }}>
+                {previewLocation?.totalReviews ?? 24}
               </span>
+              <span style={{ fontSize: '18px', fontWeight: 500, color: subText }}>reviews</span>
             </div>
             {settings.showWriteReviewButton && (
               <a
@@ -483,7 +489,7 @@ function WidgetPreview({
                   textDecoration: 'none',
                   fontSize: '14px',
                   fontWeight: 600,
-                  padding: '10px 20px',
+                  padding: '10px 22px',
                   borderRadius: '8px',
                   whiteSpace: 'nowrap',
                   cursor: previewLocation?.newReviewUri ? 'pointer' : 'default',
