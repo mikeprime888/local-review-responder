@@ -465,8 +465,8 @@ function WidgetPreview({
               <span style={{ fontSize: '17px', fontWeight: 700, color: textColor }}>
                 {(previewLocation?.averageRating ?? 4.8).toFixed(1)}
               </span>
-              <span style={{ color: accent, fontSize: '17px', lineHeight: 1 }}>★</span>
-              <span style={{ fontSize: '13px', color: subText }}>
+              <span style={{ color: '#F4B400', fontSize: '17px', lineHeight: 1 }}>★</span>
+              <span style={{ fontSize: '15px', fontWeight: 600, color: textColor }}>
                 | {previewLocation?.totalReviews ?? 24} reviews
               </span>
             </div>
