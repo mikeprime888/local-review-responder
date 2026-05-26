@@ -291,7 +291,7 @@ function OnboardingContent() {
           return;
         }
         const data = await response.json();
-        if (data.locations?.length > 0 || data.isAdmin || data.isComped) {
+        if (data.locations?.length > 0) {
           router.replace('/dashboard');
           return;
         }

@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
     let whereClause: any = { userId: session.user.id };
 
     if (showAvailable) {
+      whereClause.isActive = false;
       whereClause.OR = [
         { subscription: null },
         { subscription: { status: { notIn: ['active', 'trialing'] } } },
