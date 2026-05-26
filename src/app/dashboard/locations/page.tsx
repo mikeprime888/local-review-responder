@@ -91,6 +91,10 @@ function LocationsContent() {
                       }`}>
                         {location.subscription.status === 'trialing' ? 'Trial' : location.subscription.status}
                       </span>
+                    ) : location.isActive ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap bg-green-100 text-green-800">
+                        Active
+                      </span>
                     ) : (
                       <Link
                         href="/dashboard/add-location"
@@ -115,7 +119,7 @@ function LocationsContent() {
                       </div>
                     )}
                     <span className="text-sm text-gray-500">
-                      {location.subscription
+                      {location.isActive
                         ? `${location.totalReviews} reviews`
                         : 'Subscribe to sync reviews'}
                     </span>
