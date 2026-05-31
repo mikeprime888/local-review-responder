@@ -36,7 +36,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
 
         {/* Main Content - offset by sidebar width on desktop, full-width on mobile */}
-        <div className="md:pl-64">
+        <div className="md:pl-64 overflow-x-hidden">
           <div className="px-4 py-6 sm:px-6 lg:px-8">
             {children}
           </div>

@@ -389,7 +389,7 @@ const fetchLocations = useCallback(async () => {
             : `Welcome back${session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}! 👋`
           }
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           <LocationSwitcher
             locations={locations}
             selectedLocationId={selectedLocationId}
