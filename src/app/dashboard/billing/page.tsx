@@ -8,7 +8,6 @@ import { CreditCard, CheckCircle, Clock, AlertCircle, Download, FileText, Extern
 interface Subscription {
   id: string;
   status: string;
-  plan: string;
   currentPeriodEnd: string | null;
   trialEnd: string | null;
   locationTitle: string;
@@ -47,7 +46,18 @@ function BillingContent() {
         const res = await fetch('/api/subscriptions');
         if (res.ok) {
           const data = await res.json();
-          setSubscriptions(data.subscriptions || []);
+          // /api/subscriptions returns { locations: [{ ..., subscription }] }, not
+          // a top-level `subscriptions` array. Flatten to the shape this page renders.
+          const subs: Subscription[] = (data.locations || [])
+            .filter((loc: any) => loc.subscription)
+            .map((loc: any) => ({
+              id: loc.subscription.id,
+              status: loc.subscription.status,
+              currentPeriodEnd: loc.subscription.currentPeriodEnd,
+              trialEnd: loc.subscription.trialEnd,
+              locationTitle: loc.title,
+            }));
+          setSubscriptions(subs);
         }
       } catch (err) {
         console.error('Failed to fetch billing:', err);
@@ -227,9 +237,6 @@ function BillingContent() {
                   {getStatusIcon(sub.status)}
                   <div>
                     <h3 className="font-semibold text-gray-900">{sub.locationTitle}</h3>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      {sub.plan === 'yearly' ? '$290/year' : '$29/month'}
-                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
