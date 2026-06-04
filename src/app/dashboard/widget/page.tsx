@@ -383,6 +383,12 @@ function WidgetPreview({
           </div>
         </div>
 
+        {/* Date — above the comment, matching the live widget (buildCard):
+            avatar/name/stars → date → comment → Read more */}
+        {settings.showDate && (
+          <div style={{ color: subText, fontSize: '16px' }}>{formatDate(review.createTime)}</div>
+        )}
+
         {/* Text — full comment, visually clamped to 5 lines */}
         <p
           ref={commentRef}
@@ -401,7 +407,7 @@ function WidgetPreview({
         </p>
         {/* Read more — sibling below the clamp (an inline node inside a
             -webkit-line-clamp box gets clamped away); shown only when the
-            comment actually overflows. */}
+            comment actually overflows. Always the final element in the card. */}
         {showReadMore && (
           <button
             onClick={() => setModalReview(review)}
@@ -419,11 +425,6 @@ function WidgetPreview({
           >
             Read more
           </button>
-        )}
-
-        {/* Date */}
-        {settings.showDate && (
-          <div style={{ color: subText, fontSize: '16px' }}>{formatDate(review.createTime)}</div>
         )}
       </div>
     );
