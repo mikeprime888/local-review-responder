@@ -388,7 +388,7 @@ function WidgetPreview({
 
         {/* Date */}
         {settings.showDate && (
-          <div style={{ color: subText, fontSize: '18px' }}>{formatDate(review.createTime)}</div>
+          <div style={{ color: subText, fontSize: '16px' }}>{formatDate(review.createTime)}</div>
         )}
       </div>
     );
