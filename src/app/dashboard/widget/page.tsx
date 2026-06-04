@@ -395,7 +395,7 @@ function WidgetPreview({
   };
 
   const PoweredByFooter = () => (
-    <div style={{ textAlign: 'center', paddingTop: '12px', paddingBottom: '4px' }}>
+    <div style={{ textAlign: 'center', marginTop: '18px' }}>
       <a
         href="https://localreviewresponder.com"
         target="_blank"
@@ -464,7 +464,6 @@ function WidgetPreview({
         {settings.showHeaderBar && (
           <div
             style={{
-              marginTop: '18px',
               marginBottom: '18px',
               display: 'flex',
               alignItems: 'center',
