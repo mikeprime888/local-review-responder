@@ -119,26 +119,26 @@
         h += '<div style="flex:1;min-width:0;">';
         if (showName) {
           h += '<div style="display:flex;align-items:center;gap:6px;">';
-          h += '<div style="font-size:14px;font-weight:600;color:' + colText + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">' + name + '</div>';
+          h += '<div style="font-size:18px;font-weight:600;color:' + colText + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">' + name + '</div>';
           h += googleGIcon;
           h += '</div>';
         }
-        h += '<div style="display:flex;align-items:center;gap:2px;margin-top:3px;">' + renderStars(review.starRating) + '</div>';
+        h += '<div style="display:flex;align-items:center;gap:2px;margin-top:3px;">' + renderStars(review.starRating, 18) + '</div>';
         h += '</div></div>';
 
         // Date
         if (showDate && review.googleCreatedAt) {
-          h += '<div style="font-size:12px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
+          h += '<div style="font-size:18px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
         }
 
         // Comment + Read more → modal
         if (comment) {
-          h += '<div style="font-size:13px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">' + short;
+          h += '<div style="font-size:16px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">' + short;
           if (hasLong) {
             // Pass data via data attributes to avoid inline quote nightmares
             var safeId = 'lrr-rm-' + review.id;
             h += ' <a href="javascript:void(0)" id="' + safeId + '"'
-               + ' style="color:' + accent + ';font-size:13px;font-weight:500;text-decoration:none;"'
+               + ' style="color:' + accent + ';font-size:16px;font-weight:500;text-decoration:none;"'
                + ' data-name="' + name.replace(/"/g, '&quot;') + '"'
                + ' data-initial="' + initial + '"'
                + ' data-color="' + color + '"'
