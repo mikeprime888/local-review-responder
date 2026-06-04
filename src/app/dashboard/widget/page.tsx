@@ -394,8 +394,11 @@ function WidgetPreview({
     );
   };
 
+  // Sits OUTSIDE the colored wrapper, on the dashboard page background.
+  // Uses a fixed muted gray since the host context is no longer the
+  // configurable widget bg.
   const PoweredByFooter = () => (
-    <div style={{ textAlign: 'center', marginTop: '18px' }}>
+    <div style={{ textAlign: 'center', marginTop: '12px' }}>
       <a
         href="https://localreviewresponder.com"
         target="_blank"
@@ -404,7 +407,7 @@ function WidgetPreview({
           fontSize: '10px',
           fontVariant: 'small-caps',
           letterSpacing: '0.5px',
-          color: headerText,
+          color: '#9ca3af',
           textDecoration: 'none',
           opacity: 0.7,
         }}
@@ -565,35 +568,31 @@ function WidgetPreview({
                 />
               ))}
             </div>
-
-            <PoweredByFooter />
           </div>
         )}
 
         {/* Grid Layout */}
         {layout === 'grid' && (
-          <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-              {SAMPLE_REVIEWS.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
-            </div>
-            <PoweredByFooter />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
+            {SAMPLE_REVIEWS.map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
           </div>
         )}
 
         {/* List Layout */}
         {layout === 'list' && (
-          <div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {SAMPLE_REVIEWS.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
-            </div>
-            <PoweredByFooter />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {SAMPLE_REVIEWS.map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
           </div>
         )}
       </div>
+
+      {/* Powered-by attribution sits OUTSIDE the colored wrapper so the
+          wrapper renders with balanced top/bottom breathing room. */}
+      <PoweredByFooter />
 
       {/* Modal */}
       {modalReview && (
