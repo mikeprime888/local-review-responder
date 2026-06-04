@@ -39,6 +39,25 @@ function readableOn(hex: string): string {
   return lum > 0.5 ? '#1f2937' : '#f3f4f6';
 }
 
+// Keep a link legible AS a color on a given background: use the accent if it
+// has >=3:1 WCAG contrast on bg, else fall back to a safe link blue. Mirror of
+// public/widget.js linkColorOn(). Used for the "Read more" link on the white card.
+function linkColorOn(accentHex: string, bgHex: string): string {
+  const lum = (hex: string): number => {
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+    const r = parseInt(c.substr(0, 2), 16) / 255;
+    const g = parseInt(c.substr(2, 2), 16) / 255;
+    const b = parseInt(c.substr(4, 2), 16) / 255;
+    const L = (x: number) => (x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4));
+    return 0.2126 * L(r) + 0.7152 * L(g) + 0.0722 * L(b);
+  };
+  const la = lum(accentHex);
+  const lb = lum(bgHex);
+  const ratio = (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+  return ratio >= 3 ? accentHex : '#1a73e8';
+}
+
 // Fallback sample reviews (used only if no published reviews exist)
 const SAMPLE_REVIEWS = [
   {
@@ -415,7 +434,7 @@ function WidgetPreview({
               alignSelf: 'flex-start',
               background: 'none',
               border: 'none',
-              color: accent,
+              color: linkColorOn(accent, '#ffffff'),
               fontSize: '16px',
               fontWeight: 500,
               cursor: 'pointer',

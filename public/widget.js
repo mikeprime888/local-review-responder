@@ -58,6 +58,15 @@
   // Returns near-black on light backgrounds, near-white on dark.
   function readableOn(hex){var c=hex.replace('#','');if(c.length===3){c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];}var r=parseInt(c.substr(0,2),16)/255,g=parseInt(c.substr(2,2),16)/255,b=parseInt(c.substr(4,2),16)/255;function L(x){return x<=0.03928?x/12.92:Math.pow((x+0.055)/1.055,2.4);}var lum=0.2126*L(r)+0.7152*L(g)+0.0722*L(b);return lum>0.5?'#1f2937':'#f3f4f6';}
 
+  // Keep a link legible AS a color on a given background: use the accent if it
+  // has >=3:1 WCAG contrast on bg, else fall back to a safe link blue. Used for
+  // the "Read more" link, which sits on the white card (not on the accent).
+  function linkColorOn(accentHex, bgHex){
+    function lum(hex){var c=hex.replace('#','');if(c.length===3){c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];}var r=parseInt(c.substr(0,2),16)/255,g=parseInt(c.substr(2,2),16)/255,b=parseInt(c.substr(4,2),16)/255;function L(x){return x<=0.03928?x/12.92:Math.pow((x+0.055)/1.055,2.4);}return 0.2126*L(r)+0.7152*L(g)+0.0722*L(b);}
+    function ratio(a,b){var la=lum(a),lb=lum(b);var hi=Math.max(la,lb),lo=Math.min(la,lb);return (hi+0.05)/(lo+0.05);}
+    return ratio(accentHex,bgHex) >= 3 ? accentHex : '#1a73e8';
+  }
+
   fetch(origin + '/api/widget/' + locationId)
     .then(function (res) { return res.json(); })
     .then(function (data) {
@@ -142,7 +151,7 @@
           // Read more — sibling below the clamp, hidden until overflow measured.
           // Modal plumbing (data-* attributes + onclick) unchanged.
           h += '<a href="javascript:void(0)" class="lrr-rm" id="lrr-rm-' + review.id + '"'
-             + ' style="display:none;color:' + accent + ';font-size:16px;font-weight:500;text-decoration:none;"'
+             + ' style="display:none;color:' + linkColorOn(accent, '#ffffff') + ';font-size:16px;font-weight:500;text-decoration:none;"'
              + ' data-name="' + name.replace(/"/g, '&quot;') + '"'
              + ' data-initial="' + initial + '"'
              + ' data-color="' + color + '"'
