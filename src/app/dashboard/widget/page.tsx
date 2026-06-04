@@ -464,6 +464,7 @@ function WidgetPreview({
         {settings.showHeaderBar && (
           <div
             style={{
+              marginTop: '18px',
               marginBottom: '18px',
               display: 'flex',
               alignItems: 'center',
