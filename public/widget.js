@@ -128,7 +128,7 @@
 
         // Date
         if (showDate && review.googleCreatedAt) {
-          h += '<div style="font-size:18px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
+          h += '<div style="font-size:16px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
         }
 
         // Comment + Read more → modal
