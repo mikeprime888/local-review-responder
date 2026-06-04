@@ -394,11 +394,10 @@ function WidgetPreview({
     );
   };
 
-  // Sits OUTSIDE the colored wrapper, on the dashboard page background.
-  // Uses a fixed muted gray since the host context is no longer the
-  // configurable widget bg.
+  // Inside the colored wrapper. Uses headerText so it contrasts against
+  // the configurable wrapper background.
   const PoweredByFooter = () => (
-    <div style={{ textAlign: 'center', marginTop: '12px' }}>
+    <div style={{ textAlign: 'center', marginTop: '18px' }}>
       <a
         href="https://localreviewresponder.com"
         target="_blank"
@@ -407,7 +406,7 @@ function WidgetPreview({
           fontSize: '10px',
           fontVariant: 'small-caps',
           letterSpacing: '0.5px',
-          color: '#9ca3af',
+          color: headerText,
           textDecoration: 'none',
           opacity: 0.7,
         }}
@@ -458,7 +457,6 @@ function WidgetPreview({
           background: containerBg,
           borderRadius: '12px',
           padding: '20px',
-          minHeight: '320px',
           transition: 'all 0.3s ease',
           opacity: reviewsLoading ? 0.5 : 1,
         }}
@@ -568,31 +566,35 @@ function WidgetPreview({
                 />
               ))}
             </div>
+
+            <PoweredByFooter />
           </div>
         )}
 
         {/* Grid Layout */}
         {layout === 'grid' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-            {SAMPLE_REVIEWS.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
+              {SAMPLE_REVIEWS.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </div>
+            <PoweredByFooter />
           </div>
         )}
 
         {/* List Layout */}
         {layout === 'list' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {SAMPLE_REVIEWS.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
+          <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {SAMPLE_REVIEWS.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </div>
+            <PoweredByFooter />
           </div>
         )}
       </div>
-
-      {/* Powered-by attribution sits OUTSIDE the colored wrapper so the
-          wrapper renders with balanced top/bottom breathing room. */}
-      <PoweredByFooter />
 
       {/* Modal */}
       {modalReview && (
