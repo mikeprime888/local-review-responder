@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useCallback } from 'react';
+import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -72,8 +72,6 @@ interface LiveReview {
   createTime: string;
   reviewerPhoto?: string | null;
 }
-
-const TRUNCATE_LENGTH = 120;
 
 function getInitial(name: string): string {
   if (!name) return '?';
@@ -306,8 +304,28 @@ function WidgetPreview({
   );
 
   const ReviewCard = ({ review, style }: { review: LiveReview; style?: React.CSSProperties }) => {
-    const isLong = review.text.length > TRUNCATE_LENGTH;
-    const displayText = isLong ? review.text.substring(0, TRUNCATE_LENGTH) + '...' : review.text;
+    const commentRef = useRef<HTMLParagraphElement>(null);
+    const [showReadMore, setShowReadMore] = useState(false);
+
+    // Reveal "Read more" only when the comment actually overflows the 5-line
+    // clamp — measured from real layout (scrollHeight vs clientHeight), not
+    // character count — so the visual truncation and the link can never
+    // disagree. Mirrors public/widget.js checkOverflow(). Re-measures on
+    // width change (resize) and when the review text changes.
+    useEffect(() => {
+      const el = commentRef.current;
+      if (!el) return;
+      const measure = () => {
+        if (!el.clientHeight) return; // not laid out
+        setShowReadMore(el.scrollHeight - el.clientHeight > 2);
+      };
+      const raf = requestAnimationFrame(measure);
+      window.addEventListener('resize', measure);
+      return () => {
+        cancelAnimationFrame(raf);
+        window.removeEventListener('resize', measure);
+      };
+    }, [review.text]);
 
     return (
       <div
@@ -365,30 +383,48 @@ function WidgetPreview({
           </div>
         </div>
 
-        {/* Text */}
-        <p style={{ color: isDark ? '#d1d5db' : '#374151', fontSize: '16px', lineHeight: '1.5', margin: 0 }}>
-          {displayText}
-          {isLong && (
-            <button
-              onClick={() => setModalReview(review)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: accent,
-                fontSize: '16px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                padding: '0 0 0 4px',
-              }}
-            >
-              Read more
-            </button>
-          )}
-        </p>
-
-        {/* Date */}
+        {/* Date — above the comment, matching the live widget (buildCard):
+            avatar/name/stars → date → comment → Read more */}
         {settings.showDate && (
           <div style={{ color: subText, fontSize: '16px' }}>{formatDate(review.createTime)}</div>
+        )}
+
+        {/* Text — full comment, visually clamped to 5 lines */}
+        <p
+          ref={commentRef}
+          style={{
+            color: isDark ? '#d1d5db' : '#374151',
+            fontSize: '16px',
+            lineHeight: '1.5',
+            margin: 0,
+            display: '-webkit-box',
+            WebkitLineClamp: 5,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {review.text}
+        </p>
+        {/* Read more — sibling below the clamp (an inline node inside a
+            -webkit-line-clamp box gets clamped away); shown only when the
+            comment actually overflows. Always the final element in the card. */}
+        {showReadMore && (
+          <button
+            onClick={() => setModalReview(review)}
+            style={{
+              alignSelf: 'flex-start',
+              background: 'none',
+              border: 'none',
+              color: accent,
+              fontSize: '16px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              padding: 0,
+              textAlign: 'left',
+            }}
+          >
+            Read more
+          </button>
         )}
       </div>
     );

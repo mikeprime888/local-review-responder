@@ -99,8 +99,6 @@
         var color   = avatarColors[hashName(name) % avatarColors.length];
         var initial = getInitial(name);
         var comment = review.comment || '';
-        var hasLong = comment.length > maxChars;
-        var short   = hasLong ? truncate(comment, maxChars) : comment;
 
         var h = '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;padding:20px;'
               + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;height:100%;">';
@@ -131,29 +129,53 @@
           h += '<div style="font-size:16px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
         }
 
-        // Comment + Read more → modal
+        // Comment (full text, visually clamped to 5 lines) + Read more sibling.
+        // The "Read more" link is a SIBLING after the clamp box — anything
+        // placed INSIDE a -webkit-line-clamp box gets clamped away. It is
+        // always emitted but hidden; checkOverflow() reveals it only when the
+        // text actually overflows the clamp (measured layout, not char count),
+        // so the visual truncation and the link can never disagree.
         if (comment) {
-          h += '<div style="font-size:16px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">' + short;
-          if (hasLong) {
-            // Pass data via data attributes to avoid inline quote nightmares
-            var safeId = 'lrr-rm-' + review.id;
-            h += ' <a href="javascript:void(0)" id="' + safeId + '"'
-               + ' style="color:' + accent + ';font-size:16px;font-weight:500;text-decoration:none;"'
-               + ' data-name="' + name.replace(/"/g, '&quot;') + '"'
-               + ' data-initial="' + initial + '"'
-               + ' data-color="' + color + '"'
-               + ' data-photo="' + photo.replace(/"/g, '&quot;') + '"'
-               + ' data-rating="' + review.starRating + '"'
-               + ' data-comment="' + comment.replace(/"/g, '&quot;').replace(/\n/g, '&#10;') + '"'
-               + ' data-date="' + (showDate && review.googleCreatedAt ? formatDate(review.googleCreatedAt) : '') + '"'
-               + ' data-modal="' + modalId + '"'
-               + ' onclick="lrrOpenModal(this)">Read more</a>';
-          }
-          h += '</div>';
+          h += '<div class="lrr-cmt" id="lrr-cmt-' + review.id + '"'
+             + ' style="font-size:16px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">'
+             + comment + '</div>';
+          // Read more — sibling below the clamp, hidden until overflow measured.
+          // Modal plumbing (data-* attributes + onclick) unchanged.
+          h += '<a href="javascript:void(0)" class="lrr-rm" id="lrr-rm-' + review.id + '"'
+             + ' style="display:none;color:' + accent + ';font-size:16px;font-weight:500;text-decoration:none;"'
+             + ' data-name="' + name.replace(/"/g, '&quot;') + '"'
+             + ' data-initial="' + initial + '"'
+             + ' data-color="' + color + '"'
+             + ' data-photo="' + photo.replace(/"/g, '&quot;') + '"'
+             + ' data-rating="' + review.starRating + '"'
+             + ' data-comment="' + comment.replace(/"/g, '&quot;').replace(/\n/g, '&#10;') + '"'
+             + ' data-date="' + (showDate && review.googleCreatedAt ? formatDate(review.googleCreatedAt) : '') + '"'
+             + ' data-modal="' + modalId + '"'
+             + ' onclick="lrrOpenModal(this)">Read more</a>';
         }
 
         h += '</div>';
         return h;
+      }
+
+      // ── Overflow-driven "Read more" ─────────────────────────────────────
+      // Reveal each card's "Read more" link only when its comment actually
+      // overflows the 5-line clamp, comparing real layout (scrollHeight vs
+      // clientHeight). Stays correct across font-size, width and line-count
+      // changes. Elements that aren't laid out (display:none, or a carousel
+      // page not currently mounted) report clientHeight 0 and are skipped —
+      // they get re-checked when their page renders.
+      function checkOverflow(root) {
+        if (!root) return;
+        var cmts = root.querySelectorAll('.lrr-cmt');
+        for (var i = 0; i < cmts.length; i++) {
+          var el = cmts[i];
+          if (!el.clientHeight) continue;
+          var id = el.id.replace('lrr-cmt-', '');
+          var link = document.getElementById('lrr-rm-' + id);
+          if (!link) continue;
+          link.style.display = (el.scrollHeight - el.clientHeight > 2) ? '' : 'none';
+        }
       }
 
       // ── Widget wrapper ──────────────────────────────────────────────────
@@ -300,6 +322,9 @@
           // Lock track height so widget doesn't jump between pages
           var cardH = cols === 1 ? 280 : 260;
           track.style.height = cardH + 'px';
+          // Reveal "Read more" for cards that overflow, once layout settles.
+          // This page's cards are only now in the DOM and measurable.
+          requestAnimationFrame(function () { checkOverflow(track); });
         }
 
         function getTotalPages() {
@@ -379,6 +404,18 @@
         // Lock initial height
         var initCols = getColsForWidth();
         track.style.height = (initCols === 1 ? 280 : 260) + 'px';
+      } else {
+        // Grid/list render every card at once and have no carousel controller,
+        // so run the overflow check across the whole widget once laid out, and
+        // again on resize (width change alters line count). Carousel handles its
+        // own resize via the renderPage() re-render above.
+        var staticRoot = document.getElementById(widgetId);
+        requestAnimationFrame(function () { checkOverflow(staticRoot); });
+        var staticResizeTimer;
+        window.addEventListener('resize', function () {
+          clearTimeout(staticResizeTimer);
+          staticResizeTimer = setTimeout(function () { checkOverflow(staticRoot); }, 150);
+        });
       }
     })
     .catch(function (err) { console.error('LRR Widget Error:', err); });
