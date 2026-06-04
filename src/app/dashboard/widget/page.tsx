@@ -457,6 +457,7 @@ function WidgetPreview({
           background: containerBg,
           borderRadius: '12px',
           padding: '20px',
+          paddingTop: '35px',
           transition: 'all 0.3s ease',
           opacity: reviewsLoading ? 0.5 : 1,
         }}
