@@ -164,7 +164,7 @@
       if (showHeaderBar && data.location) {
         var avg   = (data.location.averageRating || 0).toFixed(1);
         var total = data.location.totalReviews || 0;
-        html += '<div style="margin-top:18px;margin-bottom:18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:18px;">';
+        html += '<div style="margin-bottom:18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:18px;">';
         // Rating heading — kept as one cohesive group
         html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
         html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
@@ -219,7 +219,7 @@
       }
 
       // Powered-by footer
-      html += '<div style="text-align:center;margin-top:16px;">';
+      html += '<div style="text-align:center;margin-top:18px;">';
       html += '<a href="https://localreviewresponder.com" target="_blank" rel="noopener noreferrer" '
             + 'style="font-size:10px;font-variant:small-caps;letter-spacing:0.5px;color:' + headerText + ';text-decoration:none;opacity:0.7;">'
             + 'powered by Local Review Responder LLC</a>';
