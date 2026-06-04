@@ -297,7 +297,7 @@ function WidgetPreview({
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
-          style={{ color: i <= rating ? '#F4B400' : (isDark ? '#4b5563' : '#dadce0'), fontSize: '16px', lineHeight: 1 }}
+          style={{ color: i <= rating ? '#F4B400' : (isDark ? '#4b5563' : '#dadce0'), fontSize: '18px', lineHeight: 1 }}
         >
           ★
         </span>
@@ -354,7 +354,7 @@ function WidgetPreview({
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
             {settings.showName && (
-              <div style={{ fontWeight: 600, color: textColor, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontWeight: 600, color: textColor, fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {review.authorName}
               </div>
             )}
@@ -366,7 +366,7 @@ function WidgetPreview({
         </div>
 
         {/* Text */}
-        <p style={{ color: isDark ? '#d1d5db' : '#374151', fontSize: '13px', lineHeight: '1.5', margin: 0 }}>
+        <p style={{ color: isDark ? '#d1d5db' : '#374151', fontSize: '16px', lineHeight: '1.5', margin: 0 }}>
           {displayText}
           {isLong && (
             <button
@@ -375,7 +375,7 @@ function WidgetPreview({
                 background: 'none',
                 border: 'none',
                 color: accent,
-                fontSize: '13px',
+                fontSize: '16px',
                 fontWeight: 500,
                 cursor: 'pointer',
                 padding: '0 0 0 4px',
@@ -388,7 +388,7 @@ function WidgetPreview({
 
         {/* Date */}
         {settings.showDate && (
-          <div style={{ color: subText, fontSize: '12px' }}>{formatDate(review.createTime)}</div>
+          <div style={{ color: subText, fontSize: '18px' }}>{formatDate(review.createTime)}</div>
         )}
       </div>
     );
