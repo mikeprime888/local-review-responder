@@ -218,13 +218,16 @@
         html += '</div>';
       }
 
-      // Powered-by footer
-      html += '<div style="text-align:center;margin-top:18px;">';
+      html += '</div>'; // end widget wrapper
+
+      // Powered-by attribution — sits OUTSIDE the colored wrapper so the
+      // wrapper renders with balanced top/bottom breathing room. Uses a
+      // neutral muted gray since the host page background is unknown.
+      html += '<div style="text-align:center;margin-top:12px;">';
       html += '<a href="https://localreviewresponder.com" target="_blank" rel="noopener noreferrer" '
-            + 'style="font-size:10px;font-variant:small-caps;letter-spacing:0.5px;color:' + headerText + ';text-decoration:none;opacity:0.7;">'
+            + 'style="font-size:10px;font-variant:small-caps;letter-spacing:0.5px;color:#9ca3af;text-decoration:none;opacity:0.7;">'
             + 'powered by Local Review Responder LLC</a>';
       html += '</div>';
-      html += '</div>'; // end widget wrapper
 
       container.innerHTML = html;
 
