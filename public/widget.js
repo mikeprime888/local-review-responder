@@ -177,7 +177,7 @@
         // Write a review button — inline beside the heading (wraps below on narrow widths)
         if (showWriteBtn && newReviewUri) {
           html += '<a href="' + newReviewUri + '" target="_blank" rel="noopener" '
-                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;'
+                + 'style="background:' + accent + ';color:' + readableOn(accent) + ';text-decoration:none;font-size:15px;font-weight:600;'
                 + 'padding:10px 22px;border-radius:8px;display:inline-block;white-space:nowrap;">Write a review</a>';
         }
         html += '</div>';
