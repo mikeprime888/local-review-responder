@@ -502,7 +502,7 @@ function WidgetPreview({
                 onClick={(e) => { if (!previewLocation?.newReviewUri) e.preventDefault(); }}
                 style={{
                   background: accent,
-                  color: '#ffffff',
+                  color: readableOn(accent),
                   textDecoration: 'none',
                   fontSize: '14px',
                   fontWeight: 600,
