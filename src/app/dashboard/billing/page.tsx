@@ -8,7 +8,6 @@ import { CreditCard, CheckCircle, Clock, AlertCircle, Download, FileText, Extern
 interface Subscription {
   id: string;
   status: string;
-  plan: string;
   currentPeriodEnd: string | null;
   trialEnd: string | null;
   locationTitle: string;
@@ -30,6 +29,7 @@ function BillingContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [isComped, setIsComped] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
@@ -47,7 +47,19 @@ function BillingContent() {
         const res = await fetch('/api/subscriptions');
         if (res.ok) {
           const data = await res.json();
-          setSubscriptions(data.subscriptions || []);
+          // /api/subscriptions returns { locations: [{ ..., subscription }] }, not
+          // a top-level `subscriptions` array. Flatten to the shape this page renders.
+          const subs: Subscription[] = (data.locations || [])
+            .filter((loc: any) => loc.subscription)
+            .map((loc: any) => ({
+              id: loc.subscription.id,
+              status: loc.subscription.status,
+              currentPeriodEnd: loc.subscription.currentPeriodEnd,
+              trialEnd: loc.subscription.trialEnd,
+              locationTitle: loc.title,
+            }));
+          setSubscriptions(subs);
+          setIsComped(!!data.isComped);
         }
       } catch (err) {
         console.error('Failed to fetch billing:', err);
@@ -175,26 +187,28 @@ function BillingContent() {
         <p className="text-gray-500 mt-1">Manage your subscriptions and billing</p>
       </div>
 
-      {/* Pricing info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-blue-600 shrink-0" />
-            <span className="text-sm font-medium text-blue-900">
-              $29/month or $290/year per location — includes 14-day free trial
-            </span>
+      {/* Pricing info (hidden for comped users — they don't pay) */}
+      {!isComped && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-blue-600 shrink-0" />
+              <span className="text-sm font-medium text-blue-900">
+                $29/month or $290/year per location — includes 14-day free trial
+              </span>
+            </div>
+            {subscriptions.length > 0 && (
+              <button
+                onClick={handleManageBilling}
+                disabled={portalLoading}
+                className="text-sm font-medium text-blue-700 hover:text-blue-800 disabled:opacity-50"
+              >
+                {portalLoading ? 'Opening...' : 'Manage Subscription'}
+              </button>
+            )}
           </div>
-          {subscriptions.length > 0 && (
-            <button
-              onClick={handleManageBilling}
-              disabled={portalLoading}
-              className="text-sm font-medium text-blue-700 hover:text-blue-800 disabled:opacity-50"
-            >
-              {portalLoading ? 'Opening...' : 'Manage Subscription'}
-            </button>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Past due warning */}
       {subscriptions.some((s) => s.status === 'past_due') && (
@@ -210,14 +224,22 @@ function BillingContent() {
 
       {/* Subscriptions */}
       {subscriptions.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 text-center">
-          <CreditCard className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-base font-medium text-gray-900 mb-1">No active subscriptions</h3>
-          <p className="text-sm text-gray-500 mb-4">Subscribe to a location to start managing reviews.</p>
-          <a href="/dashboard/add-location" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-            Add Location
-          </a>
-        </div>
+        isComped ? (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 text-center">
+            <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-3" />
+            <h3 className="text-base font-medium text-gray-900 mb-1">You have free access</h3>
+            <p className="text-sm text-gray-500">Your account is on a comp plan — no subscription needed.</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 text-center">
+            <CreditCard className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+            <h3 className="text-base font-medium text-gray-900 mb-1">No active subscriptions</h3>
+            <p className="text-sm text-gray-500 mb-4">Subscribe to a location to start managing reviews.</p>
+            <a href="/dashboard/add-location" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+              Add Location
+            </a>
+          </div>
+        )
       ) : (
         <div className="grid gap-3 mb-8">
           {subscriptions.map((sub) => (
@@ -227,9 +249,6 @@ function BillingContent() {
                   {getStatusIcon(sub.status)}
                   <div>
                     <h3 className="font-semibold text-gray-900">{sub.locationTitle}</h3>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      {sub.plan === 'yearly' ? '$290/year' : '$29/month'}
-                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

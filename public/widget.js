@@ -54,6 +54,10 @@
     return text.substring(0, max) + '...';
   }
 
+  // Pick a readable text color for a given hex background using WCAG relative luminance.
+  // Returns near-black on light backgrounds, near-white on dark.
+  function readableOn(hex){var c=hex.replace('#','');if(c.length===3){c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];}var r=parseInt(c.substr(0,2),16)/255,g=parseInt(c.substr(2,2),16)/255,b=parseInt(c.substr(4,2),16)/255;function L(x){return x<=0.03928?x/12.92:Math.pow((x+0.055)/1.055,2.4);}var lum=0.2126*L(r)+0.7152*L(g)+0.0722*L(b);return lum>0.5?'#1f2937':'#f3f4f6';}
+
   fetch(origin + '/api/widget/' + locationId)
     .then(function (res) { return res.json(); })
     .then(function (data) {
@@ -70,7 +74,8 @@
       var newReviewUri       = (data.location && data.location.newReviewUri) || '';
 
       var isDark      = theme === 'dark';
-      var bgWrap      = isDark ? '#1a1a2e' : '#EBF2FA';
+      var bgWrap      = cfg.backgroundColor || (isDark ? '#1a1a2e' : '#EBF2FA');
+      var headerText  = readableOn(bgWrap);
       var bgCard      = isDark ? '#1f2937' : '#ffffff';
       var colText     = isDark ? '#f3f4f6' : '#1f2937';
       var colSub      = isDark ? '#9ca3af' : '#5f6368';
@@ -153,7 +158,7 @@
 
       // ── Widget wrapper ──────────────────────────────────────────────────
       var html = '<div id="' + widgetId + '" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
-               + 'background:' + bgWrap + ';border-radius:20px;padding:28px;max-width:100%;box-sizing:border-box;">';
+               + 'background:' + bgWrap + ';border-radius:20px;padding:28px;padding-top:43px;max-width:100%;box-sizing:border-box;">';
 
       // Header (overall rating + optional inline Write a review button)
       if (showHeaderBar && data.location) {
@@ -162,17 +167,17 @@
         html += '<div style="margin-bottom:18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:18px;">';
         // Rating heading — kept as one cohesive group
         html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
-        html += '<span style="font-size:20px;font-weight:500;color:' + colSub + ';">Overall rating</span>';
-        html += '<span style="font-size:26px;font-weight:700;color:' + colText + ';">' + avg + '</span>';
+        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
+        html += '<span style="font-size:26px;font-weight:700;color:' + headerText + ';">' + avg + '</span>';
         html += '<span style="color:#F4B400;font-size:24px;line-height:1;">&#9733;</span>';
-        html += '<span style="font-size:20px;font-weight:500;color:' + colSub + ';">based on</span>';
-        html += '<span style="font-size:26px;font-weight:700;color:' + colText + ';">' + total + '</span>';
-        html += '<span style="font-size:20px;font-weight:500;color:' + colSub + ';">reviews</span>';
+        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">based on</span>';
+        html += '<span style="font-size:26px;font-weight:700;color:' + headerText + ';">' + total + '</span>';
+        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">reviews</span>';
         html += '</div>';
         // Write a review button — inline beside the heading (wraps below on narrow widths)
         if (showWriteBtn && newReviewUri) {
           html += '<a href="' + newReviewUri + '" target="_blank" rel="noopener" '
-                + 'style="background:' + accent + ';color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;'
+                + 'style="background:' + accent + ';color:' + readableOn(accent) + ';text-decoration:none;font-size:15px;font-weight:600;'
                 + 'padding:10px 22px;border-radius:8px;display:inline-block;white-space:nowrap;">Write a review</a>';
         }
         html += '</div>';
@@ -213,10 +218,11 @@
         html += '</div>';
       }
 
-      // Powered-by footer
-      html += '<div style="text-align:center;margin-top:16px;">';
+      // Powered-by footer — inside the wrapper. Uses headerText so it
+      // contrasts against the configurable wrapper background.
+      html += '<div style="text-align:center;margin-top:18px;">';
       html += '<a href="https://localreviewresponder.com" target="_blank" rel="noopener noreferrer" '
-            + 'style="font-size:10px;font-variant:small-caps;letter-spacing:0.5px;color:' + colSub + ';text-decoration:none;opacity:0.7;">'
+            + 'style="font-size:10px;font-variant:small-caps;letter-spacing:0.5px;color:' + headerText + ';text-decoration:none;opacity:0.7;">'
             + 'powered by Local Review Responder LLC</a>';
       html += '</div>';
       html += '</div>'; // end widget wrapper

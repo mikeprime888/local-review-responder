@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
           layout: 'carousel',
           theme: 'light',
           accentColor: '#4285F4',
+          backgroundColor: null,
           showName: true,
           showDate: true,
           showBadge: true,
@@ -56,6 +57,7 @@ export async function GET(request: NextRequest) {
         layout: settings.layout,
         theme: settings.theme,
         accentColor: settings.accentColor,
+        backgroundColor: settings.backgroundColor,
         showName: settings.showName,
         showDate: settings.showDate,
         showBadge: settings.showBadge,
@@ -84,7 +86,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { locationId, layout, theme, accentColor, maxReviews, minRating, limitReviews, showDate, showName, showBadge, showHeaderBar, showWriteReviewButton } = body;
+    const { locationId, layout, theme, accentColor, backgroundColor, maxReviews, minRating, limitReviews, showDate, showName, showBadge, showHeaderBar, showWriteReviewButton } = body;
 
     if (!locationId) {
       return NextResponse.json({ error: 'locationId is required' }, { status: 400 });
@@ -110,6 +112,7 @@ export async function PUT(request: NextRequest) {
         layout: layout || 'carousel',
         theme: theme || 'light',
         accentColor: accentColor || '#4285F4',
+        backgroundColor: backgroundColor || null,
         maxReviews: maxReviews || 6,
         limitReviews: limitReviews ?? true,
         minStars,
@@ -123,6 +126,7 @@ export async function PUT(request: NextRequest) {
         layout,
         theme,
         accentColor,
+        backgroundColor: backgroundColor || null,
         maxReviews,
         limitReviews,
         minStars,

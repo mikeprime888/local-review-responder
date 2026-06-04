@@ -46,7 +46,7 @@ export default function LocationSwitcher({
       <select
         value={selectedLocationId || ''}
         onChange={(e) => onLocationChange(e.target.value)}
-        className="appearance-none pl-9 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-sm md:text-base font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer max-w-[65vw] md:max-w-xs"
+        className="appearance-none pl-9 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-sm md:text-base font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer max-w-[calc(100vw-180px)] md:max-w-xs"
       >
         {locations.length === 0 ? (
           <option value="" disabled>

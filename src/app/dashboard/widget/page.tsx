@@ -15,6 +15,7 @@ interface WidgetSettings {
   layout: string;
   theme: string;
   accentColor: string;
+  backgroundColor: string | null;
   showName: boolean;
   showDate: boolean;
   showBadge: boolean;
@@ -23,6 +24,19 @@ interface WidgetSettings {
   limitReviews: boolean;
   maxReviews: number;
   minRating: number;
+}
+
+// Pick a readable text color for a given hex background (WCAG relative luminance).
+// Mirror of public/widget.js readableOn() so the preview matches the live widget.
+function readableOn(hex: string): string {
+  let c = hex.replace('#', '');
+  if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+  const r = parseInt(c.substr(0, 2), 16) / 255;
+  const g = parseInt(c.substr(2, 2), 16) / 255;
+  const b = parseInt(c.substr(4, 2), 16) / 255;
+  const L = (x: number) => (x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4));
+  const lum = 0.2126 * L(r) + 0.7152 * L(g) + 0.0722 * L(b);
+  return lum > 0.5 ? '#1f2937' : '#f3f4f6';
 }
 
 // Fallback sample reviews (used only if no published reviews exist)
@@ -242,7 +256,8 @@ function WidgetPreview({
   const totalPages = Math.ceil(previewReviews.length / CARDS_PER_PAGE);
 
   // Colors
-  const containerBg = isDark ? '#1a1a2e' : '#EBF2FA';
+  const containerBg = settings.backgroundColor || (isDark ? '#1a1a2e' : '#EBF2FA');
+  const headerText = readableOn(containerBg);
   const cardBg = isDark ? '#1f2937' : '#ffffff';
   const textColor = isDark ? '#f3f4f6' : '#1f2937';
   const subText = isDark ? '#9ca3af' : '#5f6368';
@@ -379,8 +394,10 @@ function WidgetPreview({
     );
   };
 
+  // Inside the colored wrapper. Uses headerText so it contrasts against
+  // the configurable wrapper background.
   const PoweredByFooter = () => (
-    <div style={{ textAlign: 'center', paddingTop: '12px', paddingBottom: '4px' }}>
+    <div style={{ textAlign: 'center', marginTop: '18px' }}>
       <a
         href="https://localreviewresponder.com"
         target="_blank"
@@ -389,8 +406,9 @@ function WidgetPreview({
           fontSize: '10px',
           fontVariant: 'small-caps',
           letterSpacing: '0.5px',
-          color: isDark ? '#6b7280' : '#9ca3af',
+          color: headerText,
           textDecoration: 'none',
+          opacity: 0.7,
         }}
       >
         powered by Local Review Responder LLC
@@ -439,7 +457,7 @@ function WidgetPreview({
           background: containerBg,
           borderRadius: '12px',
           padding: '20px',
-          minHeight: '320px',
+          paddingTop: '35px',
           transition: 'all 0.3s ease',
           opacity: reviewsLoading ? 0.5 : 1,
         }}
@@ -467,16 +485,16 @@ function WidgetPreview({
                 lineHeight: 1.2,
               }}
             >
-              <span style={{ fontSize: '18px', fontWeight: 500, color: subText }}>Overall rating</span>
-              <span style={{ fontSize: '24px', fontWeight: 700, color: textColor }}>
+              <span style={{ fontSize: '18px', fontWeight: 500, color: headerText }}>Overall rating</span>
+              <span style={{ fontSize: '24px', fontWeight: 700, color: headerText }}>
                 {(previewLocation?.averageRating ?? 4.8).toFixed(1)}
               </span>
               <span style={{ color: '#F4B400', fontSize: '22px', lineHeight: 1 }}>★</span>
-              <span style={{ fontSize: '18px', fontWeight: 500, color: subText }}>based on</span>
-              <span style={{ fontSize: '24px', fontWeight: 700, color: textColor }}>
+              <span style={{ fontSize: '18px', fontWeight: 500, color: headerText }}>based on</span>
+              <span style={{ fontSize: '24px', fontWeight: 700, color: headerText }}>
                 {previewLocation?.totalReviews ?? 24}
               </span>
-              <span style={{ fontSize: '18px', fontWeight: 500, color: subText }}>reviews</span>
+              <span style={{ fontSize: '18px', fontWeight: 500, color: headerText }}>reviews</span>
             </div>
             {settings.showWriteReviewButton && (
               <a
@@ -486,7 +504,7 @@ function WidgetPreview({
                 onClick={(e) => { if (!previewLocation?.newReviewUri) e.preventDefault(); }}
                 style={{
                   background: accent,
-                  color: '#ffffff',
+                  color: readableOn(accent),
                   textDecoration: 'none',
                   fontSize: '14px',
                   fontWeight: 600,
@@ -608,6 +626,7 @@ function WidgetContent() {
     layout: 'carousel',
     theme: 'light',
     accentColor: '#4285F4',
+    backgroundColor: null,
     showName: true,
     showDate: true,
     showBadge: true,
@@ -651,6 +670,7 @@ function WidgetContent() {
             layout: s.layout || 'carousel',
             theme: s.theme || 'light',
             accentColor: s.accentColor || '#4285F4',
+            backgroundColor: s.backgroundColor ?? null,
             showName: s.showName !== false,
             showDate: s.showDate !== false,
             showBadge: s.showBadge !== false,
@@ -716,6 +736,7 @@ function WidgetContent() {
           layout: settings.layout,
           theme: settings.theme,
           accentColor: settings.accentColor,
+          backgroundColor: settings.backgroundColor,
           showName: settings.showName,
           showDate: settings.showDate,
           showBadge: settings.showBadge,
@@ -856,16 +877,44 @@ function WidgetContent() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color</label>
-                    <div className="flex items-center gap-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Accent Color</label>
+                    <div className="flex items-center gap-2">
                       <input
                         type="color"
-                        value={settings.accentColor}
+                        value={settings.accentColor || '#4285F4'}
                         onChange={(e) => setSettings({ ...settings, accentColor: e.target.value })}
                         className="h-9 w-14 rounded border border-gray-300 cursor-pointer"
                       />
-                      <span className="text-sm text-gray-500 font-mono">{settings.accentColor}</span>
+                      <input
+                        type="text"
+                        value={settings.accentColor || '#4285F4'}
+                        onChange={(e) => { let v = e.target.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; setSettings({ ...settings, accentColor: v }); }}
+                        placeholder="#4285F4"
+                        maxLength={7}
+                        className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
+                      />
                     </div>
+                  </div>
+                </div>
+
+                {/* Background Color */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={settings.backgroundColor || '#EBF2FA'}
+                      onChange={(e) => setSettings({ ...settings, backgroundColor: e.target.value })}
+                      className="h-9 w-14 rounded border border-gray-300 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={settings.backgroundColor || '#EBF2FA'}
+                      onChange={(e) => { let v = e.target.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; setSettings({ ...settings, backgroundColor: v }); }}
+                      placeholder="#EBF2FA"
+                      maxLength={7}
+                      className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
+                    />
                   </div>
                 </div>
 

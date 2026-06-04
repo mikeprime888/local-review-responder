@@ -389,7 +389,7 @@ const fetchLocations = useCallback(async () => {
             : `Welcome back${session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}! 👋`
           }
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           <LocationSwitcher
             locations={locations}
             selectedLocationId={selectedLocationId}
@@ -425,7 +425,7 @@ const fetchLocations = useCallback(async () => {
       {stats && stats.unrepliedCount > 0 && (
         <Link
           href="/dashboard/reviews?replyStatus=unreplied"
-          className="mb-6 flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors group"
+          className="mb-6 block p-4 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors group"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center flex-shrink-0">
@@ -438,14 +438,14 @@ const fetchLocations = useCallback(async () => {
                 {stats.unrepliedCount} review{stats.unrepliedCount !== 1 ? 's' : ''} need{stats.unrepliedCount === 1 ? 's' : ''} a reply
               </span>
               <p className="text-sm text-amber-700">Responding to reviews improves your local search ranking</p>
+              <span className="mt-2 inline-flex items-center gap-1 text-amber-700 font-medium text-sm group-hover:text-amber-900">
+                Reply now
+                <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
             </div>
           </div>
-          <span className="text-amber-700 font-medium text-sm group-hover:text-amber-900 flex items-center gap-1 flex-shrink-0">
-            Reply now
-            <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </span>
         </Link>
       )}
 
