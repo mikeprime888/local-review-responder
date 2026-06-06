@@ -233,9 +233,13 @@
         html += '<button id="' + widgetId + '-prev" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid '
               + colBorder + ';background:' + colArrowBg + ';color:' + colArrow + ';font-size:20px;cursor:pointer;'
               + 'display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.1);">&#8249;</button>';
-        html += '<div id="' + widgetId + '-track" style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch;">';
+        html += '<div id="' + widgetId + '-track" style="flex:1;overflow:hidden;">';
+        html += '<div id="' + widgetId + '-rail" style="display:flex;width:100%;height:100%;align-items:stretch;">';
+        html += '<div style="flex:0 0 100%;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch;">';
         var first = reviews.slice(0, PER_PAGE);
         for (var i = 0; i < first.length; i++) { html += buildCard(first[i]); }
+        html += '</div>';
+        html += '</div>';
         html += '</div>';
         // Will be corrected after mount by getColsForWidth()
         html += '<button id="' + widgetId + '-next" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid '
@@ -323,6 +327,7 @@
       if (layout === 'carousel') {
         var widgetEl = document.getElementById(widgetId);
         var track    = document.getElementById(widgetId + '-track');
+        var rail     = document.getElementById(widgetId + '-rail');
         var dotsEl   = document.getElementById(widgetId + '-dots');
 
         function getColsForWidth() {
@@ -332,19 +337,48 @@
           return 1;
         }
 
-        function renderPage(page) {
+        // Build all pages side-by-side as 100%-width panels in the rail, for the
+        // current responsive column count. Each panel is exactly one viewport
+        // wide (flex:0 0 100%), so the rail (width:100%) overflows horizontally
+        // and is clipped by the track (overflow:hidden); translateX then slides
+        // whole pages into view.
+        function buildRail() {
           var cols = getColsForWidth();
-          var pageReviews = reviews.slice(page * cols, page * cols + cols);
+          var tp   = Math.max(1, Math.ceil(reviews.length / cols));
           var h = '';
-          for (var ri = 0; ri < pageReviews.length; ri++) { h += buildCard(pageReviews[ri]); }
-          track.innerHTML = h;
-          track.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
-          // Lock track height so widget doesn't jump between pages
+          for (var pg = 0; pg < tp; pg++) {
+            var pageReviews = reviews.slice(pg * cols, pg * cols + cols);
+            h += '<div style="flex:0 0 100%;display:grid;grid-template-columns:repeat(' + cols + ',1fr);gap:12px;align-items:stretch;">';
+            for (var ri = 0; ri < pageReviews.length; ri++) { h += buildCard(pageReviews[ri]); }
+            h += '</div>';
+          }
+          rail.innerHTML = h;
+          // Lock track height so the widget doesn't jump between pages
           var cardH = cols === 1 ? 280 : 260;
           track.style.height = cardH + 'px';
           // Reveal "Read more" for cards that overflow, once layout settles.
-          // This page's cards are only now in the DOM and measurable.
           requestAnimationFrame(function () { checkOverflow(track); });
+        }
+
+        // Position the rail at currentPage. animate=true → user-driven (prev/next/
+        // dot) slides with a transition; animate=false → initial render / resize
+        // rebuild jumps with the transition suppressed (disable, set, force reflow,
+        // re-enable) so a layout rebuild never animates.
+        function setPage(animate) {
+          if (animate) {
+            rail.style.transition = 'transform 0.3s ease';
+            rail.style.transform  = 'translateX(-' + (currentPage * 100) + '%)';
+          } else {
+            rail.style.transition = 'none';
+            rail.style.transform  = 'translateX(-' + (currentPage * 100) + '%)';
+            rail.getBoundingClientRect(); // force reflow so the jump commits
+            rail.style.transition = 'transform 0.3s ease';
+          }
+        }
+
+        function clampPage() {
+          var tp = getTotalPages();
+          currentPage = Math.max(0, Math.min(currentPage, tp - 1));
         }
 
         function getTotalPages() {
@@ -373,19 +407,19 @@
         function goTo(page) {
           var tp = getTotalPages();
           currentPage = Math.max(0, Math.min(page, tp - 1));
-          renderPage(currentPage);
+          setPage(true);
           updateDots();
         }
         function next() {
           var tp = getTotalPages();
           currentPage = currentPage >= tp - 1 ? 0 : currentPage + 1;
-          renderPage(currentPage);
+          setPage(true);
           updateDots();
         }
         function prev() {
           var tp = getTotalPages();
           currentPage = currentPage <= 0 ? tp - 1 : currentPage - 1;
-          renderPage(currentPage);
+          setPage(true);
           updateDots();
         }
 
@@ -407,28 +441,30 @@
         widgetEl.addEventListener('mouseenter', stopAuto);
         widgetEl.addEventListener('mouseleave', startAuto);
 
-        // Resize handler — recalculate cols and re-render
+        // Resize handler — recalculate cols, rebuild the rail for the new page
+        // count, clamp currentPage into range, and reposition without animating.
         var resizeTimer;
         window.addEventListener('resize', function() {
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(function() {
-            renderPage(currentPage);
+            buildRail();
+            clampPage();
+            setPage(false);
             updateDots();
           }, 150);
         });
 
-        // Initial responsive render after DOM is ready
-        renderPage(0);
+        // Initial responsive render after DOM is ready (no slide animation)
+        buildRail();
+        currentPage = 0;
+        setPage(false);
         updateDots();
         startAuto();
-        // Lock initial height
-        var initCols = getColsForWidth();
-        track.style.height = (initCols === 1 ? 280 : 260) + 'px';
       } else {
         // Grid/list render every card at once and have no carousel controller,
         // so run the overflow check across the whole widget once laid out, and
         // again on resize (width change alters line count). Carousel handles its
-        // own resize via the renderPage() re-render above.
+        // own resize via the buildRail() rebuild above.
         var staticRoot = document.getElementById(widgetId);
         requestAnimationFrame(function () { checkOverflow(staticRoot); });
         var staticResizeTimer;
