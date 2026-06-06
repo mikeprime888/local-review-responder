@@ -366,13 +366,13 @@
         // re-enable) so a layout rebuild never animates.
         function setPage(animate) {
           if (animate) {
-            rail.style.transition = 'transform 0.3s ease';
+            rail.style.transition = 'transform 0.5s ease';
             rail.style.transform  = 'translateX(-' + (currentPage * 100) + '%)';
           } else {
             rail.style.transition = 'none';
             rail.style.transform  = 'translateX(-' + (currentPage * 100) + '%)';
             rail.getBoundingClientRect(); // force reflow so the jump commits
-            rail.style.transition = 'transform 0.3s ease';
+            rail.style.transition = 'transform 0.5s ease';
           }
         }
 
