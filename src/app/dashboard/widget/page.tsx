@@ -808,7 +808,7 @@ function WidgetContent() {
     setSaving(false);
   };
 
-  const appOrigin = 'https://app.localreviewresponder.com';
+  const appOrigin = process.env.NEXT_PUBLIC_APP_ORIGIN ?? 'https://app.localreviewresponder.com';
 
   const embedCode = selectedLocationId
     ? `<div id="lrr-widget" data-location-id="${selectedLocationId}"></div>\n<script src="${appOrigin}/widget.js" async><\/script>`

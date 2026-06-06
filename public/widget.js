@@ -180,22 +180,57 @@
 
       // ── Overflow-driven "Read more" ─────────────────────────────────────
       // Reveal each card's "Read more" link only when its comment actually
-      // overflows the 5-line clamp, comparing real layout (scrollHeight vs
-      // clientHeight). Stays correct across font-size, width and line-count
-      // changes. Elements that aren't laid out (display:none, or a carousel
-      // page not currently mounted) report clientHeight 0 and are skipped —
-      // they get re-checked when their page renders.
+      // overflows the line-clamp. We compare the comment's TRUE content height
+      // against the CLAMP height (clamp lines × line-height) — NOT the element's
+      // clientHeight. The card stretches .lrr-cmt via flex:1, so clientHeight can
+      // exceed the clamp and a 1-line overflow would read as "fits" (and, for a
+      // short comment, the stretched scrollHeight would read as "overflows").
+      // To get the real content height we briefly neutralize that flex stretch,
+      // read scrollHeight, then restore it — no paint happens in between.
       function checkOverflow(root) {
         if (!root) return;
         var cmts = root.querySelectorAll('.lrr-cmt');
         for (var i = 0; i < cmts.length; i++) {
           var el = cmts[i];
-          if (!el.clientHeight) continue;
-          var id = el.id.replace('lrr-cmt-', '');
-          var link = document.getElementById('lrr-rm-' + id);
+          var link = document.getElementById('lrr-rm-' + el.id.replace('lrr-cmt-', ''));
           if (!link) continue;
-          link.style.display = (el.scrollHeight - el.clientHeight > 2) ? '' : 'none';
+          var cs = getComputedStyle(el);
+          var lineH = parseFloat(cs.lineHeight) || (parseFloat(cs.fontSize) * 1.6) || 24;
+          var clampN = parseInt(cs.webkitLineClamp, 10) || 5;
+          var clampH = lineH * clampN;
+          var prevFlex = el.style.flex;
+          el.style.flex = '0 0 auto';        // collapse the flex:1 stretch
+          var contentH = el.scrollHeight;    // true (clamped-box) content height
+          el.style.flex = prevFlex;          // restore before any paint
+          link.style.display = (contentH > clampH + lineH * 0.5) ? '' : 'none';
         }
+      }
+
+      // Run checkOverflow once the root's cards have real, settled dimensions —
+      // and again whenever they change — via ResizeObserver. Replaces a single
+      // requestAnimationFrame(checkOverflow), which could sample before layout
+      // settled: an early zero-height reading was skipped and never retried, so
+      // overflowing cards never got their link. Measures EVERY card under root,
+      // including off-screen carousel panels (laid out under translateX, so
+      // measurable). Double-rAF fallback where ResizeObserver is unavailable.
+      function observeOverflow(root) {
+        if (!root) return null;
+        checkOverflow(root); // best-effort immediate pass
+        if (typeof ResizeObserver !== 'undefined') {
+          var pending = false;
+          var ro = new ResizeObserver(function () {
+            if (pending) return;
+            pending = true;
+            requestAnimationFrame(function () { pending = false; checkOverflow(root); });
+          });
+          var cmts = root.querySelectorAll('.lrr-cmt');
+          for (var i = 0; i < cmts.length; i++) ro.observe(cmts[i]);
+          return ro;
+        }
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () { checkOverflow(root); });
+        });
+        return null;
       }
 
       // ── Widget wrapper ──────────────────────────────────────────────────
@@ -209,12 +244,12 @@
         html += '<div style="margin-bottom:18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:18px;">';
         // Rating heading — kept as one cohesive group
         html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
-        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
-        html += '<span style="font-size:26px;font-weight:700;color:' + headerText + ';">' + avg + '</span>';
-        html += '<span style="color:#F4B400;font-size:24px;line-height:1;">&#9733;</span>';
-        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">based on</span>';
-        html += '<span style="font-size:26px;font-weight:700;color:' + headerText + ';">' + total + '</span>';
-        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">reviews</span>';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
+        html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + avg + '</span>';
+        html += '<span style="color:#F4B400;font-size:30px;line-height:1;">&#9733;</span>';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">based on</span>';
+        html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + total + '</span>';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">reviews</span>';
         html += '</div>';
         // Write a review button — inline beside the heading (wraps below on narrow widths)
         if (showWriteBtn && newReviewUri) {
@@ -233,9 +268,13 @@
         html += '<button id="' + widgetId + '-prev" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid '
               + colBorder + ';background:' + colArrowBg + ';color:' + colArrow + ';font-size:20px;cursor:pointer;'
               + 'display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.1);">&#8249;</button>';
-        html += '<div id="' + widgetId + '-track" style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch;">';
+        html += '<div id="' + widgetId + '-track" style="flex:1;overflow:hidden;">';
+        html += '<div id="' + widgetId + '-rail" style="display:flex;width:100%;height:100%;align-items:stretch;">';
+        html += '<div style="flex:0 0 100%;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch;">';
         var first = reviews.slice(0, PER_PAGE);
         for (var i = 0; i < first.length; i++) { html += buildCard(first[i]); }
+        html += '</div>';
+        html += '</div>';
         html += '</div>';
         // Will be corrected after mount by getColsForWidth()
         html += '<button id="' + widgetId + '-next" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid '
@@ -323,7 +362,9 @@
       if (layout === 'carousel') {
         var widgetEl = document.getElementById(widgetId);
         var track    = document.getElementById(widgetId + '-track');
+        var rail     = document.getElementById(widgetId + '-rail');
         var dotsEl   = document.getElementById(widgetId + '-dots');
+        var overflowRO = null;
 
         function getColsForWidth() {
           var w = widgetEl.offsetWidth;
@@ -332,19 +373,51 @@
           return 1;
         }
 
-        function renderPage(page) {
+        // Build all pages side-by-side as 100%-width panels in the rail, for the
+        // current responsive column count. Each panel is exactly one viewport
+        // wide (flex:0 0 100%), so the rail (width:100%) overflows horizontally
+        // and is clipped by the track (overflow:hidden); translateX then slides
+        // whole pages into view.
+        function buildRail() {
           var cols = getColsForWidth();
-          var pageReviews = reviews.slice(page * cols, page * cols + cols);
+          var tp   = Math.max(1, Math.ceil(reviews.length / cols));
           var h = '';
-          for (var ri = 0; ri < pageReviews.length; ri++) { h += buildCard(pageReviews[ri]); }
-          track.innerHTML = h;
-          track.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
-          // Lock track height so widget doesn't jump between pages
+          for (var pg = 0; pg < tp; pg++) {
+            var pageReviews = reviews.slice(pg * cols, pg * cols + cols);
+            h += '<div style="flex:0 0 100%;display:grid;grid-template-columns:repeat(' + cols + ',1fr);gap:12px;align-items:stretch;">';
+            for (var ri = 0; ri < pageReviews.length; ri++) { h += buildCard(pageReviews[ri]); }
+            h += '</div>';
+          }
+          rail.innerHTML = h;
+          // Lock track height so the widget doesn't jump between pages
           var cardH = cols === 1 ? 280 : 260;
           track.style.height = cardH + 'px';
-          // Reveal "Read more" for cards that overflow, once layout settles.
-          // This page's cards are only now in the DOM and measurable.
-          requestAnimationFrame(function () { checkOverflow(track); });
+          // Reveal "Read more" for cards that overflow. ResizeObserver fires once
+          // these freshly built cards have settled dimensions (and again on any
+          // later change), measuring every panel — no single-frame race.
+          if (overflowRO) overflowRO.disconnect();
+          overflowRO = observeOverflow(track);
+        }
+
+        // Position the rail at currentPage. animate=true → user-driven (prev/next/
+        // dot) slides with a transition; animate=false → initial render / resize
+        // rebuild jumps with the transition suppressed (disable, set, force reflow,
+        // re-enable) so a layout rebuild never animates.
+        function setPage(animate) {
+          if (animate) {
+            rail.style.transition = 'transform 0.5s ease';
+            rail.style.transform  = 'translateX(-' + (currentPage * 100) + '%)';
+          } else {
+            rail.style.transition = 'none';
+            rail.style.transform  = 'translateX(-' + (currentPage * 100) + '%)';
+            rail.getBoundingClientRect(); // force reflow so the jump commits
+            rail.style.transition = 'transform 0.5s ease';
+          }
+        }
+
+        function clampPage() {
+          var tp = getTotalPages();
+          currentPage = Math.max(0, Math.min(currentPage, tp - 1));
         }
 
         function getTotalPages() {
@@ -373,19 +446,19 @@
         function goTo(page) {
           var tp = getTotalPages();
           currentPage = Math.max(0, Math.min(page, tp - 1));
-          renderPage(currentPage);
+          setPage(true);
           updateDots();
         }
         function next() {
           var tp = getTotalPages();
           currentPage = currentPage >= tp - 1 ? 0 : currentPage + 1;
-          renderPage(currentPage);
+          setPage(true);
           updateDots();
         }
         function prev() {
           var tp = getTotalPages();
           currentPage = currentPage <= 0 ? tp - 1 : currentPage - 1;
-          renderPage(currentPage);
+          setPage(true);
           updateDots();
         }
 
@@ -407,35 +480,31 @@
         widgetEl.addEventListener('mouseenter', stopAuto);
         widgetEl.addEventListener('mouseleave', startAuto);
 
-        // Resize handler — recalculate cols and re-render
+        // Resize handler — recalculate cols, rebuild the rail for the new page
+        // count, clamp currentPage into range, and reposition without animating.
         var resizeTimer;
         window.addEventListener('resize', function() {
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(function() {
-            renderPage(currentPage);
+            buildRail();
+            clampPage();
+            setPage(false);
             updateDots();
           }, 150);
         });
 
-        // Initial responsive render after DOM is ready
-        renderPage(0);
+        // Initial responsive render after DOM is ready (no slide animation)
+        buildRail();
+        currentPage = 0;
+        setPage(false);
         updateDots();
         startAuto();
-        // Lock initial height
-        var initCols = getColsForWidth();
-        track.style.height = (initCols === 1 ? 280 : 260) + 'px';
       } else {
-        // Grid/list render every card at once and have no carousel controller,
-        // so run the overflow check across the whole widget once laid out, and
-        // again on resize (width change alters line count). Carousel handles its
-        // own resize via the renderPage() re-render above.
-        var staticRoot = document.getElementById(widgetId);
-        requestAnimationFrame(function () { checkOverflow(staticRoot); });
-        var staticResizeTimer;
-        window.addEventListener('resize', function () {
-          clearTimeout(staticResizeTimer);
-          staticResizeTimer = setTimeout(function () { checkOverflow(staticRoot); }, 150);
-        });
+        // Grid/list render every card at once and have no carousel controller.
+        // ResizeObserver measures each card once it has settled dimensions and
+        // re-checks on width changes (which alter line count), so no separate
+        // resize listener or single-frame rAF is needed.
+        observeOverflow(document.getElementById(widgetId));
       }
     })
     .catch(function (err) { console.error('LRR Widget Error:', err); });
