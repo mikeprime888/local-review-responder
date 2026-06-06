@@ -180,22 +180,57 @@
 
       // ── Overflow-driven "Read more" ─────────────────────────────────────
       // Reveal each card's "Read more" link only when its comment actually
-      // overflows the 5-line clamp, comparing real layout (scrollHeight vs
-      // clientHeight). Stays correct across font-size, width and line-count
-      // changes. Elements that aren't laid out (display:none, or a carousel
-      // page not currently mounted) report clientHeight 0 and are skipped —
-      // they get re-checked when their page renders.
+      // overflows the line-clamp. We compare the comment's TRUE content height
+      // against the CLAMP height (clamp lines × line-height) — NOT the element's
+      // clientHeight. The card stretches .lrr-cmt via flex:1, so clientHeight can
+      // exceed the clamp and a 1-line overflow would read as "fits" (and, for a
+      // short comment, the stretched scrollHeight would read as "overflows").
+      // To get the real content height we briefly neutralize that flex stretch,
+      // read scrollHeight, then restore it — no paint happens in between.
       function checkOverflow(root) {
         if (!root) return;
         var cmts = root.querySelectorAll('.lrr-cmt');
         for (var i = 0; i < cmts.length; i++) {
           var el = cmts[i];
-          if (!el.clientHeight) continue;
-          var id = el.id.replace('lrr-cmt-', '');
-          var link = document.getElementById('lrr-rm-' + id);
+          var link = document.getElementById('lrr-rm-' + el.id.replace('lrr-cmt-', ''));
           if (!link) continue;
-          link.style.display = (el.scrollHeight - el.clientHeight > 2) ? '' : 'none';
+          var cs = getComputedStyle(el);
+          var lineH = parseFloat(cs.lineHeight) || (parseFloat(cs.fontSize) * 1.6) || 24;
+          var clampN = parseInt(cs.webkitLineClamp, 10) || 5;
+          var clampH = lineH * clampN;
+          var prevFlex = el.style.flex;
+          el.style.flex = '0 0 auto';        // collapse the flex:1 stretch
+          var contentH = el.scrollHeight;    // true (clamped-box) content height
+          el.style.flex = prevFlex;          // restore before any paint
+          link.style.display = (contentH > clampH + lineH * 0.5) ? '' : 'none';
         }
+      }
+
+      // Run checkOverflow once the root's cards have real, settled dimensions —
+      // and again whenever they change — via ResizeObserver. Replaces a single
+      // requestAnimationFrame(checkOverflow), which could sample before layout
+      // settled: an early zero-height reading was skipped and never retried, so
+      // overflowing cards never got their link. Measures EVERY card under root,
+      // including off-screen carousel panels (laid out under translateX, so
+      // measurable). Double-rAF fallback where ResizeObserver is unavailable.
+      function observeOverflow(root) {
+        if (!root) return null;
+        checkOverflow(root); // best-effort immediate pass
+        if (typeof ResizeObserver !== 'undefined') {
+          var pending = false;
+          var ro = new ResizeObserver(function () {
+            if (pending) return;
+            pending = true;
+            requestAnimationFrame(function () { pending = false; checkOverflow(root); });
+          });
+          var cmts = root.querySelectorAll('.lrr-cmt');
+          for (var i = 0; i < cmts.length; i++) ro.observe(cmts[i]);
+          return ro;
+        }
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () { checkOverflow(root); });
+        });
+        return null;
       }
 
       // ── Widget wrapper ──────────────────────────────────────────────────
@@ -329,6 +364,7 @@
         var track    = document.getElementById(widgetId + '-track');
         var rail     = document.getElementById(widgetId + '-rail');
         var dotsEl   = document.getElementById(widgetId + '-dots');
+        var overflowRO = null;
 
         function getColsForWidth() {
           var w = widgetEl.offsetWidth;
@@ -356,8 +392,11 @@
           // Lock track height so the widget doesn't jump between pages
           var cardH = cols === 1 ? 280 : 260;
           track.style.height = cardH + 'px';
-          // Reveal "Read more" for cards that overflow, once layout settles.
-          requestAnimationFrame(function () { checkOverflow(track); });
+          // Reveal "Read more" for cards that overflow. ResizeObserver fires once
+          // these freshly built cards have settled dimensions (and again on any
+          // later change), measuring every panel — no single-frame race.
+          if (overflowRO) overflowRO.disconnect();
+          overflowRO = observeOverflow(track);
         }
 
         // Position the rail at currentPage. animate=true → user-driven (prev/next/
@@ -461,17 +500,11 @@
         updateDots();
         startAuto();
       } else {
-        // Grid/list render every card at once and have no carousel controller,
-        // so run the overflow check across the whole widget once laid out, and
-        // again on resize (width change alters line count). Carousel handles its
-        // own resize via the buildRail() rebuild above.
-        var staticRoot = document.getElementById(widgetId);
-        requestAnimationFrame(function () { checkOverflow(staticRoot); });
-        var staticResizeTimer;
-        window.addEventListener('resize', function () {
-          clearTimeout(staticResizeTimer);
-          staticResizeTimer = setTimeout(function () { checkOverflow(staticRoot); }, 150);
-        });
+        // Grid/list render every card at once and have no carousel controller.
+        // ResizeObserver measures each card once it has settled dimensions and
+        // re-checks on width changes (which alter line count), so no separate
+        // resize listener or single-frame rAF is needed.
+        observeOverflow(document.getElementById(widgetId));
       }
     })
     .catch(function (err) { console.error('LRR Widget Error:', err); });
