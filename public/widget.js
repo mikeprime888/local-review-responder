@@ -209,12 +209,12 @@
         html += '<div style="margin-bottom:18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:18px;">';
         // Rating heading — kept as one cohesive group
         html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
-        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
-        html += '<span style="font-size:26px;font-weight:700;color:' + headerText + ';">' + avg + '</span>';
-        html += '<span style="color:#F4B400;font-size:24px;line-height:1;">&#9733;</span>';
-        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">based on</span>';
-        html += '<span style="font-size:26px;font-weight:700;color:' + headerText + ';">' + total + '</span>';
-        html += '<span style="font-size:20px;font-weight:500;color:' + headerText + ';">reviews</span>';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
+        html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + avg + '</span>';
+        html += '<span style="color:#F4B400;font-size:30px;line-height:1;">&#9733;</span>';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">based on</span>';
+        html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + total + '</span>';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">reviews</span>';
         html += '</div>';
         // Write a review button — inline beside the heading (wraps below on narrow widths)
         if (showWriteBtn && newReviewUri) {
