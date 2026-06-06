@@ -27,6 +27,17 @@
     return name ? name.trim().charAt(0).toUpperCase() : '?';
   }
 
+  // HTML-escape review-derived values at innerHTML render boundaries.
+  // & must be replaced first to avoid double-encoding.
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
   var googleGIcon = '<svg viewBox="0 0 48 48" style="width:18px;height:18px;flex-shrink:0;">'
     + '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>'
     + '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>'
@@ -115,7 +126,7 @@
         // Avatar + name + stars row
         h += '<div style="display:flex;align-items:center;gap:10px;">';
         if (photo) {
-          h += '<img src="' + photo + '" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;"'
+          h += '<img src="' + escapeHtml(photo) + '" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;"'
              + ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';" />';
           h += '<div style="display:none;width:40px;height:40px;border-radius:50%;background:' + color
              + ';align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:16px;font-weight:600;">' + initial + '</div>';
@@ -126,7 +137,7 @@
         h += '<div style="flex:1;min-width:0;">';
         if (showName) {
           h += '<div style="display:flex;align-items:center;gap:6px;">';
-          h += '<div style="font-size:18px;font-weight:600;color:' + colText + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">' + name + '</div>';
+          h += '<div style="font-size:18px;font-weight:600;color:' + colText + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">' + escapeHtml(name) + '</div>';
           h += googleGIcon;
           h += '</div>';
         }
@@ -147,7 +158,7 @@
         if (comment) {
           h += '<div class="lrr-cmt" id="lrr-cmt-' + review.id + '"'
              + ' style="font-size:16px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">'
-             + comment + '</div>';
+             + escapeHtml(comment) + '</div>';
           // Read more — sibling below the clamp, hidden until overflow measured.
           // Modal plumbing (data-* attributes + onclick) unchanged.
           h += '<a href="javascript:void(0)" class="lrr-rm" id="lrr-rm-' + review.id + '"'
@@ -296,10 +307,10 @@
         var mid     = el.getAttribute('data-modal');
 
         var avatarHtml = photo
-          ? '<img src="' + photo + '" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;" />'
+          ? '<img src="' + escapeHtml(photo) + '" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;" />'
           : '<div style="display:flex;width:48px;height:48px;border-radius:50%;background:' + color
             + ';align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:20px;font-weight:600;">' + initial + '</div>';
-        avatarHtml += '<div><div style="font-weight:600;font-size:16px;color:' + colText + ';">' + name + '</div>'
+        avatarHtml += '<div><div style="font-weight:600;font-size:16px;color:' + colText + ';">' + escapeHtml(name) + '</div>'
           + '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">' + renderStars(rating, 18) + googleGIcon + '</div></div>';
 
         document.getElementById(mid + '-avatar').innerHTML = avatarHtml;
