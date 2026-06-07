@@ -146,7 +146,7 @@
 
         // Date
         if (showDate && review.googleCreatedAt) {
-          h += '<div style="font-size:16px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
+          h += '<div style="font-size:13px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
         }
 
         // Comment (full text, visually clamped to 5 lines) + Read more sibling.
