@@ -121,7 +121,7 @@
         var comment = review.comment || '';
 
         var h = '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;padding:20px;'
-              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;height:100%;">';
+              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:8px;min-width:0;height:100%;">';
 
         // Avatar + name + stars row
         h += '<div style="display:flex;align-items:center;gap:10px;">';
