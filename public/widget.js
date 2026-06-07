@@ -397,6 +397,12 @@
           var nextBtn = document.getElementById(widgetId + '-next');
           if (prevBtn) prevBtn.style.display = arrowDisp;
           if (nextBtn) nextBtn.style.display = arrowDisp;
+          // On mobile (cols:1) trim the wrapper's side padding so the now
+          // full-width card gets more room (comfortable margin, not a narrow
+          // column). Desktop keeps the default 28px. Top/bottom unchanged.
+          var sidePad = cols === 1 ? '16px' : '28px';
+          widgetEl.style.paddingLeft = sidePad;
+          widgetEl.style.paddingRight = sidePad;
           // Lock track height so the widget doesn't jump between pages
           var cardH = cols === 1 ? 280 : 260;
           track.style.height = cardH + 'px';
