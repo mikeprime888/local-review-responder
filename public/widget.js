@@ -121,7 +121,7 @@
         var comment = review.comment || '';
 
         var h = '<div style="background:' + bgCard + ';border:1px solid ' + colBorder + ';border-radius:16px;padding:20px;'
-              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:10px;min-width:0;height:100%;">';
+              + 'box-sizing:border-box;display:flex;flex-direction:column;gap:8px;min-width:0;height:100%;">';
 
         // Avatar + name + stars row
         h += '<div style="display:flex;align-items:center;gap:10px;">';
@@ -235,6 +235,7 @@
 
       // ── Widget wrapper ──────────────────────────────────────────────────
       var html = '<div id="' + widgetId + '" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
+               + '-webkit-text-size-adjust:100%;text-size-adjust:100%;'
                + 'background:' + bgWrap + ';border-radius:20px;padding:28px;padding-top:43px;max-width:100%;box-sizing:border-box;">';
 
       // Header (overall rating + optional inline Write a review button)
@@ -485,6 +486,29 @@
 
         document.getElementById(widgetId + '-next').addEventListener('click', next);
         document.getElementById(widgetId + '-prev').addEventListener('click', prev);
+
+        // Touch swipe navigation — mobile hides the arrows, so swiping is the
+        // primary way to move between reviews. A clearly-horizontal swipe past a
+        // small threshold advances; vertical drags fall through to page scroll
+        // (passive listeners never block scrolling). Auto-advance pauses while
+        // the finger is down, then resumes.
+        (function () {
+          var sx = 0, sy = 0, active = false;
+          track.addEventListener('touchstart', function (e) {
+            if (e.touches.length !== 1) return;
+            sx = e.touches[0].clientX; sy = e.touches[0].clientY; active = true;
+            stopAuto();
+          }, { passive: true });
+          track.addEventListener('touchend', function (e) {
+            if (!active) return; active = false;
+            var t = e.changedTouches[0];
+            var dx = t.clientX - sx, dy = t.clientY - sy;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              if (dx < 0) next(); else prev();
+            }
+            startAuto();
+          }, { passive: true });
+        })();
 
         if (dotsEl) {
           (function () {
