@@ -146,7 +146,7 @@
 
         // Date
         if (showDate && review.googleCreatedAt) {
-          h += '<div style="font-size:16px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
+          h += '<div style="font-size:13px;color:' + colSub + ';">' + formatDate(review.googleCreatedAt) + '</div>';
         }
 
         // Comment (full text, visually clamped to 5 lines) + Read more sibling.
@@ -157,7 +157,7 @@
         // so the visual truncation and the link can never disagree.
         if (comment) {
           h += '<div class="lrr-cmt" id="lrr-cmt-' + review.id + '"'
-             + ' style="font-size:15px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">'
+             + ' style="font-size:15px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;">'
              + escapeHtml(comment) + '</div>';
           // Read more — sibling below the clamp, hidden until overflow measured.
           // Modal plumbing (data-* attributes + onclick) unchanged.
@@ -196,7 +196,7 @@
           if (!link) continue;
           var cs = getComputedStyle(el);
           var lineH = parseFloat(cs.lineHeight) || (parseFloat(cs.fontSize) * 1.6) || 24;
-          var clampN = parseInt(cs.webkitLineClamp, 10) || 5;
+          var clampN = parseInt(cs.webkitLineClamp, 10) || 4;
           var clampH = lineH * clampN;
           var prevFlex = el.style.flex;
           el.style.flex = '0 0 auto';        // collapse the flex:1 stretch
@@ -406,7 +406,7 @@
           // Lock track height so the widget doesn't jump between pages. Kept
           // fixed deliberately (no content-fit) so swiping never changes height.
           // Mobile value lowered to shrink the empty void on short/null cards.
-          var cardH = cols === 1 ? 220 : 260;
+          var cardH = cols === 1 ? 235 : 260;
           track.style.height = cardH + 'px';
           // Reveal "Read more" for cards that overflow. ResizeObserver fires once
           // these freshly built cards have settled dimensions (and again on any
@@ -467,14 +467,19 @@
         }
         function next() {
           var tp = getTotalPages();
-          currentPage = currentPage >= tp - 1 ? 0 : currentPage + 1;
-          setPage(true);
+          // Wrapping last->first: snap instantly (setPage(false)) so the viewer
+          // doesn't see the rail "fly back" across every page. Normal one-step
+          // advances still animate.
+          var wrap = currentPage >= tp - 1;
+          currentPage = wrap ? 0 : currentPage + 1;
+          setPage(!wrap);
           updateDots();
         }
         function prev() {
           var tp = getTotalPages();
-          currentPage = currentPage <= 0 ? tp - 1 : currentPage - 1;
-          setPage(true);
+          var wrap = currentPage <= 0;          // first->last wraps; snap, don't fly
+          currentPage = wrap ? tp - 1 : currentPage - 1;
+          setPage(!wrap);
           updateDots();
         }
 
