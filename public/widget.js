@@ -488,26 +488,36 @@
         document.getElementById(widgetId + '-prev').addEventListener('click', prev);
 
         // Touch swipe navigation — mobile hides the arrows, so swiping is the
-        // primary way to move between reviews. A clearly-horizontal swipe past a
-        // small threshold advances; vertical drags fall through to page scroll
-        // (passive listeners never block scrolling). Auto-advance pauses while
-        // the finger is down, then resumes.
+        // primary way to move between reviews. We decide DURING touchmove, the
+        // moment a horizontal drag crosses the threshold, rather than waiting for
+        // touchend: mobile browsers fire touchcancel (not touchend) as soon as
+        // they claim the gesture for scrolling, so a touchend-only handler drops
+        // most real swipes. A `fired` latch keeps one swipe per gesture. The
+        // direction test is just "horizontal-dominant" (real thumb swipes arc,
+        // so a strict ratio rejected them). Passive listeners never block scroll;
+        // a vertical-dominant drag falls through to normal page scrolling.
         (function () {
-          var sx = 0, sy = 0, active = false;
-          track.addEventListener('touchstart', function (e) {
-            if (e.touches.length !== 1) return;
-            sx = e.touches[0].clientX; sy = e.touches[0].clientY; active = true;
+          var sx = 0, sy = 0, active = false, fired = false;
+          function start(e) {
+            if (!e.touches || e.touches.length !== 1) return;
+            sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+            active = true; fired = false;
             stopAuto();
-          }, { passive: true });
-          track.addEventListener('touchend', function (e) {
-            if (!active) return; active = false;
-            var t = e.changedTouches[0];
-            var dx = t.clientX - sx, dy = t.clientY - sy;
-            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          }
+          function move(e) {
+            if (!active || fired || !e.touches || !e.touches.length) return;
+            var dx = e.touches[0].clientX - sx;
+            var dy = e.touches[0].clientY - sy;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+              fired = true;                     // act once, on threshold cross
               if (dx < 0) next(); else prev();
             }
-            startAuto();
-          }, { passive: true });
+          }
+          function end() { active = false; startAuto(); }
+          track.addEventListener('touchstart',  start, { passive: true });
+          track.addEventListener('touchmove',   move,  { passive: true });
+          track.addEventListener('touchend',    end,   { passive: true });
+          track.addEventListener('touchcancel', end,   { passive: true });
         })();
 
         if (dotsEl) {
