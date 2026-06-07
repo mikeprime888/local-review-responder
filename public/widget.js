@@ -235,6 +235,7 @@
 
       // ── Widget wrapper ──────────────────────────────────────────────────
       var html = '<div id="' + widgetId + '" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
+               + '-webkit-text-size-adjust:100%;text-size-adjust:100%;'
                + 'background:' + bgWrap + ';border-radius:20px;padding:28px;padding-top:43px;max-width:100%;box-sizing:border-box;">';
 
       // Header (overall rating + optional inline Write a review button)
