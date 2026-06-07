@@ -467,14 +467,19 @@
         }
         function next() {
           var tp = getTotalPages();
-          currentPage = currentPage >= tp - 1 ? 0 : currentPage + 1;
-          setPage(true);
+          // Wrapping last->first: snap instantly (setPage(false)) so the viewer
+          // doesn't see the rail "fly back" across every page. Normal one-step
+          // advances still animate.
+          var wrap = currentPage >= tp - 1;
+          currentPage = wrap ? 0 : currentPage + 1;
+          setPage(!wrap);
           updateDots();
         }
         function prev() {
           var tp = getTotalPages();
-          currentPage = currentPage <= 0 ? tp - 1 : currentPage - 1;
-          setPage(true);
+          var wrap = currentPage <= 0;          // first->last wraps; snap, don't fly
+          currentPage = wrap ? tp - 1 : currentPage - 1;
+          setPage(!wrap);
           updateDots();
         }
 
