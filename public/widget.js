@@ -407,7 +407,7 @@
           // Lock track height so the widget doesn't jump between pages. Kept
           // fixed deliberately (no content-fit) so swiping never changes height.
           // Mobile value lowered to shrink the empty void on short/null cards.
-          var cardH = cols === 1 ? 235 : 260;
+          var cardH = cols === 1 ? 255 : 260;
           track.style.height = cardH + 'px';
           // Reveal "Read more" for cards that overflow. ResizeObserver fires once
           // these freshly built cards have settled dimensions (and again on any
