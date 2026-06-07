@@ -157,7 +157,7 @@
         // so the visual truncation and the link can never disagree.
         if (comment) {
           h += '<div class="lrr-cmt" id="lrr-cmt-' + review.id + '"'
-             + ' style="font-size:16px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">'
+             + ' style="font-size:15px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">'
              + escapeHtml(comment) + '</div>';
           // Read more — sibling below the clamp, hidden until overflow measured.
           // Modal plumbing (data-* attributes + onclick) unchanged.
@@ -389,8 +389,24 @@
             h += '</div>';
           }
           rail.innerHTML = h;
-          // Lock track height so the widget doesn't jump between pages
-          var cardH = cols === 1 ? 280 : 260;
+          // Mobile (cols:1) is swipe-only: hide the prev/next arrows. They are
+          // flex-shrink:0 flex siblings, so display:none removes them from layout
+          // and drops their gaps, reclaiming the full ~92px so the track widens.
+          var arrowDisp = cols === 1 ? 'none' : 'flex';
+          var prevBtn = document.getElementById(widgetId + '-prev');
+          var nextBtn = document.getElementById(widgetId + '-next');
+          if (prevBtn) prevBtn.style.display = arrowDisp;
+          if (nextBtn) nextBtn.style.display = arrowDisp;
+          // On mobile (cols:1) trim the wrapper's side padding so the now
+          // full-width card gets more room (comfortable margin, not a narrow
+          // column). Desktop keeps the default 28px. Top/bottom unchanged.
+          var sidePad = cols === 1 ? '16px' : '28px';
+          widgetEl.style.paddingLeft = sidePad;
+          widgetEl.style.paddingRight = sidePad;
+          // Lock track height so the widget doesn't jump between pages. Kept
+          // fixed deliberately (no content-fit) so swiping never changes height.
+          // Mobile value lowered to shrink the empty void on short/null cards.
+          var cardH = cols === 1 ? 220 : 260;
           track.style.height = cardH + 'px';
           // Reveal "Read more" for cards that overflow. ResizeObserver fires once
           // these freshly built cards have settled dimensions (and again on any
