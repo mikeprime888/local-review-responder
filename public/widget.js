@@ -487,6 +487,29 @@
         document.getElementById(widgetId + '-next').addEventListener('click', next);
         document.getElementById(widgetId + '-prev').addEventListener('click', prev);
 
+        // Touch swipe navigation — mobile hides the arrows, so swiping is the
+        // primary way to move between reviews. A clearly-horizontal swipe past a
+        // small threshold advances; vertical drags fall through to page scroll
+        // (passive listeners never block scrolling). Auto-advance pauses while
+        // the finger is down, then resumes.
+        (function () {
+          var sx = 0, sy = 0, active = false;
+          track.addEventListener('touchstart', function (e) {
+            if (e.touches.length !== 1) return;
+            sx = e.touches[0].clientX; sy = e.touches[0].clientY; active = true;
+            stopAuto();
+          }, { passive: true });
+          track.addEventListener('touchend', function (e) {
+            if (!active) return; active = false;
+            var t = e.changedTouches[0];
+            var dx = t.clientX - sx, dy = t.clientY - sy;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              if (dx < 0) next(); else prev();
+            }
+            startAuto();
+          }, { passive: true });
+        })();
+
         if (dotsEl) {
           (function () {
             var dotBtns = dotsEl.children;
