@@ -389,6 +389,14 @@
             h += '</div>';
           }
           rail.innerHTML = h;
+          // Mobile (cols:1) is swipe-only: hide the prev/next arrows. They are
+          // flex-shrink:0 flex siblings, so display:none removes them from layout
+          // and drops their gaps, reclaiming the full ~92px so the track widens.
+          var arrowDisp = cols === 1 ? 'none' : 'flex';
+          var prevBtn = document.getElementById(widgetId + '-prev');
+          var nextBtn = document.getElementById(widgetId + '-next');
+          if (prevBtn) prevBtn.style.display = arrowDisp;
+          if (nextBtn) nextBtn.style.display = arrowDisp;
           // Lock track height so the widget doesn't jump between pages
           var cardH = cols === 1 ? 280 : 260;
           track.style.height = cardH + 'px';
