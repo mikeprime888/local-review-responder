@@ -422,13 +422,13 @@
         // re-enable) so a layout rebuild never animates.
         function setPage(animate) {
           if (animate) {
-            rail.style.transition = 'transform 0.5s ease';
+            rail.style.transition = 'transform 0.75s ease';
             rail.style.transform  = 'translateX(-' + (currentPage * 100) + '%)';
           } else {
             rail.style.transition = 'none';
             rail.style.transform  = 'translateX(-' + (currentPage * 100) + '%)';
             rail.getBoundingClientRect(); // force reflow so the jump commits
-            rail.style.transition = 'transform 0.5s ease';
+            rail.style.transition = 'transform 0.75s ease';
           }
         }
 
@@ -529,7 +529,7 @@
           })();
         }
 
-        function startAuto() { stopAuto(); autoTimer = setInterval(next, 5000); }
+        function startAuto() { stopAuto(); autoTimer = setInterval(next, 7500); }
         function stopAuto()  { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } }
 
         widgetEl.addEventListener('mouseenter', stopAuto);
