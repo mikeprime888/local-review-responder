@@ -2,9 +2,6 @@
   var container = document.getElementById('lrr-widget');
   if (!container) return;
 
-  var locationId = container.getAttribute('data-location-id');
-  if (!locationId) return;
-
   var origin = (function () {
     var scripts = document.getElementsByTagName('script');
     for (var i = 0; i < scripts.length; i++) {
@@ -14,6 +11,48 @@
     }
     return 'https://app.localreviewresponder.com';
   })();
+
+  // Summary mode: an explicit comma-separated list of location ids (data-locations)
+  // renders one blended rating strip — no cards, carousel, or modal. Takes
+  // precedence over the per-location data-location-id path, which is unchanged.
+  var locationsAttr = container.getAttribute('data-locations');
+  if (locationsAttr && locationsAttr.replace(/\s/g, '')) {
+    renderSummary(container, origin, locationsAttr);
+    return;
+  }
+
+  var locationId = container.getAttribute('data-location-id');
+  if (!locationId) return;
+
+  // ── Summary (blended rating strip) ──────────────────────────────────────
+  // Reuses the per-location header-bar markup/styles. Only numbers (avg, total)
+  // are interpolated — no review-derived strings reach the DOM here — so there
+  // is no HTML-injection surface. On the endpoint's empty signal it renders
+  // nothing rather than a broken-looking 0.0 ★ / 0 reviews.
+  function renderSummary(container, origin, list) {
+    fetch(origin + '/api/widget/summary?locations=' + encodeURIComponent(list))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || data.empty || !(data.totalReviews > 0)) return;
+        var avg        = (data.averageRating || 0).toFixed(1);
+        var total      = data.totalReviews;
+        var bgWrap     = '#EBF2FA';
+        var headerText = readableOn(bgWrap);
+        var html = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
+                 + '-webkit-text-size-adjust:100%;text-size-adjust:100%;'
+                 + 'background:' + bgWrap + ';border-radius:20px;padding:28px;max-width:100%;box-sizing:border-box;'
+                 + 'display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
+        html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + avg + '</span>';
+        html += '<span style="color:#F4B400;font-size:30px;line-height:1;">&#9733;</span>';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">based on</span>';
+        html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + total + '</span>';
+        html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">reviews</span>';
+        html += '</div>';
+        container.innerHTML = html;
+      })
+      .catch(function (err) { console.error('LRR Widget Summary Error:', err); });
+  }
 
   var avatarColors = ['#4285F4','#EA4335','#FBBC05','#34A853','#FF6D01','#46BDC6','#7B61FF','#E91E63','#00BCD4','#8BC34A'];
 
