@@ -697,7 +697,7 @@ function WidgetContent() {
   // Fetch locations
   useEffect(() => {
     if (status !== 'authenticated') return;
-    fetch('/api/subscriptions?active=true')
+    fetch('/api/google/locations')
       .then((res) => res.json())
       .then((data) => {
         const locs = data.locations || [];
