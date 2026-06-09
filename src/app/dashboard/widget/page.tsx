@@ -703,9 +703,12 @@ function WidgetContent() {
         const locs = data.locations || [];
         setLocations(locs);
         if (locs.length > 0) {
-          const paramId = searchParams.get('locationId');
+          // Prefer the URL param, then the shared localStorage key (written by the
+          // dashboard and reviews page), then first-in-list. Validate the saved id
+          // against this page's list so an id absent here falls back safely.
+          const savedId = searchParams.get('locationId') || (typeof window !== 'undefined' ? localStorage.getItem('selectedLocationId') : null);
           setSelectedLocationId(
-            paramId && locs.find((l: Location) => l.id === paramId) ? paramId : locs[0].id
+            savedId && locs.find((l: Location) => l.id === savedId) ? savedId : locs[0].id
           );
         }
         setLoading(false);
@@ -840,7 +843,7 @@ function WidgetContent() {
           {locations.length > 1 && (
             <select
               value={selectedLocationId || ''}
-              onChange={(e) => setSelectedLocationId(e.target.value)}
+              onChange={(e) => { setSelectedLocationId(e.target.value); localStorage.setItem('selectedLocationId', e.target.value); }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
               {locations.map((loc) => (
