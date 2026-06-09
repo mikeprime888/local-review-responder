@@ -36,10 +36,15 @@ export async function GET(request: NextRequest) {
         averageRating: { not: null },
         totalReviews: { gt: 0 },
       },
-      select: { averageRating: true, totalReviews: true },
+      select: { averageRating: true, totalReviews: true, userId: true },
     });
 
     if (locations.length === 0) return empty();
+
+    // All listed locations must belong to one account; otherwise treat as empty
+    // (guards against a mistyped cuid resolving to another customer's location).
+    const userIds = new Set(locations.map((l) => l.userId));
+    if (userIds.size > 1) return empty();
 
     // Count-weighted blend: Σ(avg_i × n_i) / Σ(n_i), summed review count.
     let weightedSum = 0;
