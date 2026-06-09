@@ -733,7 +733,7 @@ function WidgetContent() {
             showWriteReviewButton: s.showWriteReviewButton !== false,
             limitReviews: s.limitReviews !== false,
             maxReviews: s.maxReviews ?? 10,
-            minRating: s.minStars ?? 1,
+            minRating: s.minRating ?? 1,
           });
         }
       })
