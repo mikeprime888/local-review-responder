@@ -678,6 +678,7 @@ function WidgetContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showTransparentInfo, setShowTransparentInfo] = useState(false);
 
   const [liveReviews, setLiveReviews] = useState<LiveReview[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -966,21 +967,73 @@ function WidgetContent() {
 
                 {/* Background Color */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <label className="block text-sm font-medium text-gray-700">Background Color</label>
+                      {/* Tap-friendly info popover (click/tap toggle, not hover title=) */}
+                      <span className="relative inline-flex">
+                        <button
+                          type="button"
+                          aria-label="About the transparent background option"
+                          aria-expanded={showTransparentInfo}
+                          onClick={() => setShowTransparentInfo((v) => !v)}
+                          className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-300 text-white text-[10px] font-bold leading-none hover:bg-gray-400 transition-colors"
+                        >
+                          i
+                        </button>
+                        {showTransparentInfo && (
+                          <>
+                            {/* Invisible backdrop: dismiss on outside tap/click */}
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setShowTransparentInfo(false)}
+                            />
+                            <div
+                              role="tooltip"
+                              className="absolute left-0 top-6 z-20 w-64 rounded-lg bg-gray-900 text-white text-xs leading-relaxed p-3 shadow-lg"
+                            >
+                              Removes the widget&apos;s background so it blends into your website&apos;s own background color. Useful if your site already has a colored or patterned section where you&apos;re placing the reviews.
+                            </div>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    {/* Transparent toggle — flips transparentBackground ONLY; never
+                        touches backgroundColor, so the last-chosen hex is preserved
+                        for restore when toggled back off. */}
+                    <label className="flex items-center gap-2">
+                      <span className="text-sm text-gray-700">Transparent</span>
+                      <button
+                        type="button"
+                        onClick={() => setSettings({ ...settings, transparentBackground: !settings.transparentBackground })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                          settings.transparentBackground ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.transparentBackground ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </label>
+                  </div>
+                  <div className={`flex items-center gap-2 transition-opacity ${settings.transparentBackground ? 'opacity-50' : 'opacity-100'}`}>
                     <input
                       type="color"
                       value={settings.backgroundColor || '#EBF2FA'}
+                      disabled={settings.transparentBackground}
                       onChange={(e) => setSettings({ ...settings, backgroundColor: e.target.value })}
-                      className="h-9 w-14 rounded border border-gray-300 cursor-pointer"
+                      className={`h-9 w-14 rounded border border-gray-300 ${settings.transparentBackground ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     />
                     <input
                       type="text"
                       value={settings.backgroundColor || '#EBF2FA'}
+                      disabled={settings.transparentBackground}
                       onChange={(e) => { let v = e.target.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; setSettings({ ...settings, backgroundColor: v }); }}
                       placeholder="#EBF2FA"
                       maxLength={7}
-                      className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
+                      className={`w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono ${settings.transparentBackground ? 'cursor-not-allowed' : ''}`}
                     />
                   </div>
                 </div>
