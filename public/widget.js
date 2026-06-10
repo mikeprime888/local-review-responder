@@ -141,6 +141,13 @@
 
       var isDark      = theme === 'dark';
       var bgWrap      = cfg.backgroundColor || (isDark ? '#1a1a2e' : '#EBF2FA');
+      // Transparent option: paint the wrapper transparent so the widget blends
+      // into the host page. bgWrap stays the real hex for readableOn() below —
+      // 'transparent' has no luminance and would resolve to near-white, hiding
+      // the header text and powered-by footer on light host pages. Mirrors the
+      // summary-strip path, which also keeps bgWrap purely as the contrast ref.
+      var transparentBg = cfg.transparentBackground === true;
+      var wrapperBg     = transparentBg ? 'transparent' : bgWrap;
       var headerText  = readableOn(bgWrap);
       var bgCard      = isDark ? '#1f2937' : '#ffffff';
       var colText     = isDark ? '#f3f4f6' : '#1f2937';
@@ -282,7 +289,7 @@
       // ── Widget wrapper ──────────────────────────────────────────────────
       var html = '<div id="' + widgetId + '" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
                + '-webkit-text-size-adjust:100%;text-size-adjust:100%;'
-               + 'background:' + bgWrap + ';border-radius:20px;padding:28px;padding-top:43px;max-width:100%;box-sizing:border-box;">';
+               + 'background:' + wrapperBg + ';border-radius:20px;padding:28px;padding-top:43px;max-width:100%;box-sizing:border-box;">';
 
       // Header (overall rating + optional inline Write a review button)
       if (showHeaderBar && data.location) {
