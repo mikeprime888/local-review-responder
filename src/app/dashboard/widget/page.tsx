@@ -967,56 +967,35 @@ function WidgetContent() {
 
                 {/* Background Color */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1.5">
-                      <label className="block text-sm font-medium text-gray-700">Background Color</label>
-                      {/* Tap-friendly info popover (click/tap toggle, not hover title=) */}
-                      <span className="relative inline-flex">
-                        <button
-                          type="button"
-                          aria-label="About the transparent background option"
-                          aria-expanded={showTransparentInfo}
-                          onClick={() => setShowTransparentInfo((v) => !v)}
-                          className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-300 text-white text-[10px] font-bold leading-none hover:bg-gray-400 transition-colors"
-                        >
-                          i
-                        </button>
-                        {showTransparentInfo && (
-                          <>
-                            {/* Invisible backdrop: dismiss on outside tap/click */}
-                            <div
-                              className="fixed inset-0 z-10"
-                              onClick={() => setShowTransparentInfo(false)}
-                            />
-                            <div
-                              role="tooltip"
-                              className="absolute left-0 top-6 z-20 w-64 rounded-lg bg-gray-900 text-white text-xs leading-relaxed p-3 shadow-lg"
-                            >
-                              Removes the widget&apos;s background so it blends into your website&apos;s own background color. Useful if your site already has a colored or patterned section where you&apos;re placing the reviews.
-                            </div>
-                          </>
-                        )}
-                      </span>
-                    </div>
-                    {/* Transparent toggle — flips transparentBackground ONLY; never
-                        touches backgroundColor, so the last-chosen hex is preserved
-                        for restore when toggled back off. */}
-                    <label className="flex items-center gap-2">
-                      <span className="text-sm text-gray-700">Transparent</span>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <label className="block text-sm font-medium text-gray-700">Background Color</label>
+                    {/* Tap-friendly info popover (click/tap toggle, not hover title=) */}
+                    <span className="relative inline-flex">
                       <button
                         type="button"
-                        onClick={() => setSettings({ ...settings, transparentBackground: !settings.transparentBackground })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-                          settings.transparentBackground ? 'bg-blue-600' : 'bg-gray-300'
-                        }`}
+                        aria-label="About the transparent background option"
+                        aria-expanded={showTransparentInfo}
+                        onClick={() => setShowTransparentInfo((v) => !v)}
+                        className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-300 text-white text-[10px] font-bold leading-none hover:bg-gray-400 transition-colors"
                       >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            settings.transparentBackground ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
+                        i
                       </button>
-                    </label>
+                      {showTransparentInfo && (
+                        <>
+                          {/* Invisible backdrop: dismiss on outside tap/click */}
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setShowTransparentInfo(false)}
+                          />
+                          <div
+                            role="tooltip"
+                            className="absolute left-0 top-6 z-20 w-64 rounded-lg bg-gray-900 text-white text-xs leading-relaxed p-3 shadow-lg"
+                          >
+                            Removes the widget&apos;s background so it blends into your website&apos;s own background color. Useful if your site already has a colored or patterned section where you&apos;re placing the reviews.
+                          </div>
+                        </>
+                      )}
+                    </span>
                   </div>
                   <div className={`flex items-center gap-2 transition-opacity ${settings.transparentBackground ? 'opacity-50' : 'opacity-100'}`}>
                     <input
@@ -1036,6 +1015,26 @@ function WidgetContent() {
                       className={`w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono ${settings.transparentBackground ? 'cursor-not-allowed' : ''}`}
                     />
                   </div>
+                  {/* Transparent toggle — modifier of the background color setting,
+                      directly beneath the swatch/hex row. Flips transparentBackground
+                      ONLY; never touches backgroundColor, so the last-chosen hex is
+                      preserved for restore when toggled back off. */}
+                  <label className="flex items-center gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setSettings({ ...settings, transparentBackground: !settings.transparentBackground })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.transparentBackground ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.transparentBackground ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                    <span className="text-sm text-gray-700">Transparent</span>
+                  </label>
                 </div>
 
                 {/* Header Bar */}
