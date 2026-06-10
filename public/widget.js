@@ -36,18 +36,25 @@
         if (!data || data.empty || !(data.totalReviews > 0)) return;
         var avg        = (data.averageRating || 0).toFixed(1);
         var total      = data.totalReviews;
+        // bgWrap is no longer painted (wrapper is transparent); it remains the
+        // reference background for picking the existing header text color.
         var bgWrap     = '#EBF2FA';
         var headerText = readableOn(bgWrap);
         var html = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
                  + '-webkit-text-size-adjust:100%;text-size-adjust:100%;'
-                 + 'background:' + bgWrap + ';border-radius:20px;padding:28px;max-width:100%;box-sizing:border-box;'
-                 + 'display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
+                 + 'background:transparent;border-radius:20px;padding:28px;max-width:100%;box-sizing:border-box;text-align:center;">';
+        // Heading directly above the rating strip — bold, slightly smaller than
+        // the 30px rating text, centered, existing header text color.
+        html += '<div style="font-size:22px;font-weight:700;color:' + headerText + ';line-height:1.2;margin-bottom:12px;">TRUSTED ACROSS ALL OUR LOCATIONS</div>';
+        // Rating strip (unchanged) in its own centered flex row.
+        html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;line-height:1.2;">';
         html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
         html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + avg + '</span>';
         html += '<span style="color:#F4B400;font-size:30px;line-height:1;">&#9733;</span>';
         html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">based on</span>';
         html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + total + '</span>';
         html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">reviews</span>';
+        html += '</div>';
         html += '</div>';
         container.innerHTML = html;
       })
