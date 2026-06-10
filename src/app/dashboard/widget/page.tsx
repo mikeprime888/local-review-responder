@@ -247,45 +247,6 @@ interface PreviewLocation {
   newReviewUri: string | null;
 }
 
-// ─── Aggregate Summary Strip Preview ────────────────────────────────────────
-// Mirrors public/widget.js renderSummary() — the multi-location blended rating
-// strip (badge only, no cards/carousel/modal). Sample data here; the live
-// widget computes the count-weighted blend server-side via /api/widget/summary.
-// Uses the same scaled font sizes as WidgetPreview's header strip for dashboard
-// consistency (the live strip renders at 30px).
-function SummaryStripPreview() {
-  const bgWrap = '#EBF2FA';
-  const headerText = readableOn(bgWrap);
-  const avg = 4.7; // sample blended rating
-  const total = 512; // sample summed review count
-  return (
-    <div
-      style={{
-        fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
-        background: bgWrap,
-        borderRadius: '20px',
-        padding: '28px',
-        maxWidth: '100%',
-        boxSizing: 'border-box',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexWrap: 'wrap',
-        gap: '8px',
-        textAlign: 'center',
-        lineHeight: 1.2,
-      }}
-    >
-      <span style={{ fontSize: '18px', fontWeight: 500, color: headerText }}>Overall rating</span>
-      <span style={{ fontSize: '24px', fontWeight: 700, color: headerText }}>{avg.toFixed(1)}</span>
-      <span style={{ color: '#F4B400', fontSize: '22px', lineHeight: 1 }}>★</span>
-      <span style={{ fontSize: '18px', fontWeight: 500, color: headerText }}>based on</span>
-      <span style={{ fontSize: '24px', fontWeight: 700, color: headerText }}>{total}</span>
-      <span style={{ fontSize: '18px', fontWeight: 500, color: headerText }}>reviews</span>
-    </div>
-  );
-}
-
 // ─── Live Preview Component ─────────────────────────────────────────────────
 function WidgetPreview({
   settings,
@@ -1156,15 +1117,6 @@ function WidgetContent() {
                 <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Sample data</span>
               </div>
               <WidgetPreview settings={settings} liveReviews={liveReviews} reviewsLoading={reviewsLoading} previewLocation={previewLocation} />
-
-              {/* Aggregate summary widget (multi-location, badge only) */}
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-semibold text-gray-700">Aggregate summary widget</h4>
-                  <span className="text-xs text-gray-400">multi-location · badge only</span>
-                </div>
-                <SummaryStripPreview />
-              </div>
             </div>
           </div>
         )}
