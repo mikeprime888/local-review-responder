@@ -16,6 +16,7 @@ interface WidgetSettings {
   theme: string;
   accentColor: string;
   backgroundColor: string | null;
+  transparentBackground: boolean;
   showName: boolean;
   showDate: boolean;
   showBadge: boolean;
@@ -274,6 +275,11 @@ function WidgetPreview({
 
   // Colors
   const containerBg = settings.backgroundColor || (isDark ? '#1a1a2e' : '#EBF2FA');
+  // What actually gets painted on the wrapper. When transparent, the wrapper
+  // shows the host page through it. containerBg stays the real hex below so
+  // readableOn() has a luminance to compute against — 'transparent' has none
+  // and would resolve to near-white, hiding header text / footer.
+  const wrapperBg = settings.transparentBackground ? 'transparent' : containerBg;
   const headerText = readableOn(containerBg);
   const cardBg = isDark ? '#1f2937' : '#ffffff';
   const textColor = isDark ? '#f3f4f6' : '#1f2937';
@@ -509,7 +515,7 @@ function WidgetPreview({
       )}
       <div
         style={{
-          background: containerBg,
+          background: wrapperBg,
           borderRadius: '12px',
           padding: '20px',
           paddingTop: '35px',
@@ -682,6 +688,7 @@ function WidgetContent() {
     theme: 'light',
     accentColor: '#4285F4',
     backgroundColor: null,
+    transparentBackground: false,
     showName: true,
     showDate: true,
     showBadge: true,
@@ -729,6 +736,7 @@ function WidgetContent() {
             theme: s.theme || 'light',
             accentColor: s.accentColor || '#4285F4',
             backgroundColor: s.backgroundColor ?? null,
+            transparentBackground: s.transparentBackground === true,
             showName: s.showName !== false,
             showDate: s.showDate !== false,
             showBadge: s.showBadge !== false,
@@ -795,6 +803,7 @@ function WidgetContent() {
           theme: settings.theme,
           accentColor: settings.accentColor,
           backgroundColor: settings.backgroundColor,
+          transparentBackground: settings.transparentBackground,
           showName: settings.showName,
           showDate: settings.showDate,
           showBadge: settings.showBadge,
