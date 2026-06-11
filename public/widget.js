@@ -148,7 +148,7 @@
       // summary-strip path, which also keeps bgWrap purely as the contrast ref.
       var transparentBg = cfg.transparentBackground === true;
       var wrapperBg     = transparentBg ? 'transparent' : bgWrap;
-      var headerText  = readableOn(bgWrap);
+      var headerText  = cfg.textColor || readableOn(bgWrap);
       var bgCard      = isDark ? '#1f2937' : '#ffffff';
       var colText     = isDark ? '#f3f4f6' : '#1f2937';
       var colSub      = isDark ? '#9ca3af' : '#5f6368';

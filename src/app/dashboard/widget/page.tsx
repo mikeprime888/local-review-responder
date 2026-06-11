@@ -282,7 +282,7 @@ function WidgetPreview({
   // readableOn() has a luminance to compute against — 'transparent' has none
   // and would resolve to near-white, hiding header text / footer.
   const wrapperBg = settings.transparentBackground ? 'transparent' : containerBg;
-  const headerText = readableOn(containerBg);
+  const headerText = settings.textColor || readableOn(containerBg);
   const cardBg = isDark ? '#1f2937' : '#ffffff';
   const textColor = isDark ? '#f3f4f6' : '#1f2937';
   const subText = isDark ? '#9ca3af' : '#5f6368';
