@@ -173,6 +173,8 @@ model WidgetSettings {
   accentColor String  @default("#4F46E5")  // Hex color
   backgroundColor String? // Hex color; NULL = fall back to theme-based default
   transparentBackground Boolean @default(false) // When true, widget wrapper paints transparent (blends into host page); backgroundColor preserved but not painted
+  textColor   String? // Hex color for header/footer text; NULL = Auto (readableOn). Footer renders this at ~65% opacity.
+  starColor   String? // Hex color for rating stars; NULL = Auto (existing gold #F4B400)
   maxReviews  Int     @default(10)
   limitReviews  Boolean  @default(true)
   minStars    Int     @default(4)           // Only show reviews with this rating or higher

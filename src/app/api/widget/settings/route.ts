@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
           accentColor: '#4285F4',
           backgroundColor: null,
           transparentBackground: false,
+          textColor: null,
+          starColor: null,
           showName: true,
           showDate: true,
           showBadge: true,
@@ -60,6 +62,8 @@ export async function GET(request: NextRequest) {
         accentColor: settings.accentColor,
         backgroundColor: settings.backgroundColor,
         transparentBackground: settings.transparentBackground,
+        textColor: settings.textColor,
+        starColor: settings.starColor,
         showName: settings.showName,
         showDate: settings.showDate,
         showBadge: settings.showBadge,
@@ -88,7 +92,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { locationId, layout, theme, accentColor, backgroundColor, transparentBackground, maxReviews, minRating, limitReviews, showDate, showName, showBadge, showHeaderBar, showWriteReviewButton } = body;
+    const { locationId, layout, theme, accentColor, backgroundColor, transparentBackground, textColor, starColor, maxReviews, minRating, limitReviews, showDate, showName, showBadge, showHeaderBar, showWriteReviewButton } = body;
 
     if (!locationId) {
       return NextResponse.json({ error: 'locationId is required' }, { status: 400 });
@@ -119,6 +123,8 @@ export async function PUT(request: NextRequest) {
         // survive. A `|| null`-style coercion would collapse a deliberate
         // "transparent off" into a falsy default and break round-tripping.
         transparentBackground: transparentBackground ?? false,
+        textColor: textColor || null,
+        starColor: starColor || null,
         maxReviews: maxReviews || 6,
         limitReviews: limitReviews ?? true,
         minStars,
@@ -136,6 +142,8 @@ export async function PUT(request: NextRequest) {
         // ?? false (not || false): preserve an explicit `false` so toggling
         // transparent off persists rather than collapsing to a falsy default.
         transparentBackground: transparentBackground ?? false,
+        textColor: textColor || null,
+        starColor: starColor || null,
         maxReviews,
         limitReviews,
         minStars,

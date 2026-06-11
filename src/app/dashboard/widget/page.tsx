@@ -17,6 +17,8 @@ interface WidgetSettings {
   accentColor: string;
   backgroundColor: string | null;
   transparentBackground: boolean;
+  textColor: string | null;
+  starColor: string | null;
   showName: boolean;
   showDate: boolean;
   showBadge: boolean;
@@ -116,6 +118,7 @@ function ReviewModal({
 }) {
   const isDark = settings.theme === 'dark';
   const accent = settings.accentColor || '#4285F4';
+  const starColor = settings.starColor || '#F4B400';
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -208,7 +211,7 @@ function ReviewModal({
                   <span
                     key={i}
                     style={{
-                      color: i <= review.rating ? '#F4B400' : (isDark ? '#4b5563' : '#dadce0'),
+                      color: i <= review.rating ? starColor : (isDark ? '#4b5563' : '#dadce0'),
                       fontSize: '18px',
                       lineHeight: 1,
                     }}
@@ -280,7 +283,8 @@ function WidgetPreview({
   // readableOn() has a luminance to compute against — 'transparent' has none
   // and would resolve to near-white, hiding header text / footer.
   const wrapperBg = settings.transparentBackground ? 'transparent' : containerBg;
-  const headerText = readableOn(containerBg);
+  const headerText = settings.textColor || readableOn(containerBg);
+  const starColor = settings.starColor || '#F4B400';
   const cardBg = isDark ? '#1f2937' : '#ffffff';
   const textColor = isDark ? '#f3f4f6' : '#1f2937';
   const subText = isDark ? '#9ca3af' : '#5f6368';
@@ -320,7 +324,7 @@ function WidgetPreview({
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
-          style={{ color: i <= rating ? '#F4B400' : (isDark ? '#4b5563' : '#dadce0'), fontSize: '18px', lineHeight: 1 }}
+          style={{ color: i <= rating ? starColor : (isDark ? '#4b5563' : '#dadce0'), fontSize: '18px', lineHeight: 1 }}
         >
           ★
         </span>
@@ -550,7 +554,7 @@ function WidgetPreview({
               <span style={{ fontSize: '24px', fontWeight: 700, color: headerText }}>
                 {(previewLocation?.averageRating ?? 4.8).toFixed(1)}
               </span>
-              <span style={{ color: '#F4B400', fontSize: '22px', lineHeight: 1 }}>★</span>
+              <span style={{ color: starColor, fontSize: '22px', lineHeight: 1 }}>★</span>
               <span style={{ fontSize: '18px', fontWeight: 500, color: headerText }}>based on</span>
               <span style={{ fontSize: '24px', fontWeight: 700, color: headerText }}>
                 {previewLocation?.totalReviews ?? 24}
@@ -690,6 +694,8 @@ function WidgetContent() {
     accentColor: '#4285F4',
     backgroundColor: null,
     transparentBackground: false,
+    textColor: null,
+    starColor: null,
     showName: true,
     showDate: true,
     showBadge: true,
@@ -738,6 +744,8 @@ function WidgetContent() {
             accentColor: s.accentColor || '#4285F4',
             backgroundColor: s.backgroundColor ?? null,
             transparentBackground: s.transparentBackground === true,
+            textColor: s.textColor ?? null,
+            starColor: s.starColor ?? null,
             showName: s.showName !== false,
             showDate: s.showDate !== false,
             showBadge: s.showBadge !== false,
@@ -805,6 +813,8 @@ function WidgetContent() {
           accentColor: settings.accentColor,
           backgroundColor: settings.backgroundColor,
           transparentBackground: settings.transparentBackground,
+          textColor: settings.textColor,
+          starColor: settings.starColor,
           showName: settings.showName,
           showDate: settings.showDate,
           showBadge: settings.showBadge,
@@ -1031,6 +1041,95 @@ function WidgetContent() {
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                           settings.transparentBackground ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </label>
+                </div>
+
+                {/* Text color — headline & footer. Auto (null) = existing readableOn()
+                    contrast default; a custom hex overrides it (footer inherits at 0.7
+                    opacity, already wired). NOT gated by transparentBackground: this is
+                    most useful precisely when the background is transparent and the host
+                    page color is unknown. */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Text color</label>
+                  <p className="text-xs text-gray-500 mt-0.5 mb-1">Headline &amp; footer</p>
+                  <div className={`flex items-center gap-2 transition-opacity ${settings.textColor === null ? 'opacity-50' : 'opacity-100'}`}>
+                    <input
+                      type="color"
+                      value={settings.textColor || '#1f2937'}
+                      disabled={settings.textColor === null}
+                      onChange={(e) => setSettings({ ...settings, textColor: e.target.value })}
+                      className={`h-9 w-14 rounded border border-gray-300 ${settings.textColor === null ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    />
+                    <input
+                      type="text"
+                      value={settings.textColor || '#1f2937'}
+                      disabled={settings.textColor === null}
+                      onChange={(e) => { let v = e.target.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; setSettings({ ...settings, textColor: v }); }}
+                      placeholder="#1f2937"
+                      maxLength={7}
+                      className={`w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono ${settings.textColor === null ? 'cursor-not-allowed' : ''}`}
+                    />
+                  </div>
+                  {/* Auto toggle — on = Auto (textColor null, picker greyed); off = custom.
+                      Flipping to custom seeds a concrete starting hex; flipping to Auto
+                      restores null, the state the render path keys on for readableOn(). */}
+                  <label className="inline-flex items-center gap-2 mt-3">
+                    <span className="text-sm text-gray-700">Auto</span>
+                    <button
+                      type="button"
+                      onClick={() => setSettings({ ...settings, textColor: settings.textColor === null ? '#1f2937' : null })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.textColor === null ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.textColor === null ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </label>
+                </div>
+
+                {/* Star color — rating stars. Auto (null) = the existing gold #F4B400;
+                    a custom hex overrides it. Like Text color, NOT gated by transparent. */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Star color</label>
+                  <p className="text-xs text-gray-500 mt-0.5 mb-1">Rating stars</p>
+                  <div className={`flex items-center gap-2 transition-opacity ${settings.starColor === null ? 'opacity-50' : 'opacity-100'}`}>
+                    <input
+                      type="color"
+                      value={settings.starColor || '#F4B400'}
+                      disabled={settings.starColor === null}
+                      onChange={(e) => setSettings({ ...settings, starColor: e.target.value })}
+                      className={`h-9 w-14 rounded border border-gray-300 ${settings.starColor === null ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    />
+                    <input
+                      type="text"
+                      value={settings.starColor || '#F4B400'}
+                      disabled={settings.starColor === null}
+                      onChange={(e) => { let v = e.target.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; setSettings({ ...settings, starColor: v }); }}
+                      placeholder="#F4B400"
+                      maxLength={7}
+                      className={`w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono ${settings.starColor === null ? 'cursor-not-allowed' : ''}`}
+                    />
+                  </div>
+                  {/* Auto toggle — on = Auto (starColor null → #F4B400 at render); off = custom. */}
+                  <label className="inline-flex items-center gap-2 mt-3">
+                    <span className="text-sm text-gray-700">Auto</span>
+                    <button
+                      type="button"
+                      onClick={() => setSettings({ ...settings, starColor: settings.starColor === null ? '#F4B400' : null })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.starColor === null ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.starColor === null ? 'translate-x-6' : 'translate-x-1'
                         }`}
                       />
                     </button>
