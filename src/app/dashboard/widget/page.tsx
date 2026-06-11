@@ -1047,6 +1047,95 @@ function WidgetContent() {
                   </label>
                 </div>
 
+                {/* Text color — headline & footer. Auto (null) = existing readableOn()
+                    contrast default; a custom hex overrides it (footer inherits at 0.7
+                    opacity, already wired). NOT gated by transparentBackground: this is
+                    most useful precisely when the background is transparent and the host
+                    page color is unknown. */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Text color</label>
+                  <p className="text-xs text-gray-500 mt-0.5 mb-1">Headline &amp; footer</p>
+                  <div className={`flex items-center gap-2 transition-opacity ${settings.textColor === null ? 'opacity-50' : 'opacity-100'}`}>
+                    <input
+                      type="color"
+                      value={settings.textColor || '#1f2937'}
+                      disabled={settings.textColor === null}
+                      onChange={(e) => setSettings({ ...settings, textColor: e.target.value })}
+                      className={`h-9 w-14 rounded border border-gray-300 ${settings.textColor === null ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    />
+                    <input
+                      type="text"
+                      value={settings.textColor || '#1f2937'}
+                      disabled={settings.textColor === null}
+                      onChange={(e) => { let v = e.target.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; setSettings({ ...settings, textColor: v }); }}
+                      placeholder="#1f2937"
+                      maxLength={7}
+                      className={`w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono ${settings.textColor === null ? 'cursor-not-allowed' : ''}`}
+                    />
+                  </div>
+                  {/* Auto toggle — on = Auto (textColor null, picker greyed); off = custom.
+                      Flipping to custom seeds a concrete starting hex; flipping to Auto
+                      restores null, the state the render path keys on for readableOn(). */}
+                  <label className="inline-flex items-center gap-2 mt-3">
+                    <span className="text-sm text-gray-700">Auto</span>
+                    <button
+                      type="button"
+                      onClick={() => setSettings({ ...settings, textColor: settings.textColor === null ? '#1f2937' : null })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.textColor === null ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.textColor === null ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </label>
+                </div>
+
+                {/* Star color — rating stars. Auto (null) = the existing gold #F4B400;
+                    a custom hex overrides it. Like Text color, NOT gated by transparent. */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Star color</label>
+                  <p className="text-xs text-gray-500 mt-0.5 mb-1">Rating stars</p>
+                  <div className={`flex items-center gap-2 transition-opacity ${settings.starColor === null ? 'opacity-50' : 'opacity-100'}`}>
+                    <input
+                      type="color"
+                      value={settings.starColor || '#F4B400'}
+                      disabled={settings.starColor === null}
+                      onChange={(e) => setSettings({ ...settings, starColor: e.target.value })}
+                      className={`h-9 w-14 rounded border border-gray-300 ${settings.starColor === null ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    />
+                    <input
+                      type="text"
+                      value={settings.starColor || '#F4B400'}
+                      disabled={settings.starColor === null}
+                      onChange={(e) => { let v = e.target.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; setSettings({ ...settings, starColor: v }); }}
+                      placeholder="#F4B400"
+                      maxLength={7}
+                      className={`w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono ${settings.starColor === null ? 'cursor-not-allowed' : ''}`}
+                    />
+                  </div>
+                  {/* Auto toggle — on = Auto (starColor null → #F4B400 at render); off = custom. */}
+                  <label className="inline-flex items-center gap-2 mt-3">
+                    <span className="text-sm text-gray-700">Auto</span>
+                    <button
+                      type="button"
+                      onClick={() => setSettings({ ...settings, starColor: settings.starColor === null ? '#F4B400' : null })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                        settings.starColor === null ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings.starColor === null ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </label>
+                </div>
+
                 {/* Header Bar */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-start justify-between gap-4">
