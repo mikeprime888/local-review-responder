@@ -17,6 +17,8 @@ interface WidgetSettings {
   accentColor: string;
   backgroundColor: string | null;
   transparentBackground: boolean;
+  textColor: string | null;
+  starColor: string | null;
   showName: boolean;
   showDate: boolean;
   showBadge: boolean;
@@ -690,6 +692,8 @@ function WidgetContent() {
     accentColor: '#4285F4',
     backgroundColor: null,
     transparentBackground: false,
+    textColor: null,
+    starColor: null,
     showName: true,
     showDate: true,
     showBadge: true,
@@ -738,6 +742,8 @@ function WidgetContent() {
             accentColor: s.accentColor || '#4285F4',
             backgroundColor: s.backgroundColor ?? null,
             transparentBackground: s.transparentBackground === true,
+            textColor: s.textColor ?? null,
+            starColor: s.starColor ?? null,
             showName: s.showName !== false,
             showDate: s.showDate !== false,
             showBadge: s.showBadge !== false,
@@ -805,6 +811,8 @@ function WidgetContent() {
           accentColor: settings.accentColor,
           backgroundColor: settings.backgroundColor,
           transparentBackground: settings.transparentBackground,
+          textColor: settings.textColor,
+          starColor: settings.starColor,
           showName: settings.showName,
           showDate: settings.showDate,
           showBadge: settings.showBadge,
