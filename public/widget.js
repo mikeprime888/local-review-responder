@@ -91,11 +91,12 @@
     + '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>'
     + '</svg>';
 
-  function renderStars(rating, size) {
+  function renderStars(rating, size, color) {
     var s = size || 16;
+    var col = color || '#F4B400';
     var h = '';
     for (var i = 0; i < 5; i++) {
-      h += '<span style="color:' + (i < rating ? '#F4B400' : '#dadce0') + ';font-size:' + s + 'px;line-height:1;">&#9733;</span>';
+      h += '<span style="color:' + (i < rating ? col : '#dadce0') + ';font-size:' + s + 'px;line-height:1;">&#9733;</span>';
     }
     return h;
   }
@@ -149,6 +150,7 @@
       var transparentBg = cfg.transparentBackground === true;
       var wrapperBg     = transparentBg ? 'transparent' : bgWrap;
       var headerText  = cfg.textColor || readableOn(bgWrap);
+      var starColor   = cfg.starColor || '#F4B400';
       var bgCard      = isDark ? '#1f2937' : '#ffffff';
       var colText     = isDark ? '#f3f4f6' : '#1f2937';
       var colSub      = isDark ? '#9ca3af' : '#5f6368';
@@ -194,7 +196,7 @@
           h += googleGIcon;
           h += '</div>';
         }
-        h += '<div style="display:flex;align-items:center;gap:2px;margin-top:3px;">' + renderStars(review.starRating, 18) + '</div>';
+        h += '<div style="display:flex;align-items:center;gap:2px;margin-top:3px;">' + renderStars(review.starRating, 18, starColor) + '</div>';
         h += '</div></div>';
 
         // Date
@@ -300,7 +302,7 @@
         html += '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;text-align:center;line-height:1.2;">';
         html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">Overall rating</span>';
         html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + avg + '</span>';
-        html += '<span style="color:#F4B400;font-size:30px;line-height:1;">&#9733;</span>';
+        html += '<span style="color:' + starColor + ';font-size:30px;line-height:1;">&#9733;</span>';
         html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">based on</span>';
         html += '<span style="font-size:30px;font-weight:700;color:' + headerText + ';">' + total + '</span>';
         html += '<span style="font-size:30px;font-weight:500;color:' + headerText + ';">reviews</span>';
@@ -404,7 +406,7 @@
           : '<div style="display:flex;width:48px;height:48px;border-radius:50%;background:' + color
             + ';align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:20px;font-weight:600;">' + initial + '</div>';
         avatarHtml += '<div><div style="font-weight:600;font-size:16px;color:' + colText + ';">' + escapeHtml(name) + '</div>'
-          + '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">' + renderStars(rating, 18) + googleGIcon + '</div></div>';
+          + '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">' + renderStars(rating, 18, starColor) + googleGIcon + '</div></div>';
 
         document.getElementById(mid + '-avatar').innerHTML = avatarHtml;
         document.getElementById(mid + '-text').textContent = comment;

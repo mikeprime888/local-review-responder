@@ -118,6 +118,7 @@ function ReviewModal({
 }) {
   const isDark = settings.theme === 'dark';
   const accent = settings.accentColor || '#4285F4';
+  const starColor = settings.starColor || '#F4B400';
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -210,7 +211,7 @@ function ReviewModal({
                   <span
                     key={i}
                     style={{
-                      color: i <= review.rating ? '#F4B400' : (isDark ? '#4b5563' : '#dadce0'),
+                      color: i <= review.rating ? starColor : (isDark ? '#4b5563' : '#dadce0'),
                       fontSize: '18px',
                       lineHeight: 1,
                     }}
@@ -283,6 +284,7 @@ function WidgetPreview({
   // and would resolve to near-white, hiding header text / footer.
   const wrapperBg = settings.transparentBackground ? 'transparent' : containerBg;
   const headerText = settings.textColor || readableOn(containerBg);
+  const starColor = settings.starColor || '#F4B400';
   const cardBg = isDark ? '#1f2937' : '#ffffff';
   const textColor = isDark ? '#f3f4f6' : '#1f2937';
   const subText = isDark ? '#9ca3af' : '#5f6368';
@@ -322,7 +324,7 @@ function WidgetPreview({
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
-          style={{ color: i <= rating ? '#F4B400' : (isDark ? '#4b5563' : '#dadce0'), fontSize: '18px', lineHeight: 1 }}
+          style={{ color: i <= rating ? starColor : (isDark ? '#4b5563' : '#dadce0'), fontSize: '18px', lineHeight: 1 }}
         >
           ★
         </span>
@@ -552,7 +554,7 @@ function WidgetPreview({
               <span style={{ fontSize: '24px', fontWeight: 700, color: headerText }}>
                 {(previewLocation?.averageRating ?? 4.8).toFixed(1)}
               </span>
-              <span style={{ color: '#F4B400', fontSize: '22px', lineHeight: 1 }}>★</span>
+              <span style={{ color: starColor, fontSize: '22px', lineHeight: 1 }}>★</span>
               <span style={{ fontSize: '18px', fontWeight: 500, color: headerText }}>based on</span>
               <span style={{ fontSize: '24px', fontWeight: 700, color: headerText }}>
                 {previewLocation?.totalReviews ?? 24}
