@@ -1019,7 +1019,8 @@ function WidgetContent() {
                       directly beneath the swatch/hex row. Flips transparentBackground
                       ONLY; never touches backgroundColor, so the last-chosen hex is
                       preserved for restore when toggled back off. */}
-                  <label className="flex items-center gap-2 mt-3">
+                  <label className="flex items-center justify-between gap-2 mt-3">
+                    <span className="text-sm text-gray-700">Transparent</span>
                     <button
                       type="button"
                       onClick={() => setSettings({ ...settings, transparentBackground: !settings.transparentBackground })}
@@ -1033,7 +1034,6 @@ function WidgetContent() {
                         }`}
                       />
                     </button>
-                    <span className="text-sm text-gray-700">Transparent</span>
                   </label>
                 </div>
 
