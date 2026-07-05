@@ -212,7 +212,7 @@
         // so the visual truncation and the link can never disagree.
         if (comment) {
           h += '<div class="lrr-cmt" id="lrr-cmt-' + review.id + '"'
-             + ' style="font-size:15px;line-height:1.6;color:' + colText + ';flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;">'
+             + ' style="font-size:15px;line-height:1.6;color:' + colText + ';flex:1;min-height:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;">'
              + escapeHtml(comment) + '</div>';
           // Read more — sibling below the clamp, hidden until overflow measured.
           // Modal plumbing (data-* attributes + onclick) unchanged.
