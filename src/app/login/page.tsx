@@ -42,7 +42,28 @@ function LoginContent() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        // A Google-only account (exists, no password) can never match the
+        // credentials form. NextAuth v4 collapses the authorize throw to a
+        // generic "CredentialsSignin", so distinguish it with a public
+        // pre-submit check and steer the user to the Google button.
+        let message = 'Invalid email or password';
+        try {
+          const res = await fetch('/api/auth/check-account-type', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.isOAuthOnly) {
+              message =
+                "This email is registered with Google — please use the 'Sign in with Google' button above.";
+            }
+          }
+        } catch {
+          // Fall back to the generic message on any lookup failure.
+        }
+        setError(message);
         setIsLoading(false);
       } else {
         router.push('/dashboard');
