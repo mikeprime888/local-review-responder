@@ -17,6 +17,7 @@ function LoginContent() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const isDeleted = searchParams.get('deleted') === 'true';
+  const isAccessDenied = searchParams.get('error') === 'AccessDenied';
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -97,6 +98,12 @@ function LoginContent() {
         {isDeleted && (
           <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
             Your account and all associated data have been permanently deleted. We&apos;re sorry to see you go.
+          </div>
+        )}
+
+        {isAccessDenied && (
+          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            This account isn&apos;t authorized to access Local Review Responder.
           </div>
         )}
 

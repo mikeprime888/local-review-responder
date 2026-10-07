@@ -6,6 +6,18 @@ import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { sendEmail, getWelcomeEmailHtml } from './email';
 
+// Only emails listed in ALLOWED_EMAILS (comma-separated) may sign in.
+// Fails closed: if the var is unset or empty, nobody is allowed.
+export function isEmailAllowed(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const allowed = (process.env.ALLOWED_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  if (allowed.length === 0) return false;
+  return allowed.includes(email.trim().toLowerCase());
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   providers: [
@@ -37,6 +49,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password are required');
         }
 
+        if (!isEmailAllowed(credentials.email)) {
+          throw new Error('Invalid email or password');
+        }
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
@@ -61,6 +77,11 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
+      // Allowlist gate — runs for every provider, before any DB writes.
+      if (!isEmailAllowed(user?.email)) {
+        return false;
+      }
+
       if (account?.provider === 'google' && user) {
         // Check if this Google account already existed — if not, it's a new user
         const existingAccount = await prisma.account.findFirst({
