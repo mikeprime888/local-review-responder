@@ -196,14 +196,7 @@ function LoginContent() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-            Create one
-          </Link>
-        </p>
-
-        <div className="mt-4 text-center text-xs text-gray-500">
+        <div className="mt-6 text-center text-xs text-gray-500">
           <p>By signing in, you agree to our{' '}
             <a href="https://localreviewresponder.com/terms-service" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Terms of Service</a>{' '}
             and{' '}

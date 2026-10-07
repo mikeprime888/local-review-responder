@@ -29,7 +29,7 @@ npm run db:studio    # Open Prisma Studio
 src/
   app/                    # Next.js App Router pages & API routes
     api/
-      auth/               # NextAuth, registration, Google account linking
+      auth/               # NextAuth, Google account linking
       google/             # GBP accounts, locations, reviews, replies
       ai/                 # OpenAI response generation
       stripe/             # Checkout, portal, webhooks
@@ -43,7 +43,6 @@ src/
       places/             # Google Places search
     dashboard/            # Dashboard pages (reviews, locations, billing, etc.)
     login/                # Login page
-    register/             # Registration page
   components/
     dashboard/            # All dashboard UI components
     AIResponseGenerator.tsx

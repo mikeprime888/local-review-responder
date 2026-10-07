@@ -12,7 +12,7 @@ export default function HomePage() {
     if (status === 'authenticated') {
       router.push('/dashboard');
     } else if (status === 'unauthenticated') {
-      router.push('/register');
+      router.push('/login');
     }
   }, [status, router]);
 
