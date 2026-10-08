@@ -9,7 +9,7 @@ SaaS reputation management app that integrates with Google Business Profile API 
 - **Styling:** Tailwind CSS (no component libraries)
 - **Database:** PostgreSQL (Neon) via Prisma ORM
 - **Auth:** NextAuth.js (Google OAuth only, gated by `ALLOWED_EMAILS` allowlist)
-- **Payments:** Stripe (checkout, subscriptions, webhooks, customer portal)
+- **Billing:** None — Stripe was removed. `Location.isActive` is the entitlement switch.
 - **AI:** OpenAI GPT-4o-mini for review response generation
 - **Email:** SendGrid (welcome, new review alerts, account notifications)
 - **Hosting:** Vercel with daily cron job for review sync
@@ -32,16 +32,14 @@ src/
       auth/               # NextAuth, Google account linking
       google/             # GBP accounts, locations, reviews, replies
       ai/                 # OpenAI response generation
-      stripe/             # Checkout, portal, webhooks
-      subscriptions/      # Subscription management
-      billing/            # Invoice retrieval
+      locations/          # Location list (GET) & activation
       reviews/[id]/       # Review publish toggle (widget)
       widget/             # Widget API & settings
       settings/           # Account & notification preferences
       cron/               # Scheduled review sync
       admin/              # Admin user management
       places/             # Google Places search
-    dashboard/            # Dashboard pages (reviews, locations, billing, etc.)
+    dashboard/            # Dashboard pages (reviews, locations, widget, etc.)
     login/                # Login page
   components/
     dashboard/            # All dashboard UI components
@@ -49,7 +47,6 @@ src/
   lib/
     auth.ts               # NextAuth config, token refresh logic
     google-business.ts    # Google Business Profile API client
-    stripe.ts             # Stripe client & helpers
     email.ts              # SendGrid email templates
     prisma.ts             # Prisma singleton
     utils.ts              # Date formatting, truncate, initials
@@ -95,11 +92,11 @@ prisma/
 - Token refresh handled automatically via `getValidAccessToken()`
 - Per-account iteration for locations (not wildcard endpoint)
 
-### Stripe
-- Pricing: $29/month or $290/year per location
-- 14-day free trial on all subscriptions
-- Webhook events: `checkout.session.completed`, `customer.subscription.*`
-- One subscription per location (unique constraint)
+### Billing (removed)
+- LRR is a private tool for allowlisted users; Stripe billing has been removed.
+- `Location.isActive` is the only entitlement signal: review sync and widgets serve active locations only.
+- Users activate their own locations via `POST /api/locations/activate`.
+- `Subscription`, `stripeCustomerId` and `isComped` remain in `prisma/schema.prisma` for now but are unused.
 
 ### OpenAI
 - Model: `gpt-4o-mini`, temperature 0.7
@@ -110,7 +107,6 @@ prisma/
 - `DATABASE_URL` / `DIRECT_URL` - Neon PostgreSQL
 - `NEXTAUTH_URL` / `NEXTAUTH_SECRET` - NextAuth config
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
-- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` - Stripe
 - `SENDGRID_API_KEY` - Email delivery
 - `OPENAI_API_KEY` - AI responses
 
