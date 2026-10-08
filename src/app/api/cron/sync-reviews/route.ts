@@ -7,8 +7,8 @@ import { sendEmail, getNewReviewsEmailHtml } from '@/lib/email';
 /**
  * GET /api/cron/sync-reviews
  *
- * Runs on a schedule (Vercel Cron) to sync reviews for all locations
- * with active subscriptions. Sends email notifications for new reviews.
+ * Runs on a schedule (Vercel Cron) to sync reviews for all active
+ * locations (Location.isActive). Sends email notifications for new reviews.
  *
  * Protected by CRON_SECRET to prevent unauthorized access.
  */
@@ -24,27 +24,10 @@ export async function GET(request: NextRequest) {
   console.log('Cron: Starting nightly review sync...');
 
   try {
-    // Get all active locations: those with active/trialing subscriptions OR comped users
+    // Get all active locations (Location.isActive is the single source of truth)
     const activeLocations = await prisma.location.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          {
-            subscription: {
-              status: {
-                in: ['active', 'trialing'],
-              },
-            },
-          },
-          {
-            user: {
-              isComped: true,
-            },
-          },
-        ],
-      },
+      where: { isActive: true },
       include: {
-        subscription: true,
         user: {
           select: {
             id: true,
