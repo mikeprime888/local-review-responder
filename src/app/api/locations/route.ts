@@ -3,6 +3,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions, getValidAccessToken } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+/**
+ * GET /api/locations
+ *
+ * Lists the signed-in user's locations.
+ *   ?active=true     only active locations
+ *   ?available=true  only inactive locations (candidates to add)
+ *   ?sync=true       refresh locations from Google first
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -85,31 +93,23 @@ export async function GET(request: NextRequest) {
 
     if (showAvailable) {
       whereClause.isActive = false;
-      whereClause.OR = [
-        { subscription: null },
-        { subscription: { status: { notIn: ['active', 'trialing'] } } },
-      ];
     } else if (showActive) {
       whereClause.isActive = true;
     }
 
     const locations = await prisma.location.findMany({
       where: whereClause,
-      include: {
-        subscription: true,
-      },
       orderBy: { title: 'asc' },
     });
 
     // Fetch user privilege flags from DB (server-side, no hydration issues)
     const dbUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { isAdmin: true, isComped: true },
+      select: { isAdmin: true },
     });
 
     return NextResponse.json({
       isAdmin: dbUser?.isAdmin || false,
-      isComped: dbUser?.isComped || false,
       locations: locations.map(loc => ({
         id: loc.id,
         googleAccountId: loc.googleAccountId,
@@ -123,19 +123,12 @@ export async function GET(request: NextRequest) {
         averageRating: loc.averageRating,
         totalReviews: loc.totalReviews,
         isActive: loc.isActive,
-        subscription: loc.subscription ? {
-          id: loc.subscription.id,
-          status: loc.subscription.status,
-          currentPeriodEnd: loc.subscription.currentPeriodEnd,
-          cancelAtPeriodEnd: loc.subscription.cancelAtPeriodEnd,
-          trialEnd: loc.subscription.trialEnd,
-        } : null,
       })),
     });
   } catch (error: any) {
-    console.error('Subscriptions API error:', error);
+    console.error('Locations API error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch subscriptions' },
+      { error: error.message || 'Failed to fetch locations' },
       { status: 500 }
     );
   }

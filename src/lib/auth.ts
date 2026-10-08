@@ -104,10 +104,9 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { isAdmin: true, isComped: true },
+          select: { isAdmin: true },
         });
         token.isAdmin = dbUser?.isAdmin || false;
-        token.isComped = dbUser?.isComped || false;
       }
       if (account?.provider === 'google') {
         token.hasGoogleAccount = true;
@@ -126,7 +125,6 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         (session.user as any).hasGoogleAccount = token.hasGoogleAccount || false;
         (session.user as any).isAdmin = token.isAdmin || false;
-        (session.user as any).isComped = token.isComped || false;
       }
       return session;
     },

@@ -67,7 +67,7 @@ function ReviewsContent() {
   // Fetch locations for filter dropdown
   useEffect(() => {
     if (!session) return;
-    fetch('/api/subscriptions?active=true')
+    fetch('/api/locations?active=true')
       .then((res) => res.json())
       .then((data) => {
         setLocations(

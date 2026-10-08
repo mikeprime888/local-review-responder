@@ -65,7 +65,7 @@ function AddLocationContent() {
     try {
       if (sync) setSyncing(true);
       setError(null);
-      const url = sync ? '/api/subscriptions?available=true&sync=true' : '/api/subscriptions?available=true';
+      const url = sync ? '/api/locations?available=true&sync=true' : '/api/locations?available=true';
       const response = await fetch(url);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to fetch locations');

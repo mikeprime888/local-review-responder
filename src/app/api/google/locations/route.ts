@@ -155,12 +155,6 @@ const locations = await prisma.location.findMany({
         _count: {
           select: { reviews: true },
         },
-        subscription: {
-          select: {
-            status: true,
-            trialEnd: true,
-          },
-        },
       },
       orderBy: { title: 'asc' },
     });

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { stripe } from '@/lib/stripe';
 
 export async function POST() {
   try {
@@ -12,23 +11,6 @@ export async function POST() {
     }
 
     const userId = session.user.id;
-
-    // Cancel all active/trialing Stripe subscriptions immediately
-    const subscriptions = await prisma.subscription.findMany({
-      where: {
-        userId,
-        status: { in: ['active', 'trialing', 'past_due'] },
-      },
-      select: { stripeSubscriptionId: true },
-    });
-
-    for (const sub of subscriptions) {
-      try {
-        await stripe.subscriptions.cancel(sub.stripeSubscriptionId);
-      } catch (err) {
-        console.error(`Failed to cancel Stripe subscription ${sub.stripeSubscriptionId}:`, err);
-      }
-    }
 
     // Get all location IDs for this user (needed to delete reviews and widget settings)
     const locationIds = await prisma.location.findMany({

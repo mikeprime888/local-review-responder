@@ -285,7 +285,7 @@ function OnboardingContent() {
 
     const checkLocations = async () => {
       try {
-        const response = await fetch('/api/subscriptions?active=true');
+        const response = await fetch('/api/locations?active=true');
         if (!response.ok) {
           setChecking(false);
           return;

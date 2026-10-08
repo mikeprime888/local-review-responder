@@ -222,11 +222,11 @@ useEffect(() => {
 
 const fetchLocations = useCallback(async () => {
   try {
-    const response = await fetch('/api/subscriptions?active=true');
+    const response = await fetch('/api/locations?active=true');
     const data = await response.json();
     if (!response.ok) throw new Error(data.error);
     setLocations(data.locations || []);
-    setIsPrivileged(!!(data.isAdmin || data.isComped));
+    setIsPrivileged(!!data.isAdmin);
     setLocationsFetched(true);
 
     const savedLocationId = localStorage.getItem('selectedLocationId');
