@@ -1,10 +1,24 @@
 import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from './prisma';
-import bcrypt from 'bcryptjs';
 import { sendEmail, getWelcomeEmailHtml } from './email';
+
+// Only emails listed in ALLOWED_EMAILS (comma-separated) may sign in.
+// Fails closed: if the var is unset or empty, nobody is allowed.
+function parseAllowedEmails(): string[] {
+  return (process.env.ALLOWED_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isEmailAllowed(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const allowed = parseAllowedEmails();
+  if (allowed.length === 0) return false;
+  return allowed.includes(email.trim().toLowerCase());
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -26,41 +40,19 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email and password are required');
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-
-        if (!user || !user.password) {
-          throw new Error('Invalid email or password');
-        }
-
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) {
-          throw new Error('Invalid email or password');
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
-      },
-    }),
   ],
   callbacks: {
     async signIn({ user, account }) {
+      // Allowlist gate — runs for every provider, before any DB writes.
+      if (!isEmailAllowed(user?.email)) {
+        // Diagnostic: never log the allowlist contents, only its shape.
+        const raw = process.env.ALLOWED_EMAILS;
+        console.warn(
+          `[auth] sign-in rejected: email=${user?.email || '(none)'}, provider=${account?.provider}, allowlistEntries=${parseAllowedEmails().length}, allowlistVarPresent=${raw !== undefined}, rawType=${typeof raw}, rawLength=${raw?.length ?? 0}`
+        );
+        return false;
+      }
+
       if (account?.provider === 'google' && user) {
         // Check if this Google account already existed — if not, it's a new user
         const existingAccount = await prisma.account.findFirst({
@@ -141,6 +133,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/login',
+    error: '/login',
   },
   session: {
     strategy: 'jwt',

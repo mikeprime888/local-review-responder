@@ -22,7 +22,6 @@ const user = await prisma.user.findUnique({
         name: true,
         email: true,
         image: true,
-        password: true,
         accounts: {
           select: {
             provider: true,
@@ -47,7 +46,6 @@ const user = await prisma.user.findUnique({
       name: user.name,
       email: user.email,
       image: user.image,
-      hasPassword: !!user.password,
       providers: user.accounts.map((a) => a.provider),
       locationCount: user._count.locations,
       subscriptionCount: user._count.subscriptions,

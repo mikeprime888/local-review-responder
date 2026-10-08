@@ -3,20 +3,14 @@
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
-import Link from 'next/link';
 
 function LoginContent() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const isDeleted = searchParams.get('deleted') === 'true';
+  const isAccessDenied = searchParams.get('error') === 'AccessDenied';
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -27,51 +21,6 @@ function LoginContent() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     await signIn('google', { callbackUrl: '/dashboard' });
-  };
-
-  const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        // A Google-only account (exists, no password) can never match the
-        // credentials form. NextAuth v4 collapses the authorize throw to a
-        // generic "CredentialsSignin", so distinguish it with a public
-        // pre-submit check and steer the user to the Google button.
-        let message = 'Invalid email or password';
-        try {
-          const res = await fetch('/api/auth/check-account-type', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data?.isOAuthOnly) {
-              message =
-                "This email is registered with Google — please use the 'Sign in with Google' button above.";
-            }
-          }
-        } catch {
-          // Fall back to the generic message on any lookup failure.
-        }
-        setError(message);
-        setIsLoading(false);
-      } else {
-        router.push('/dashboard');
-      }
-    } catch {
-      setError('Something went wrong. Please try again.');
-      setIsLoading(false);
-    }
   };
 
   if (status === 'loading') {
@@ -100,10 +49,16 @@ function LoginContent() {
           </div>
         )}
 
+        {isAccessDenied && (
+          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            This account isn&apos;t authorized to access Local Review Responder.
+          </div>
+        )}
+
         {/* Google Sign In */}
         <button
           onClick={handleGoogleSignIn}
-          disabled={isGoogleLoading || isLoading}
+          disabled={isGoogleLoading}
           className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isGoogleLoading ? (
@@ -119,84 +74,7 @@ function LoginContent() {
           <span>{isGoogleLoading ? 'Signing in...' : 'Continue with Google'}</span>
         </button>
 
-        {/* Divider */}
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">or sign in with email</span>
-          </div>
-        </div>
-
-        {/* Email/Password Form */}
-        <form onSubmit={handleEmailSignIn} className="space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
-            </div>
-          )}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                Forgot password?
-              </Link>
-            </div>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                className="w-full px-4 py-2.5 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={isLoading || isGoogleLoading}
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-            Create one
-          </Link>
-        </p>
-
-        <div className="mt-4 text-center text-xs text-gray-500">
+        <div className="mt-6 text-center text-xs text-gray-500">
           <p>By signing in, you agree to our{' '}
             <a href="https://localreviewresponder.com/terms-service" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Terms of Service</a>{' '}
             and{' '}

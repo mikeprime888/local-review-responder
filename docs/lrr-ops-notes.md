@@ -111,12 +111,21 @@ URL: `app.localreviewresponder.com/admin`
 
 ---
 
+## Auth — Google sign-in only
+
+- Email/password login has been removed: no `CredentialsProvider`, no forgot/reset-password pages or APIs, no `check-account-type` endpoint, no `/api/settings/password`. The `User.password` column remains in the schema (all values NULL) pending a later cleanup.
+- Sign-in is Google OAuth only, gated by the `ALLOWED_EMAILS` allowlist (`isEmailAllowed` in `src/lib/auth.ts`). Denied sign-ins redirect to `/login?error=AccessDenied` (NextAuth `pages.error = '/login'`).
+
+---
+
 ## Neon DB
 
 ### Branches
 - **Production:** `ep-young-haze`
 - **Preview:** `ep-misty-bar` (schema-only, no auto-delete; used by the dev preview build)
 - SQL editor branch selector: navigate to the branch in the sidebar FIRST, then open the SQL Editor.
+
+> **Preview seed data:** `ep-misty-bar` contains a seeded test Google `Account` row for `mikeprime888@gmail.com` (`providerAccountId: preview-seed-mikeprime888` — a placeholder, not a real token), added to give that account an OAuth-only shape for testing login detection on preview. Harmless, preview-only, never in production — don't mistake it for real data or a bug, and don't delete it expecting a sync to recreate it.
 
 ### Schema-change targeting (important)
 `prisma db push` applies to whatever `DATABASE_URL`/`DIRECT_URL` `.env` currently points at. For dev-branch work, the **preview DB (`ep-misty-bar`)** needs the schema or the preview build throws on reads of the new column. Confirm the target before pushing; restore `.env` and leave the tree clean afterward.
@@ -198,4 +207,4 @@ The widget exists in **two** places that must be changed together for any visual
 
 ---
 
-*Last updated: 2026-06-04 — Added Claude Code session-orientation block; refreshed entitlement/webhook guards (isActive, verified webhook guard); added Review Widget architecture, color/contrast rules, truncation/modal notes, debugging lessons, and backlog (incl. widget XSS).*
+*Last updated: 2026-07-06 — Noted the `ep-misty-bar` OAuth-only seed row (`preview-seed-mikeprime888`) and the live OAuth-only login hint (`check-account-type` endpoint + login-page wiring, commits 69f3fb0 + 6288236).*

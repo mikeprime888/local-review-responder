@@ -8,7 +8,7 @@ SaaS reputation management app that integrates with Google Business Profile API 
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS (no component libraries)
 - **Database:** PostgreSQL (Neon) via Prisma ORM
-- **Auth:** NextAuth.js (Google OAuth + email/password credentials)
+- **Auth:** NextAuth.js (Google OAuth only, gated by `ALLOWED_EMAILS` allowlist)
 - **Payments:** Stripe (checkout, subscriptions, webhooks, customer portal)
 - **AI:** OpenAI GPT-4o-mini for review response generation
 - **Email:** SendGrid (welcome, new review alerts, account notifications)
@@ -29,7 +29,7 @@ npm run db:studio    # Open Prisma Studio
 src/
   app/                    # Next.js App Router pages & API routes
     api/
-      auth/               # NextAuth, registration, Google account linking
+      auth/               # NextAuth, Google account linking
       google/             # GBP accounts, locations, reviews, replies
       ai/                 # OpenAI response generation
       stripe/             # Checkout, portal, webhooks
@@ -43,7 +43,6 @@ src/
       places/             # Google Places search
     dashboard/            # Dashboard pages (reviews, locations, billing, etc.)
     login/                # Login page
-    register/             # Registration page
   components/
     dashboard/            # All dashboard UI components
     AIResponseGenerator.tsx
