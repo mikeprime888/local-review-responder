@@ -31,7 +31,6 @@ const user = await prisma.user.findUnique({
         _count: {
           select: {
             locations: true,
-            subscriptions: true,
           },
         },
       },
@@ -48,7 +47,6 @@ const user = await prisma.user.findUnique({
       image: user.image,
       providers: user.accounts.map((a) => a.provider),
       locationCount: user._count.locations,
-      subscriptionCount: user._count.subscriptions,
     });
   } catch (error) {
     console.error('Failed to fetch account info:', error);
@@ -59,7 +57,6 @@ const user = await prisma.user.findUnique({
 /**
  * DELETE /api/settings/account
  * Deletes the current user's account and all associated data.
- * Stripe subscriptions should be canceled via the portal first.
  */
 export async function DELETE() {
   try {
@@ -73,51 +70,11 @@ export async function DELETE() {
       select: {
         name: true,
         email: true,
-        stripeCustomerId: true,
-        subscriptions: {
-          where: { status: { in: ['active', 'trialing'] } },
-        },
       },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Block deletion if active subscriptions exist
-    if (user.subscriptions.length > 0) {
-      return NextResponse.json(
-        {
-          error:
-            'Please cancel all active subscriptions via "Manage Subscription" on the Billing page before closing your account.',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Cancel any Stripe subscriptions at Stripe level if customer exists
-    if (user.stripeCustomerId) {
-      try {
-        const stripe = (await import('stripe')).default;
-        const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY!, {
-          apiVersion: '2024-12-18.acacia' as any,
-        });
-
-        // Cancel all subscriptions for this customer
-        const subs = await stripeClient.subscriptions.list({
-          customer: user.stripeCustomerId,
-          status: 'all',
-        });
-
-        for (const sub of subs.data) {
-          if (['active', 'trialing', 'past_due'].includes(sub.status)) {
-            await stripeClient.subscriptions.cancel(sub.id);
-          }
-        }
-      } catch (stripeError) {
-        console.error('Stripe cleanup error (non-fatal):', stripeError);
-        // Continue with account deletion even if Stripe cleanup fails
-      }
     }
 
     // Send account closed email before deleting

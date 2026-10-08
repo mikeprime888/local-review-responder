@@ -10,12 +10,8 @@ interface AdminUser {
   name: string | null;
   email: string | null;
   isAdmin: boolean;
-  isComped: boolean;
-  compedAt: string | null;
-  compedNote: string | null;
   providers: string[];
   locationCount: number;
-  subscriptionCount: number;
 }
 
 export default function AdminPage() {
@@ -26,9 +22,6 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [compingEmail, setCompingEmail] = useState<string | null>(null);
-  const [compNote, setCompNote] = useState('');
-  const [showNoteInput, setShowNoteInput] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -61,7 +54,7 @@ export default function AdminPage() {
   };
 
   const handleDelete = async (userId: string, email: string | null) => {
-    if (!confirm(`Are you sure you want to delete ${email || 'this user'}? This will delete all their data including locations, reviews, and subscriptions. This cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete ${email || 'this user'}? This will delete all their data including locations and reviews. This cannot be undone.`)) {
       return;
     }
 
@@ -89,73 +82,6 @@ export default function AdminPage() {
       setError(err.message);
     } finally {
       setDeletingId(null);
-    }
-  };
-
-  const handleGrantComp = async (email: string | null) => {
-    if (!email) return;
-
-    const note = compNote.trim() || undefined;
-    setShowNoteInput(null);
-    setCompNote('');
-
-    try {
-      setCompingEmail(email);
-      setError(null);
-
-      const response = await fetch('/api/admin/comp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, note }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to grant comp access');
-      }
-
-      setSuccessMessage(data.message);
-      await fetchUsers();
-
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setCompingEmail(null);
-    }
-  };
-
-  const handleRevokeComp = async (email: string | null) => {
-    if (!email) return;
-    if (!confirm(`Revoke comp access for ${email}? They will need to re-subscribe to regain access.`)) {
-      return;
-    }
-
-    try {
-      setCompingEmail(email);
-      setError(null);
-
-      const response = await fetch('/api/admin/comp', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to revoke comp access');
-      }
-
-      setSuccessMessage(data.message);
-      await fetchUsers();
-
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setCompingEmail(null);
     }
   };
 
@@ -218,8 +144,6 @@ export default function AdminPage() {
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Auth</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Locations</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Subs</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Comp</th>
                   <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -253,74 +177,6 @@ export default function AdminPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">{user.locationCount}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{user.subscriptionCount}</td>
-                    <td className="px-6 py-4">
-                      {user.isComped ? (
-                        <div>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                            Comped
-                          </span>
-                          {user.compedAt && (
-                            <div className="text-xs text-gray-400 mt-1">
-                              {new Date(user.compedAt).toLocaleDateString()}
-                            </div>
-                          )}
-                          {user.compedNote && (
-                            <div className="text-xs text-gray-500 mt-0.5 italic max-w-[150px] truncate" title={user.compedNote}>
-                              {user.compedNote}
-                            </div>
-                          )}
-                          <button
-                            onClick={() => handleRevokeComp(user.email)}
-                            disabled={compingEmail === user.email}
-                            className="mt-1 text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
-                          >
-                            {compingEmail === user.email ? 'Revoking...' : 'Revoke'}
-                          </button>
-                        </div>
-                      ) : (
-                        <div>
-                          {showNoteInput === user.id ? (
-                            <div className="flex flex-col gap-1">
-                              <input
-                                type="text"
-                                placeholder="Note (optional)"
-                                value={compNote}
-                                onChange={(e) => setCompNote(e.target.value)}
-                                className="text-xs border border-gray-300 rounded px-2 py-1 w-36"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleGrantComp(user.email);
-                                  if (e.key === 'Escape') { setShowNoteInput(null); setCompNote(''); }
-                                }}
-                                autoFocus
-                              />
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={() => handleGrantComp(user.email)}
-                                  disabled={compingEmail === user.email}
-                                  className="text-xs text-green-600 hover:text-green-800 disabled:opacity-50"
-                                >
-                                  {compingEmail === user.email ? 'Granting...' : 'Confirm'}
-                                </button>
-                                <button
-                                  onClick={() => { setShowNoteInput(null); setCompNote(''); }}
-                                  className="text-xs text-gray-500 hover:text-gray-700"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setShowNoteInput(user.id)}
-                              className="text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-2 py-1"
-                            >
-                              Grant Comp
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </td>
                     <td className="px-6 py-4 text-right">
                       {user.isAdmin ? (
                         <span className="text-xs text-gray-400">Protected</span>
@@ -338,7 +194,7 @@ export default function AdminPage() {
                 ))}
                 {users.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                       No users found.
                     </td>
                   </tr>

@@ -90,7 +90,7 @@ export default function NotificationsPage() {
       iconBg: 'bg-blue-50',
       title: 'New review alerts',
       description:
-        'Get notified when customers leave new reviews on any of your subscribed locations. Emails are sent during the nightly sync (2 AM EST).',
+        'Get notified when customers leave new reviews on any of your active locations. Emails are sent during the nightly sync (2 AM EST).',
     },
     {
       key: 'notifyLowRated' as const,

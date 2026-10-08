@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle2, LockKeyhole, MapPin, Gift, Mail, ArrowRight } from 'lucide-react';
+import { CheckCircle2, LockKeyhole, MapPin, Mail, ArrowRight } from 'lucide-react';
 
 // ─── Scenario type ────────────────────────────────────────────────────────────
 type Scenario = 'gbp-owner' | 'no-access' | 'no-gbp';
@@ -87,7 +87,7 @@ function ProgressSection() {
   return (
     <div className="text-center" style={{ padding: '16px 32px 0' }}>
       <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
-        Connect Google &nbsp;→&nbsp; Choose location &nbsp;→&nbsp; Start trial
+        Connect Google &nbsp;→&nbsp; Choose location &nbsp;→&nbsp; Start syncing
       </p>
     </div>
   );
@@ -285,7 +285,7 @@ function OnboardingContent() {
 
     const checkLocations = async () => {
       try {
-        const response = await fetch('/api/subscriptions?active=true');
+        const response = await fetch('/api/locations?active=true');
         if (!response.ok) {
           setChecking(false);
           return;
@@ -355,17 +355,6 @@ function OnboardingContent() {
           <p style={{ fontSize: 15, color: '#64748b', lineHeight: '24px', marginBottom: 24 }}>
             Sign in with the Google account that manages your business profile to sync your reviews.
           </p>
-
-          {/* Trial banner */}
-          <div
-            className="flex items-center gap-2.5"
-            style={{ backgroundColor: '#eef8f1', border: '1px solid #a7dbba', borderRadius: 12, padding: '12px 16px', marginBottom: 22 }}
-          >
-            <Gift size={18} color="#1d6b3b" className="flex-shrink-0" />
-            <span style={{ fontSize: 14, color: '#1d6b3b' }}>
-              14-day free trial — cancel before day 14 and you won&apos;t be charged.
-            </span>
-          </div>
 
           {/* Requirements */}
           <p className="font-bold uppercase" style={{ fontSize: 11, letterSpacing: '1px', color: '#64748b', marginBottom: 4 }}>

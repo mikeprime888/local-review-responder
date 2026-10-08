@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 /**
  * POST /api/locations/activate
  *
- * Activates a location directly for comped users, bypassing Stripe.
+ * Activates one of the signed-in user's locations (sign-in is allowlist-gated).
  *
  * Body: { locationId: string }
  */
@@ -17,10 +17,6 @@ export async function POST(request: NextRequest) {
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    if (!(session.user as any).isComped) {
-      return NextResponse.json({ error: 'This endpoint is only available for comped accounts.' }, { status: 403 });
     }
 
     const body = await request.json();
