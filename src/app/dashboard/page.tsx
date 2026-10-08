@@ -15,10 +15,6 @@ interface Location {
   averageRating: number;
   totalReviews: number;
   isActive: boolean;
-  subscription: {
-    status: string;
-    trialEnd: string | null;
-  } | null;
 }
 
 interface Review {
@@ -197,8 +193,8 @@ function DashboardContent() {
   const selectedLocation = locations.find(l => l.id === selectedLocationId);
 
   useEffect(() => {
-    if (searchParams.get('subscription') === 'success') {
-      setSuccessMessage('🎉 Location added successfully! Your 14-day free trial has started.');
+    if (searchParams.get('added') === 'true') {
+      setSuccessMessage('🎉 Location added successfully!');
       setIsFirstVisit(true);
       window.history.replaceState({}, '', '/dashboard');
     }
@@ -409,18 +405,6 @@ const fetchLocations = useCallback(async () => {
         </div>
       )}
 
-      {/* Trial Banner */}
-      {selectedLocation?.subscription?.status === 'trialing' && selectedLocation.subscription.trialEnd && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 flex items-center gap-2">
-          <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>
-            Free trial ends {new Date(selectedLocation.subscription.trialEnd).toLocaleDateString()}
-          </span>
-        </div>
-      )}
-
       {/* Unreplied Reviews Banner — prominent full-width CTA */}
       {stats && stats.unrepliedCount > 0 && (
         <Link
@@ -544,20 +528,6 @@ const fetchLocations = useCallback(async () => {
                 <div>
                   <div className="font-medium">Notifications</div>
                   <div className="text-xs text-gray-500">Email alerts for new reviews</div>
-                </div>
-              </Link>
-              <Link
-                href="/dashboard/billing"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-sm text-gray-700"
-              >
-                <span className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </span>
-                <div>
-                  <div className="font-medium">Billing</div>
-                  <div className="text-xs text-gray-500">Manage subscription and payment</div>
                 </div>
               </Link>
             </div>

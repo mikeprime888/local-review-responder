@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface Location {
@@ -17,17 +17,13 @@ interface Location {
 function AddLocationContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
+  const [activatingId, setActivatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasGoogleAccount, setHasGoogleAccount] = useState<boolean | null>(null);
   const [connectingGoogle, setConnectingGoogle] = useState(false);
-
-  const wasCanceled = searchParams.get('canceled') === 'true';
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -90,34 +86,20 @@ function AddLocationContent() {
 
   const handleAddLocation = async (locationId: string) => {
     try {
-      setCheckoutLoading(locationId);
+      setActivatingId(locationId);
       setError(null);
 
-      if ((session?.user as any)?.isComped) {
-        const response = await fetch('/api/locations/activate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ locationId }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Failed to activate location');
-        if (data.activated) {
-          router.push('/dashboard');
-          return;
-        }
-      }
-
-      const response = await fetch('/api/stripe/checkout', {
+      const response = await fetch('/api/locations/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locationId, plan: selectedPlan }),
+        body: JSON.stringify({ locationId }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to create checkout session');
-      if (data.url) window.location.href = data.url;
+      if (!response.ok) throw new Error(data.error || 'Failed to activate location');
+      router.push('/dashboard?added=true');
     } catch (err: any) {
       setError(err.message);
-      setCheckoutLoading(null);
+      setActivatingId(null);
     }
   };
 
@@ -149,12 +131,6 @@ function AddLocationContent() {
         </div>
       </header>
       <main className="max-w-3xl mx-auto px-4 py-8">
-        {wasCanceled && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
-            Checkout was canceled. Select a location to try again.
-          </div>
-        )}
-
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
             {error}
@@ -200,29 +176,8 @@ function AddLocationContent() {
             </div>
           </div>
         ) : (
-          // Google account linked — show plan selection and locations
+          // Google account linked — show locations
           <>
-            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Your Plan</h2>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setSelectedPlan('monthly')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition ${selectedPlan === 'monthly' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                >
-                  <div className="font-semibold text-gray-900">Monthly</div>
-                  <div className="text-2xl font-bold text-gray-900 mt-1">$29<span className="text-sm font-normal text-gray-500">/mo</span></div>
-                </button>
-                <button
-                  onClick={() => setSelectedPlan('yearly')}
-                  className={`flex-1 p-4 rounded-lg border-2 transition ${selectedPlan === 'yearly' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                >
-                  <div className="font-semibold text-gray-900">Yearly <span className="text-green-600 text-sm">(Save $58)</span></div>
-                  <div className="text-2xl font-bold text-gray-900 mt-1">$290<span className="text-sm font-normal text-gray-500">/yr</span></div>
-                </button>
-              </div>
-              <p className="text-sm text-gray-500 mt-4 text-center">All plans include a 14-day free trial. A credit card is required to start, but you won&apos;t be charged until the trial ends.</p>
-            </div>
-
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Your Google Business Locations</h2>
@@ -243,7 +198,7 @@ function AddLocationContent() {
               ) : locations.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <p>No available locations found.</p>
-                  <p className="text-sm mt-2">All your locations may already be subscribed, or you need to sync from Google.</p>
+                  <p className="text-sm mt-2">All your locations may already be added, or you need to sync from Google.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -258,10 +213,10 @@ function AddLocationContent() {
                       </div>
                       <button
                         onClick={() => handleAddLocation(location.id)}
-                        disabled={checkoutLoading === location.id}
+                        disabled={activatingId === location.id}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
                       >
-                        {checkoutLoading === location.id ? 'Loading...' : 'Add Location'}
+                        {activatingId === location.id ? 'Adding...' : 'Add Location'}
                       </button>
                     </div>
                   ))}

@@ -11,7 +11,6 @@ import {
   Settings,
   LogOut,
   MessageSquare,
-  CreditCard,
   X,
 } from 'lucide-react';
 
@@ -20,7 +19,6 @@ const navigation = [
   { name: 'Reviews', href: '/dashboard/reviews', icon: MessageSquare },
   { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
   { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
-  { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   { name: 'Review Widget', href: '/dashboard/widget', icon: Code },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];

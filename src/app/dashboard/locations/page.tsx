@@ -17,10 +17,6 @@ interface Location {
   totalReviews: number;
   isActive: boolean;
   lastSyncedAt: string | null;
-  subscription: {
-    status: string;
-    trialEnd: string | null;
-  } | null;
 }
 
 function LocationsContent() {
@@ -81,17 +77,7 @@ function LocationsContent() {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <h3 className="text-lg font-semibold text-gray-900 break-words">{location.title}</h3>
-                    {location.subscription ? (
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                        location.subscription.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : location.subscription.status === 'trialing'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {location.subscription.status === 'trialing' ? 'Trial' : location.subscription.status}
-                      </span>
-                    ) : location.isActive ? (
+                    {location.isActive ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap bg-green-100 text-green-800">
                         Active
                       </span>
@@ -100,7 +86,7 @@ function LocationsContent() {
                         href="/dashboard/add-location"
                         className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition-colors whitespace-nowrap"
                       >
-                        Subscribe →
+                        Activate →
                       </Link>
                     )}
                   </div>
@@ -121,7 +107,7 @@ function LocationsContent() {
                     <span className="text-sm text-gray-500">
                       {location.isActive
                         ? `${location.totalReviews} reviews`
-                        : 'Subscribe to sync reviews'}
+                        : 'Activate to sync reviews'}
                     </span>
                     {location.phone && (
                       <span className="text-sm text-gray-500">{location.phone}</span>

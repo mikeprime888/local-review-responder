@@ -18,7 +18,7 @@ function ProgressSteps({ step }: { step: 1 | 2 | 3 }) {
       {[
         { n: 1, label: 'Connect Google' },
         { n: 2, label: 'Choose location' },
-        { n: 3, label: 'Start trial' },
+        { n: 3, label: 'Start syncing' },
       ].map(({ n, label }, i, arr) => (
         <div key={n} className="flex items-center">
           <div className="flex flex-col items-center gap-1.5">
@@ -136,11 +136,6 @@ export function BusinessSearch({ hasGoogleToken, userEmail }: BusinessSearchProp
           </div>
         </div>
       </div>
-
-      {/* Trial info */}
-      <p className="text-xs text-gray-400 text-center mb-5">
-        Start with a 14-day free trial — no charge today.
-      </p>
 
       {/* CTA */}
       {hasGoogleToken ? (

@@ -7,7 +7,6 @@ import {
   Shield,
   Palette,
   MapPin,
-  CreditCard,
   Calendar,
   Trash2,
   Loader2,
@@ -22,7 +21,6 @@ interface AccountInfo {
   createdAt: string;
   providers: string[];
   locationCount: number;
-  subscriptionCount: number;
 }
 
 export default function SettingsPage() {
@@ -117,10 +115,6 @@ export default function SettingsPage() {
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" />
                 {account?.locationCount || 0} location{account?.locationCount !== 1 ? 's' : ''}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <CreditCard className="h-3.5 w-3.5" />
-                {account?.subscriptionCount || 0} subscription{account?.subscriptionCount !== 1 ? 's' : ''}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
@@ -240,11 +234,6 @@ export default function SettingsPage() {
             <p className="text-sm text-red-800 font-medium mb-3">
               Are you sure? Type <span className="font-mono font-bold">DELETE</span> to confirm.
             </p>
-            {account && (account.subscriptionCount > 0) && (
-              <p className="text-xs text-red-600 mb-3">
-                ⚠️ You have {account.subscriptionCount} active subscription{account.subscriptionCount > 1 ? 's' : ''}. Please cancel them on the Billing page first.
-              </p>
-            )}
             <div className="flex items-center gap-3">
               <input
                 type="text"
