@@ -6,12 +6,16 @@ import { sendEmail, getWelcomeEmailHtml } from './email';
 
 // Only emails listed in ALLOWED_EMAILS (comma-separated) may sign in.
 // Fails closed: if the var is unset or empty, nobody is allowed.
-export function isEmailAllowed(email: string | null | undefined): boolean {
-  if (!email) return false;
-  const allowed = (process.env.ALLOWED_EMAILS || '')
+function parseAllowedEmails(): string[] {
+  return (process.env.ALLOWED_EMAILS || '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
+}
+
+export function isEmailAllowed(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const allowed = parseAllowedEmails();
   if (allowed.length === 0) return false;
   return allowed.includes(email.trim().toLowerCase());
 }
@@ -41,6 +45,11 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       // Allowlist gate — runs for every provider, before any DB writes.
       if (!isEmailAllowed(user?.email)) {
+        // Diagnostic: never log the allowlist contents, only its shape.
+        const raw = process.env.ALLOWED_EMAILS;
+        console.warn(
+          `[auth] sign-in rejected: email=${user?.email || '(none)'}, provider=${account?.provider}, allowlistEntries=${parseAllowedEmails().length}, allowlistVarPresent=${raw !== undefined}, rawType=${typeof raw}, rawLength=${raw?.length ?? 0}`
+        );
         return false;
       }
 
