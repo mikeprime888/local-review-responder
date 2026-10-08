@@ -8,7 +8,7 @@ SaaS reputation management app that integrates with Google Business Profile API 
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS (no component libraries)
 - **Database:** PostgreSQL (Neon) via Prisma ORM
-- **Auth:** NextAuth.js (Google OAuth + email/password credentials)
+- **Auth:** NextAuth.js (Google OAuth only, gated by `ALLOWED_EMAILS` allowlist)
 - **Payments:** Stripe (checkout, subscriptions, webhooks, customer portal)
 - **AI:** OpenAI GPT-4o-mini for review response generation
 - **Email:** SendGrid (welcome, new review alerts, account notifications)

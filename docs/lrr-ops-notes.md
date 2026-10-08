@@ -111,11 +111,10 @@ URL: `app.localreviewresponder.com/admin`
 
 ---
 
-## Auth — OAuth-only login hint
+## Auth — Google sign-in only
 
-- **Live on `main`.** A Google-registered (passwordless) user who submits the email/password form now sees a "use the **Sign in with Google** button" message instead of the generic "Invalid email or password".
-- Public unauthenticated `POST /api/auth/check-account-type` returns only `{ isOAuthOnly }` (true iff the email is an existing passwordless account with a linked Google account); it **fails closed** to `false` and never reveals whether an arbitrary email has an account. `src/app/login/page.tsx` calls it on a credentials failure and swaps the message.
-- Shipped by commits `69f3fb0` (endpoint) + `6288236` (wiring).
+- Email/password login has been removed: no `CredentialsProvider`, no forgot/reset-password pages or APIs, no `check-account-type` endpoint, no `/api/settings/password`. The `User.password` column remains in the schema (all values NULL) pending a later cleanup.
+- Sign-in is Google OAuth only, gated by the `ALLOWED_EMAILS` allowlist (`isEmailAllowed` in `src/lib/auth.ts`). Denied sign-ins redirect to `/login?error=AccessDenied` (NextAuth `pages.error = '/login'`).
 
 ---
 
