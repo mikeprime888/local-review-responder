@@ -21,6 +21,7 @@ function AddLocationContent() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [activatingId, setActivatingId] = useState<string | null>(null);
+  const [allActive, setAllActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasGoogleAccount, setHasGoogleAccount] = useState<boolean | null>(null);
   const [connectingGoogle, setConnectingGoogle] = useState(false);
@@ -72,10 +73,20 @@ function AddLocationContent() {
       const fetchedLocations = data.locations || [];
       setLocations(fetchedLocations);
 
-      // After initial sync, if no locations found, redirect to guidance screen
-      if (sync && fetchedLocations.length === 0) {
-        router.replace('/onboarding?step=no-locations');
-        return;
+      if (fetchedLocations.length === 0) {
+        // Nothing left to add — distinguish "all already active" from "none at all"
+        const activeRes = await fetch('/api/locations?active=true');
+        const activeData = activeRes.ok ? await activeRes.json() : { locations: [] };
+        const hasActive = (activeData.locations || []).length > 0;
+        setAllActive(hasActive);
+
+        // After initial sync, if the user truly has no locations, redirect to guidance screen
+        if (sync && !hasActive) {
+          router.replace('/onboarding?step=no-locations');
+          return;
+        }
+      } else {
+        setAllActive(false);
       }
     } catch (err: any) {
       setError(err.message);
@@ -194,6 +205,13 @@ function AddLocationContent() {
                 <div className="text-center py-8 text-gray-500">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
                   <p className="text-sm">Syncing your Google Business locations...</p>
+                </div>
+              ) : locations.length === 0 && allActive ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>All your locations are already active.</p>
+                  <Link href="/dashboard/locations" className="inline-block text-sm mt-2 text-blue-600 hover:text-blue-700">
+                    ← Back to Locations
+                  </Link>
                 </div>
               ) : locations.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
