@@ -11,7 +11,7 @@ SaaS reputation management app that integrates with Google Business Profile API 
 - **Auth:** NextAuth.js (Google OAuth only, gated by `ALLOWED_EMAILS` allowlist)
 - **Billing:** None — Stripe was removed. `Location.isActive` is the entitlement switch.
 - **AI:** OpenAI GPT-4o-mini for review response generation
-- **Email:** Gmail SMTP via nodemailer, sent as `GMAIL_USER` (welcome, new review alerts, account notifications)
+- **Email:** Gmail SMTP via nodemailer, sent as `GMAIL_USER`. Only email: the daily new-review alert from the cron (respects `User.notifyNewReviews`)
 - **Hosting:** Vercel with daily cron job for review sync
 
 ## Key Commands
@@ -47,7 +47,7 @@ src/
   lib/
     auth.ts               # NextAuth config, token refresh logic
     google-business.ts    # Google Business Profile API client
-    email.ts              # sendEmail (Gmail SMTP) & email templates
+    email.ts              # sendEmail (Gmail SMTP) & new-reviews email template
     prisma.ts             # Prisma singleton
     utils.ts              # Date formatting, truncate, initials
   types/
@@ -113,5 +113,6 @@ prisma/
 ## Important Notes
 - Google OAuth requires `business.manage` scope for GBP access
 - Reviews sync daily at 7 AM UTC via Vercel cron (`/api/cron/sync-reviews`)
+- Test email delivery: `GET /api/test-email` with `Authorization: Bearer $CRON_SECRET` sends a sample alert to `GMAIL_USER`
 - Widget allows embedding published reviews on customer websites
 - Admin panel at `/dashboard/admin` for user management

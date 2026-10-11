@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { sendEmail, getAccountClosedEmailHtml } from '@/lib/email';
 
 async function isAdminUser() {
   const session = await getServerSession(authOptions);
@@ -86,21 +85,6 @@ export async function DELETE(request: Request) {
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Send account closure notification email before deleting
-    if (user.email) {
-      try {
-        await sendEmail({
-          to: user.email,
-          toName: user.name || undefined,
-          subject: 'Your Local Review Responder Account Has Been Closed',
-          html: getAccountClosedEmailHtml(user.name || undefined),
-        });
-      } catch (emailError) {
-        console.error('Failed to send account closure email:', emailError);
-        // Continue with deletion even if email fails
-      }
     }
 
     // Delete user (cascades to accounts, sessions, locations, subscriptions, reviews)
