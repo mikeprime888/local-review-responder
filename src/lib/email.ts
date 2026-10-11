@@ -1,6 +1,6 @@
-// SendGrid HTTP API (no npm package needed — SENDGRID_API_KEY set in Vercel env)
-const SENDGRID_API_URL = 'https://api.sendgrid.com/v3/mail/send';
-const FROM_EMAIL = 'support@localreviewresponder.com';
+import nodemailer from 'nodemailer';
+
+// Gmail SMTP (GMAIL_USER / GMAIL_APP_PASSWORD set in Vercel env)
 const FROM_NAME = 'Local Review Responder';
 
 interface SendEmailOptions {
@@ -11,28 +11,25 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail({ to, toName, subject, html }: SendEmailOptions) {
-  const response = await fetch(SENDGRID_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
-    },
-    body: JSON.stringify({
-      personalizations: [
-        {
-          to: [toName ? { email: to, name: toName } : { email: to }],
-        },
-      ],
-      from: { email: FROM_EMAIL, name: FROM_NAME },
-      subject,
-      content: [{ type: 'text/html', value: html }],
-    }),
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) {
+    throw new Error('Email not configured: GMAIL_USER and GMAIL_APP_PASSWORD must be set');
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: { user, pass },
   });
 
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`SendGrid error ${response.status}: ${body}`);
-  }
+  await transporter.sendMail({
+    from: { name: FROM_NAME, address: user },
+    to: toName ? { name: toName, address: to } : to,
+    subject,
+    html,
+  });
 }
 
 // ─── Welcome Email ────────────────────────────────────────────────────────────

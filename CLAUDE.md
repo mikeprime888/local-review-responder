@@ -11,7 +11,7 @@ SaaS reputation management app that integrates with Google Business Profile API 
 - **Auth:** NextAuth.js (Google OAuth only, gated by `ALLOWED_EMAILS` allowlist)
 - **Billing:** None — Stripe was removed. `Location.isActive` is the entitlement switch.
 - **AI:** OpenAI GPT-4o-mini for review response generation
-- **Email:** SendGrid (welcome, new review alerts, account notifications)
+- **Email:** Gmail SMTP via nodemailer, sent as `GMAIL_USER` (welcome, new review alerts, account notifications)
 - **Hosting:** Vercel with daily cron job for review sync
 
 ## Key Commands
@@ -47,7 +47,7 @@ src/
   lib/
     auth.ts               # NextAuth config, token refresh logic
     google-business.ts    # Google Business Profile API client
-    email.ts              # SendGrid email templates
+    email.ts              # sendEmail (Gmail SMTP) & email templates
     prisma.ts             # Prisma singleton
     utils.ts              # Date formatting, truncate, initials
   types/
@@ -107,7 +107,7 @@ prisma/
 - `DATABASE_URL` / `DIRECT_URL` - Neon PostgreSQL
 - `NEXTAUTH_URL` / `NEXTAUTH_SECRET` - NextAuth config
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
-- `SENDGRID_API_KEY` - Email delivery
+- `GMAIL_USER` / `GMAIL_APP_PASSWORD` - Gmail SMTP email delivery
 - `OPENAI_API_KEY` - AI responses
 
 ## Important Notes
