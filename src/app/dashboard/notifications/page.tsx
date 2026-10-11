@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Bell, Mail, Star, BarChart3, Check, Loader2 } from 'lucide-react';
+import { Bell, Mail, Check, Loader2 } from 'lucide-react';
 
 interface NotificationPrefs {
   notifyNewReviews: boolean;
-  notifyLowRated: boolean;
-  notifyWeeklyDigest: boolean;
   email: string | null;
 }
 
@@ -90,25 +88,7 @@ export default function NotificationsPage() {
       iconBg: 'bg-blue-50',
       title: 'New review alerts',
       description:
-        'Get notified when customers leave new reviews on any of your active locations. Emails are sent during the nightly sync (2 AM EST).',
-    },
-    {
-      key: 'notifyLowRated' as const,
-      icon: Star,
-      iconColor: 'text-amber-600',
-      iconBg: 'bg-amber-50',
-      title: 'Low-rated review alerts',
-      description:
-        'Receive a highlighted alert when a review of 3 stars or below is detected so you can respond quickly.',
-    },
-    {
-      key: 'notifyWeeklyDigest' as const,
-      icon: BarChart3,
-      iconColor: 'text-emerald-600',
-      iconBg: 'bg-emerald-50',
-      title: 'Weekly digest',
-      description:
-        'A summary of your review activity for the week — total new reviews, average rating, and unreplied count. Sent every Monday morning.',
+        'Get notified when customers leave new reviews on any of your active locations. Emails are sent early each morning (around 3 AM Eastern).',
     },
   ];
 
@@ -203,7 +183,7 @@ export default function NotificationsPage() {
 
       {/* Info footer */}
       <p className="text-xs text-gray-400 mt-4 text-center">
-        Review sync runs nightly at 2 AM EST. Notification emails are sent when new reviews are detected.
+        Review sync runs early each morning (around 3 AM Eastern). Notification emails are sent when new reviews are detected.
       </p>
     </div>
   );

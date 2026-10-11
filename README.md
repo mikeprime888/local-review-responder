@@ -1,218 +1,89 @@
 # Local Review Responder
 
-A SaaS reputation management application that integrates with Google Business Profile API to help businesses fetch and respond to customer reviews.
+A private tool for managing Google Business Profile (GBP) reviews: sync reviews, reply with AI-drafted responses, get a daily email when new reviews arrive, and embed a review widget on business websites.
 
-## Features (Stage 1)
+It is not a public SaaS. Only allowlisted Google accounts can sign in, and there is no billing.
 
-✅ Google OAuth Authentication  
-✅ Database Schema (PostgreSQL via Neon)  
-✅ Basic Dashboard UI  
-✅ Session Management  
+## How access works
 
-## Tech Stack
+- **Sign-in:** Google OAuth only. A Google account can sign in only if its email is listed in `ALLOWED_EMAILS`. Rejected attempts are logged as `[auth] sign-in rejected: ...`.
+- **Locations:** after signing in, a user picks their GBP locations on **Add Location**, which calls `POST /api/locations/activate`. `Location.isActive` is the only entitlement switch: the nightly sync and the public widget serve active locations only. There is no UI to deactivate a location; set `isActive = false` in the database.
+- **Email:** the only email is the daily new-review alert, sent by the cron through Gmail SMTP as `GMAIL_USER`. Users can turn it off on the Notifications page (`User.notifyNewReviews`).
+- **Admin:** `/dashboard/admin` (users with `isAdmin`) lists users and can delete non-admin users.
 
-- **Frontend:** Next.js 14, React, Tailwind CSS
-- **Backend:** Next.js API Routes
-- **Database:** Neon (PostgreSQL) via Prisma ORM
-- **Authentication:** NextAuth.js with Google OAuth
-- **Hosting:** Vercel
+## Tech stack
 
-## Prerequisites
+- Next.js 14 (App Router, TypeScript), Tailwind CSS
+- PostgreSQL on Neon via Prisma
+- NextAuth.js (Google provider)
+- Google Business Profile APIs, OpenAI `gpt-4o-mini`
+- nodemailer (Gmail SMTP)
+- Vercel hosting with a daily cron
 
-Before you begin, you'll need:
+## Environment variables
 
-1. **GitHub Account** - To store your code
-2. **Vercel Account** - To host the application
-3. **Neon Account** - For the PostgreSQL database
-4. **Google Cloud Console** - OAuth credentials configured
+Set these in Vercel for Production and Preview. `.env.example` lists the same set.
 
-## Setup Instructions
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | yes | Neon pooled connection string |
+| `DIRECT_URL` | yes | Neon direct connection string (used by Prisma) |
+| `NEXTAUTH_URL` | yes | Public base URL of the deployment, e.g. `https://app.localreviewresponder.com` |
+| `NEXTAUTH_SECRET` | yes | NextAuth signing secret (`openssl rand -base64 32`) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | yes | Google OAuth client |
+| `ALLOWED_EMAILS` | yes | Comma-separated emails allowed to sign in. Unset or empty means nobody can sign in |
+| `CRON_SECRET` | yes | Bearer token for `/api/cron/sync-reviews` and `/api/test-email`. Unset means both reject every request |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | yes | Gmail account and App Password used to send alerts |
+| `OPENAI_API_KEY` | yes | AI response generation |
+| `NEXT_PUBLIC_APP_ORIGIN` | no | Origin shown in the widget embed snippet. Defaults to `https://app.localreviewresponder.com` |
 
-### Step 1: Clone and Install
+Vercel applies env var changes on the next deployment, so redeploy after editing `ALLOWED_EMAILS` or any other variable.
+
+## Google Cloud setup
+
+1. **OAuth client** (APIs & Services → Credentials). Add these authorized redirect URIs for every deployment URL you use (production, and the preview if you sign in there):
+   - `<NEXTAUTH_URL>/api/auth/callback/google` (sign-in)
+   - `<NEXTAUTH_URL>/api/auth/link-google/callback` (linking a different Google account from onboarding)
+2. **APIs to enable:**
+   - My Business Account Management API (`mybusinessaccountmanagement.googleapis.com/v1`): list accounts
+   - My Business Business Information API (`mybusinessbusinessinformation.googleapis.com/v1`): list locations
+   - Google My Business API v4 (`mybusiness.googleapis.com/v4`): reviews and replies
+3. Sign-in requests the `business.manage` scope with `prompt: consent`, so users see the Business Profile permission screen.
+
+## Gmail setup
+
+`GMAIL_USER` must be a Google account with 2-Step Verification turned on. Create an App Password for it and put that in `GMAIL_APP_PASSWORD`. On Google Workspace, the admin console must allow app passwords.
+
+To test delivery after a deploy:
 
 ```bash
-# If you have the ZIP file, extract it first
-# Then navigate to the project directory
-cd local-review-responder
+curl -H "Authorization: Bearer <CRON_SECRET>" https://<host>/api/test-email
+```
 
-# Install dependencies
+It sends a sample alert to `GMAIL_USER` and returns `{"sent":true,...}`, or the SMTP error.
+
+## Cron
+
+`vercel.json` runs `GET /api/cron/sync-reviews` daily at 07:00 UTC (3 AM EDT / 2 AM EST). Vercel sends `Authorization: Bearer $CRON_SECRET`. For each active location it syncs reviews, then emails each user who has new reviews and has alerts turned on.
+
+## Development workflow
+
+- Work on the `dev` branch. Vercel builds a preview from it; `main` deploys to production.
+- Changes are verified on the Vercel preview, not on localhost.
+- Database schema changes use `npx prisma db push` (not `migrate dev`). Confirm which Neon branch `DATABASE_URL` points at first; see `docs/lrr-ops-notes.md`.
+
+```bash
 npm install
+npx tsc --noEmit   # typecheck
+npm run lint
+npm run build      # runs prisma generate first
 ```
-
-### Step 2: Set Up Neon Database
-
-1. Go to [neon.tech](https://neon.tech) and create an account
-2. Create a new project
-3. Copy the connection string (it looks like: `postgresql://user:pass@host/db?sslmode=require`)
-
-### Step 3: Configure Google OAuth
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Navigate to APIs & Services → Credentials
-3. Create or update your OAuth 2.0 Client ID
-4. Add these **Authorized redirect URIs**:
-   - `http://localhost:3000/api/auth/callback/google` (for local dev)
-   - `https://YOUR-APP.vercel.app/api/auth/callback/google` (for production)
-   - `https://localreviewresponder.com/api/auth/callback/google` (your domain)
-5. Copy the **Client ID** and **Client Secret**
-
-### Step 4: Create Environment Variables
-
-Copy `.env.example` to `.env.local`:
-
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` with your values:
-
-```env
-# Database
-DATABASE_URL="postgresql://username:password@hostname/database?sslmode=require"
-
-# NextAuth
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="generate-a-random-32-character-string"
-
-# Google OAuth
-GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="your-client-secret"
-```
-
-**To generate NEXTAUTH_SECRET:**
-```bash
-openssl rand -base64 32
-```
-
-### Step 5: Initialize Database
-
-```bash
-# Push schema to database
-npx prisma db push
-
-# (Optional) Open Prisma Studio to view data
-npx prisma studio
-```
-
-### Step 6: Run Locally (Optional)
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Deploying to Vercel
-
-### Step 1: Push to GitHub
-
-```bash
-git init
-git add .
-git commit -m "Initial commit - Stage 1"
-git remote add origin https://github.com/YOUR-USERNAME/local-review-responder.git
-git branch -M main
-git push -u origin main
-```
-
-### Step 2: Deploy to Vercel
-
-1. Go to [vercel.com](https://vercel.com)
-2. Click "Add New Project"
-3. Import your GitHub repository
-4. Add Environment Variables:
-   - `DATABASE_URL`
-   - `NEXTAUTH_URL` (set to your Vercel URL, e.g., `https://local-review-responder.vercel.app`)
-   - `NEXTAUTH_SECRET`
-   - `GOOGLE_CLIENT_ID`
-   - `GOOGLE_CLIENT_SECRET`
-5. Click "Deploy"
-
-### Step 3: Update Google OAuth
-
-After deployment, add your Vercel URL to Google OAuth redirect URIs:
-```
-https://YOUR-APP.vercel.app/api/auth/callback/google
-```
-
-## Project Structure
-
-```
-local-review-responder/
-├── prisma/
-│   └── schema.prisma        # Database schema
-├── src/
-│   ├── app/
-│   │   ├── api/auth/        # NextAuth API route
-│   │   ├── dashboard/       # Dashboard page
-│   │   ├── login/           # Login page
-│   │   ├── globals.css      # Global styles
-│   │   ├── layout.tsx       # Root layout
-│   │   └── page.tsx         # Landing page
-│   ├── components/
-│   │   └── dashboard/       # Dashboard components
-│   ├── lib/
-│   │   ├── auth.ts          # NextAuth configuration
-│   │   ├── prisma.ts        # Prisma client
-│   │   └── utils.ts         # Utility functions
-│   └── types/
-│       └── next-auth.d.ts   # TypeScript declarations
-├── .env.example             # Environment template
-├── package.json
-├── tailwind.config.ts
-└── tsconfig.json
-```
-
-## Stage 1 Test Checklist
-
-After deploying, verify:
-
-- [ ] Landing page loads correctly
-- [ ] "Sign In" button redirects to login page
-- [ ] Google OAuth login works
-- [ ] After login, redirects to dashboard
-- [ ] Dashboard shows user name and email
-- [ ] Sign out works
-
-## Next Stages
-
-**Stage 2:** Google Business Profile Integration
-- Connect locations
-- Fetch reviews
-- Display reviews in dashboard
-
-**Stage 3:** Reply & Notifications
-- Reply to reviews
-- SendGrid email setup
-- New review notifications
-
-**Stage 4:** Polish & Features
-- Multi-location support
-- Analytics dashboard
-- Filters, search, pagination
 
 ## Troubleshooting
 
-### "Invalid redirect_uri" error
-- Make sure you added the correct redirect URI in Google Cloud Console
-- Check that NEXTAUTH_URL matches your actual URL
-
-### Database connection failed
-- Verify DATABASE_URL is correct
-- Make sure you're using `?sslmode=require` at the end
-
-### "NEXTAUTH_SECRET is not set" error
-- Generate a secret: `openssl rand -base64 32`
-- Add it to your environment variables
-
-## Support
-
-If you encounter issues, check:
-1. Environment variables are set correctly
-2. Google OAuth is configured with correct redirect URIs
-3. Database connection string is valid
-4. All dependencies are installed (`npm install`)
-
----
-
-Built with ❤️ using Next.js, Prisma, and Tailwind CSS
+- **Sign-in bounces back to `/login`:** check the Vercel logs for `[auth] sign-in rejected`. The line shows how many allowlist entries the server parsed and whether `ALLOWED_EMAILS` was present.
+- **"Invalid redirect_uri":** the redirect URI for the URL you're using is missing from the OAuth client, or `NEXTAUTH_URL` doesn't match the deployment URL.
+- **"Permission denied" from Google APIs:** sign out and back in to grant `business.manage`, and check the three APIs above are enabled.
+- **No locations found:** the signed-in Google account must be an Owner or Manager on the Business Profile (business.google.com → Manage → Users).
+- **Reviews missing:** reviews require verified locations. Sync locations before reviews.
+- **No alert emails:** call `/api/test-email`. A 535 error means the App Password is wrong or 2-Step Verification is off.

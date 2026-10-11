@@ -8,8 +8,8 @@
 # Claude Code — Session Orientation
 
 ## What this repo is
-**Local Review Responder (LRR)** — a SaaS app that helps local businesses manage and respond to Google Business Profile (GBP) reviews, and embed a review widget on their sites.
-Stack: **Next.js 14 (App Router, TypeScript)**, Prisma ORM, Neon PostgreSQL, NextAuth.js (Google OAuth), Stripe, Tailwind CSS, Vercel hosting, OpenAI GPT-4o-mini, SendGrid, GBP + Google Places APIs.
+**Local Review Responder (LRR)** — a private tool (not a public SaaS) for managing and responding to Google Business Profile (GBP) reviews, and embedding a review widget on business sites. Only allowlisted Google accounts can sign in; there is no billing.
+Stack: **Next.js 14 (App Router, TypeScript)**, Prisma ORM, Neon PostgreSQL, NextAuth.js (Google OAuth), Tailwind CSS, Vercel hosting, OpenAI GPT-4o-mini, Gmail SMTP (nodemailer), GBP APIs.
 
 ## Environment — read before you assume anything
 - **There is NO local dev environment.** Code is not run on localhost. Changes are tested on the **Vercel preview deploy** (built from the `dev` branch) and, after merge, production. Do not suggest `npm run dev` / localhost testing as the verification step.
@@ -32,9 +32,9 @@ Stack: **Next.js 14 (App Router, TypeScript)**, Prisma ORM, Neon PostgreSQL, Nex
 ## Credentials / safety
 - **Never put secrets in code or in this repo.** Reference env vars by name only. If a task needs a connection string or key, stop and ask — do not guess or reuse production values.
 
-## Entitlement model (see Comping section below for detail)
-- **`isActive` is the unified access signal.** Gating on `subscription` presence instead of `isActive` is the root cause of the recurring comped-user display bugs.
-- **`isComped` ≠ `isAdmin`** — comp is an explicit audited grant, not implied by admin role.
+## Access model (see "Access & Entitlement" below for detail)
+- **Who can sign in:** the `ALLOWED_EMAILS` env allowlist, Google OAuth only.
+- **`Location.isActive` is the only entitlement signal.** Sync and widgets serve active locations only. Stripe, subscriptions and comps are gone; `Subscription`, `stripeCustomerId`, `isComped`, `compedAt`, `compedNote` remain in the schema, unused.
 - GBP location sync uses `listAccounts()` + `listLocations(accountId)` per account — **not** the `accounts/-/locations` wildcard (it misses `LOCATION_GROUP` account types).
 
 <!-- ===================== END ORIENTATION ===================== -->
@@ -47,40 +47,16 @@ A running notebook of workflows, gotchas, and how-tos for managing Local Review 
 
 ---
 
-## Comping a User
+## Access & Entitlement
 
-### What "comped" means
-A comped user has `isComped = true` in the database. This flag:
-- Skips Stripe entirely when they add locations (server-side guard in `/api/stripe/checkout`)
-- Prevents the `customer.subscription.deleted` webhook from deactivating their locations
-- Is included in the JWT and session so it's available everywhere in the app
+### Giving someone access
+1. Add their Google email to `ALLOWED_EMAILS` (comma-separated) in Vercel, for Production and/or Preview.
+2. **Redeploy** — Vercel applies env var changes on the next deployment only.
+3. They sign in with Google, then add their locations on **Add Location** (`POST /api/locations/activate`), which sets `Location.isActive = true` and runs a first review sync.
 
-> `isComped` must be explicitly threaded through the NextAuth JWT and session callbacks — it exists in the Prisma schema but is not automatic in the session types.
-
-### Scenario 1 — New user who should never hit Stripe
-1. User signs up (Google OAuth)
-2. **You comp them first** via the Admin dashboard → User Management → Grant Comp
-3. User goes through onboarding and adds locations → Stripe is skipped automatically
-
-> ⚠️ Order matters: comp BEFORE they add locations. If locations are added first, Stripe trials are already created.
-
-### Scenario 2 — Existing user who already has locations (retroactive comp)
-1. Comp them via Admin dashboard → User Management → Grant Comp
-2. Go to Stripe dashboard and **manually cancel** their active trials/subscriptions
-3. Stripe fires a `customer.subscription.deleted` webhook — the handler checks `isComped` before acting, so their locations will NOT be deactivated
-
-> ⚠️ Always cancel Stripe subs after comping, not before — the `isComped` guard needs to be in place first.
-> 📌 Backlog: build auto Stripe cancellation into the Grant Comp admin action so this manual step isn't needed for existing paying users.
-
-### Scenario 3 — Admin account accidentally created Stripe trials (recovery)
-This happened on 3/30/2026 when locations were added to `admin@localreviewresponder.com` before comping was in place.
-1. Cancelled all 4 Stripe subscriptions manually in Stripe dashboard (Active ones first)
-2. Deleted location records from Neon production DB:
-   ```sql
-   DELETE FROM "Location"
-   WHERE "userId" = (SELECT id FROM "User" WHERE email = 'admin@localreviewresponder.com');
-   ```
-3. Verified 0 rows returned on SELECT
+### Removing access
+- Remove the email from `ALLOWED_EMAILS` and redeploy. That blocks new sign-ins only: sessions are JWTs (NextAuth default lifetime, 30 days) and aren't re-checked against the allowlist. Deleting the user from the Admin dashboard removes their data but does not revoke an existing token. To sign everyone out immediately, rotate `NEXTAUTH_SECRET` and redeploy.
+- To stop syncing/serving a single location there is no UI — set it inactive in SQL (see Useful queries).
 
 ---
 
@@ -88,33 +64,29 @@ This happened on 3/30/2026 when locations were added to `admin@localreviewrespon
 
 | Guard | Location | What it does |
 |---|---|---|
-| `isComped` UI redirect | `src/app/onboarding/page.tsx` | Redirects comped users to dashboard, skipping onboarding |
-| `isComped` Stripe checkout guard | `src/app/api/stripe/checkout/route.ts` | Returns 403 if user is comped — Stripe never called |
-| `isComped` webhook guard | `src/app/api/stripe/webhook/route.ts` (~line 173) | Prevents `subscription.deleted` from deactivating comped locations. **Verified end-to-end 2026-04-29** (test mode + dev preview): sub canceled, `Location.isActive` stayed `true`, log line `"Webhook: Skipping deactivation for comped user <userId>"` fired |
-| Onboarding "already set up" redirect | `src/app/onboarding/page.tsx` | The redirect signal is `locations?.length > 0` ONLY. Do NOT OR `isAdmin`/`isComped` into this condition, or comped users can never complete onboarding |
-
-**Entitlement principles**
-- `isActive` is the unified access signal (set by both the Stripe webhook and the `/api/locations/activate` comped route). Gate on `isActive`, not on `subscription` presence — the latter is the root cause of the recurring comped-user display bugs.
-- `isComped` ≠ `isAdmin`. Comp is an explicit audited grant; admin role does not confer it for billing.
+| Sign-in allowlist | `src/lib/auth.ts` (`isEmailAllowed`, `signIn` callback) | Rejects any email not in `ALLOWED_EMAILS`; fails closed when the var is unset/empty. Logs `[auth] sign-in rejected: ...` (never the allowlist contents) |
+| `isActive` gate | `src/app/api/cron/sync-reviews/route.ts`, `src/app/api/widget/[locationId]/route.ts`, `src/app/api/widget/summary/route.ts` | Only active locations are synced and served; inactive → widget 404 |
+| Location ownership | `src/app/api/locations/activate/route.ts` | Activation only for a location owned by the session user |
+| `CRON_SECRET` | `src/lib/cron-auth.ts` (used by the cron and `/api/test-email`) | Requires `Authorization: Bearer $CRON_SECRET`; returns 500 if the secret is unset, so `Bearer undefined` can never pass |
+| Onboarding "already set up" redirect | `src/app/onboarding/page.tsx` | The redirect signal is `locations?.length > 0` (active locations) ONLY. Don't OR `isAdmin` into it, or admins can never complete onboarding |
 
 ---
 
 ## Admin Dashboard
 
-URL: `app.localreviewresponder.com/admin`
+URL: `app.localreviewresponder.com/dashboard/admin` (requires `User.isAdmin`)
 
 | Action | Notes |
 |---|---|
-| Grant Comp | Sets `isComped = true`. Do this BEFORE the user adds locations. |
-| Revoke Comp | Sets `isComped = false`. User then needs an active Stripe sub to retain access. |
-| Delete user | Cannot delete admin account (protected) |
+| Delete user | Deletes the user and their data (locations, reviews, widget settings). The admin account itself is protected |
 
 ---
 
 ## Auth — Google sign-in only
 
-- Email/password login has been removed: no `CredentialsProvider`, no forgot/reset-password pages or APIs, no `check-account-type` endpoint, no `/api/settings/password`. The `User.password` column remains in the schema (all values NULL) pending a later cleanup.
 - Sign-in is Google OAuth only, gated by the `ALLOWED_EMAILS` allowlist (`isEmailAllowed` in `src/lib/auth.ts`). Denied sign-ins redirect to `/login?error=AccessDenied` (NextAuth `pages.error = '/login'`).
+- There is no registration and no email/password login. The `User.password` column remains in the schema (all values NULL) pending a later cleanup.
+- Onboarding's "Connect Google account" / "Try a Different Google Account" use `/api/auth/link-google` to attach another Google account (with GBP access) to the signed-in user. Its callback URL, `<NEXTAUTH_URL>/api/auth/link-google/callback`, must be an authorized redirect URI on the OAuth client.
 
 ---
 
@@ -125,7 +97,7 @@ URL: `app.localreviewresponder.com/admin`
 - **Preview:** `ep-misty-bar` (schema-only, no auto-delete; used by the dev preview build)
 - SQL editor branch selector: navigate to the branch in the sidebar FIRST, then open the SQL Editor.
 
-> **Preview seed data:** `ep-misty-bar` contains a seeded test Google `Account` row for `mikeprime888@gmail.com` (`providerAccountId: preview-seed-mikeprime888` — a placeholder, not a real token), added to give that account an OAuth-only shape for testing login detection on preview. Harmless, preview-only, never in production — don't mistake it for real data or a bug, and don't delete it expecting a sync to recreate it.
+> **Preview seed data:** `ep-misty-bar` contains a seeded test Google `Account` row for `mikeprime888@gmail.com` (`providerAccountId: preview-seed-mikeprime888` — a placeholder, not a real token), added to give that account an OAuth-only shape for testing the (since removed) login detection on preview. Harmless, preview-only, never in production — don't mistake it for real data or a bug, and don't delete it expecting a sync to recreate it.
 
 ### Schema-change targeting (important)
 `prisma db push` applies to whatever `DATABASE_URL`/`DIRECT_URL` `.env` currently points at. For dev-branch work, the **preview DB (`ep-misty-bar`)** needs the schema or the preview build throws on reads of the new column. Confirm the target before pushing; restore `.env` and leave the tree clean afterward.
@@ -141,19 +113,23 @@ WHERE "userId" = (SELECT id FROM "User" WHERE email = 'user@example.com');
 DELETE FROM "Location"
 WHERE "userId" = (SELECT id FROM "User" WHERE email = 'user@example.com');
 
--- Check comp status for all users
-SELECT email, "isComped", "isAdmin", "isActive" FROM "User";
+-- Active/inactive locations per user
+SELECT u.email, l.title, l."isActive"
+FROM "Location" l JOIN "User" u ON u.id = l."userId"
+ORDER BY u.email, l.title;
+
+-- Stop syncing/serving one location
+UPDATE "Location" SET "isActive" = false WHERE id = '<location id>';
 ```
 
 ---
 
-## Stripe
-- **Live mode** active on production
-- **Test mode** on preview (dev branch)
-- Test card: `4242 4242 4242 4242`
-- Webhook: `app.localreviewresponder.com/api/stripe/webhook` (dev test webhook at the preview URL)
-- Always cancel trials in Stripe dashboard after deleting locations from DB
-- Active subscriptions charge immediately if not cancelled — cancel those first
+## Email (Gmail SMTP)
+- The only email is the daily **new-review alert**, sent by the cron (`/api/cron/sync-reviews`, 07:00 UTC) via `sendEmail()` in `src/lib/email.ts`.
+- Sent through `smtp.gmail.com:465` as `GMAIL_USER` (admin@localreviewresponder.com) with `GMAIL_APP_PASSWORD` (a Google App Password; needs 2-Step Verification on the account).
+- Skipped for users who turned off **New review alerts** (`User.notifyNewReviews`); their reviews still sync.
+- Test delivery: `curl -H "Authorization: Bearer <CRON_SECRET>" https://<host>/api/test-email` sends a sample alert to `GMAIL_USER`.
+- Stripe and SendGrid have been removed entirely (code, dependencies, env vars, webhooks).
 
 ---
 
@@ -197,14 +173,12 @@ The widget exists in **two** places that must be changed together for any visual
 ## Backlog / Known Issues
 
 - **Stored XSS in `public/widget.js`** (avatar render path, `lrrOpenModal`): reviewer name re-emitted into `innerHTML` unescaped. High severity, low likelihood today. Fix at the render boundary (HTML-escape the name, or build the avatar with DOM methods) before meaningful public traffic. See `LRR-Widget-XSS-Writeup.docx`.
-- Auto Stripe cancellation in the Grant Comp admin action (for comping existing paying users).
+- **Schema cleanup** (needs a `prisma db push` on both Neon branches): drop `Subscription`, `User.stripeCustomerId`, `isComped`, `compedAt`, `compedNote`, `notifyLowRated`, `notifyWeeklyDigest`, `password`.
 - Vercel env var rotation (4-group plan) — delete + re-add with **Sensitive** toggle ON (the Edit button doesn't enable Sensitive storage). GitHub SSH key migration after rotation.
-- Verify/wire or drop unused `User.notifyNewReviews` column.
-- Improve `sendEmail` error visibility: log full SendGrid response bodies on non-2xx; consider a `NotificationLog` table.
-- Clean up `/api/places/search` route if no UI callers confirmed (Places API key already restricted to Places API only).
-- Pre-launch test plan (`LRR-Pre-Launch-Test-Plan.docx`, 90 tests) — completion status to confirm; Stripe is in live mode.
-- Delete test accounts; remove `/api/test-email` endpoint.
+- Pre-launch test plan (`LRR-Pre-Launch-Test-Plan.docx`, 90 tests) — many Stripe/registration tests no longer apply; prune before reuse.
+- Delete test accounts.
+- Consider logging each alert send (e.g. a `NotificationLog` table) for visibility into delivery.
 
 ---
 
-*Last updated: 2026-07-06 — Noted the `ep-misty-bar` OAuth-only seed row (`preview-seed-mikeprime888`) and the live OAuth-only login hint (`check-account-type` endpoint + login-page wiring, commits 69f3fb0 + 6288236).*
+*Last updated: 2026-10-11 — Private-tool cleanup: Stripe, SendGrid, comps, registration and password login removed; Gmail SMTP alerts; `CRON_SECRET` fails closed.*

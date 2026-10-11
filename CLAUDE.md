@@ -1,7 +1,7 @@
 # CLAUDE.md - Local Review Responder
 
 ## Project Overview
-SaaS reputation management app that integrates with Google Business Profile API to help businesses fetch and respond to customer reviews with AI-generated responses.
+Private review-management tool (not a public SaaS) that integrates with the Google Business Profile API to fetch and respond to customer reviews with AI-generated responses. Only allowlisted Google accounts can sign in; there is no billing or registration.
 
 ## Tech Stack
 - **Framework:** Next.js 14 (App Router)
@@ -38,7 +38,6 @@ src/
       settings/           # Account & notification preferences
       cron/               # Scheduled review sync
       admin/              # Admin user management
-      places/             # Google Places search
     dashboard/            # Dashboard pages (reviews, locations, widget, etc.)
     login/                # Login page
   components/
@@ -49,6 +48,7 @@ src/
     google-business.ts    # Google Business Profile API client
     email.ts              # sendEmail (Gmail SMTP) & new-reviews email template
     prisma.ts             # Prisma singleton
+    cron-auth.ts          # CRON_SECRET check (fails closed)
     utils.ts              # Date formatting, truncate, initials
   types/
     next-auth.d.ts        # Session/JWT type extensions
@@ -96,7 +96,7 @@ prisma/
 - LRR is a private tool for allowlisted users; Stripe billing has been removed.
 - `Location.isActive` is the only entitlement signal: review sync and widgets serve active locations only.
 - Users activate their own locations via `POST /api/locations/activate`.
-- `Subscription`, `stripeCustomerId` and `isComped` remain in `prisma/schema.prisma` for now but are unused.
+- Unused schema leftovers, kept until a later cleanup: `Subscription`, `User.stripeCustomerId`, `isComped`/`compedAt`/`compedNote`, `notifyLowRated`/`notifyWeeklyDigest`, `password`.
 
 ### OpenAI
 - Model: `gpt-4o-mini`, temperature 0.7
@@ -107,8 +107,11 @@ prisma/
 - `DATABASE_URL` / `DIRECT_URL` - Neon PostgreSQL
 - `NEXTAUTH_URL` / `NEXTAUTH_SECRET` - NextAuth config
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
+- `ALLOWED_EMAILS` - Comma-separated sign-in allowlist (unset/empty = nobody can sign in)
+- `CRON_SECRET` - Bearer token for the cron and `/api/test-email` (unset = rejected)
 - `GMAIL_USER` / `GMAIL_APP_PASSWORD` - Gmail SMTP email delivery
 - `OPENAI_API_KEY` - AI responses
+- `NEXT_PUBLIC_APP_ORIGIN` - Optional; origin in the widget embed snippet
 
 ## Important Notes
 - Google OAuth requires `business.manage` scope for GBP access

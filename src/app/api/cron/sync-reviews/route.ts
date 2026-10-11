@@ -3,6 +3,7 @@ import { getValidAccessToken } from '@/lib/auth';
 import { listAllReviews, starRatingToNumber, extractReviewId } from '@/lib/google-business';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, getNewReviewsEmailHtml } from '@/lib/email';
+import { checkCronSecret } from '@/lib/cron-auth';
 
 /**
  * GET /api/cron/sync-reviews
@@ -15,11 +16,9 @@ import { sendEmail, getNewReviewsEmailHtml } from '@/lib/email';
 export async function GET(request: NextRequest) {
   console.log(`[Cron] Invoked at ${new Date().toISOString()}`);
 
-  // Verify cron secret
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Verify cron secret (fails closed if CRON_SECRET is unset)
+  const authError = checkCronSecret(request);
+  if (authError) return authError;
 
   console.log('Cron: Starting nightly review sync...');
 

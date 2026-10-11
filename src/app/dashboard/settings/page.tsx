@@ -175,18 +175,6 @@ export default function SettingsPage() {
           {account?.providers?.length === 0 && (
             <p className="text-sm text-gray-500">No connected accounts found.</p>
           )}
-
-          {session?.user?.email && !account?.providers?.includes('google') && (
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <User className="h-5 w-5 text-gray-400" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Email & Password</p>
-                <p className="text-xs text-gray-500">
-                  Signed in with email and password
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
