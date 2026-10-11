@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
             id: true,
             email: true,
             name: true,
+            notifyNewReviews: true,
           },
         },
       },
@@ -196,9 +197,9 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Send email notification if there are new reviews for this user
+      // Send email notification if there are new reviews and the user wants them
       let emailAttempted = false;
-      if (userNewReviews.length > 0 && locations[0].user.email) {
+      if (userNewReviews.length > 0 && locations[0].user.email && locations[0].user.notifyNewReviews) {
         emailAttempted = true;
         try {
           const html = getNewReviewsEmailHtml(
@@ -220,6 +221,8 @@ export async function GET(request: NextRequest) {
         }
       } else if (userNewReviews.length === 0) {
         skippedCount++;
+      } else if (!locations[0].user.notifyNewReviews) {
+        console.log(`Cron: ${locations[0].user.email} has new-review emails turned off (${userNewReviews.length} new reviews)`);
       }
 
       processedCount++;

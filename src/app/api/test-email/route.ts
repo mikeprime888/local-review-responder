@@ -28,12 +28,21 @@ export async function GET(request: NextRequest) {
     },
   ]);
 
-  const sent = await sendEmail({
-    to: 'mikeprime888@gmail.com',
-    toName: 'Michael',
-    subject: '📬 3 new reviews on Local Review Responder (TEST)',
-    html,
-  });
+  // Sends to the sending mailbox itself, to verify Gmail SMTP delivery
+  const to = process.env.GMAIL_USER;
+  if (!to) {
+    return NextResponse.json({ error: 'GMAIL_USER is not set' }, { status: 500 });
+  }
 
-  return NextResponse.json({ sent });
+  try {
+    await sendEmail({
+      to,
+      subject: '📬 3 new reviews on Local Review Responder (TEST)',
+      html,
+    });
+    return NextResponse.json({ sent: true, to });
+  } catch (error: any) {
+    console.error('Test email failed:', error);
+    return NextResponse.json({ sent: false, error: error.message }, { status: 500 });
+  }
 }
